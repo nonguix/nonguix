@@ -21,24 +21,30 @@
   #:use-module (guix build-system trivial)
   #:use-module ((guix licenses) #:prefix license:))
 
-(define-public linux
+(define (linux-urls version)
+  "Return a list of URLS for Linux VERSION."
+  (let ((major-version (string-take version 1)))
+    (list (string-append "https://www.kernel.org/pub/linux/kernel/v"
+                         major-version ".x/linux-" version ".tar.xz"))))
+
+(define (corrupt-linux freedo version hash)
   (package
-    (inherit linux-libre)
+    (inherit freedo)
     (name "linux")
-    (version "5.0.15")
+    (version version)
     (source (origin
               (method url-fetch)
-              (uri (string-append
-                    "https://cdn.kernel.org/pub/linux/kernel/v5.x/"
-                    "linux-" version ".tar.xz"))
-              (sha256
-               (base32
-                "01zb8lz1lxcff2j8yxzm0ayfazi07c2n7v1i3v8wbq8k9r2vhgjw"))))
+              (uri (linux-urls version))
+              (sha256 (base32 hash))))
     (home-page "https://www.kernel.org/")
     (synopsis "Linux kernel with nonfree binary blobs included")
     (description
      "The unmodified Linux kernel, including nonfree blobs, for running GuixSD
 on hardware which requires nonfree software to function.")))
+
+(define-public linux
+  (corrupt-linux linux-libre "5.0.15"
+                 "01zb8lz1lxcff2j8yxzm0ayfazi07c2n7v1i3v8wbq8k9r2vhgjw"))
 
 (define-public linux-firmware
   (let ((commit "92e17d0dd2437140fab044ae62baf69b35d7d1fa")
