@@ -1,0 +1,25 @@
+#+TITLE: Nonguix
+
+Nonguix is a software repository for the
+[[https://www.gnu.org/software/guix/][GNU Guix]] package manager,
+which packages some software which cannot be included in the official
+distribution for ethical or policy-related reasons.
+
+Please do NOT promote this repository on any official Guix
+communication channels, such as their mailing lists or IRC channel, even in
+response to support requests!  This is to show respect for the Guix project's
+[[http://www.gnu.org/distros/free-system-distribution-guidelines.html][strict policy]]
+against recommending nonfree software, and to avoid any unnecessary hostility.
+
+* Installation
+
+Nonguix can be installed as a
+[[https://www.gnu.org/software/guix/manual/en/html_node/Channels.html][Guix channel]].
+To do so, add it to =~/.config/guix/channels.scm=:
+
+#+BEGIN_SRC scheme
+  (cons* (channel
+          (name 'nonguix)
+          (url "https://gitlab.com/ajgrf/nonguix"))
+         %default-channels)
+#+END_SRC
