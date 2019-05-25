@@ -90,3 +90,24 @@ hardware in the Linux kernel.")
        (license:non-copyleft
         (string-append "https://git.kernel.org/pub/scm/linux/kernel/git/"
                        "firmware/linux-firmware.git/plain/WHENCE"))))))
+
+(define-public ath3k-firmware
+  (package
+   (inherit linux-firmware)
+   (name "ath3k-firmware")
+   (build-system trivial-build-system)
+   (arguments
+    `(#:modules ((guix build utils))
+      #:builder (begin
+                  (use-modules (guix build utils))
+                  (let ((source (assoc-ref %build-inputs "source"))
+                        (fw-dir (string-append %output "/lib/firmware")))
+                    (mkdir-p fw-dir)
+                    (copy-file (string-append source "/ath3k-1.fw")
+                               (string-append fw-dir "/ath3k-1.fw"))
+                    (copy-recursively (string-append source "/ar3k")
+                                      (string-append fw-dir "/ar3k"))
+                    #t))))
+   (synopsis "Non-free firmware blobs for the ath3k Bluetooth driver")
+   (description "Non-free firmware blobs for the ath3k Bluetooth driver. ath3k
+is the Linux Bluetooth driver for Atheros AR3011/AR3012 Bluetooth chipsets.")))
