@@ -20,7 +20,7 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-(define-module (nonfree packages linux)
+(define-module (nongnu packages linux)
   #:use-module (gnu packages linux)
   #:use-module (guix packages)
   #:use-module (guix download)
