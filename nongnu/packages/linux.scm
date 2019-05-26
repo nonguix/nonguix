@@ -26,7 +26,7 @@
   #:use-module (guix download)
   #:use-module (guix git-download)
   #:use-module (guix build-system trivial)
-  #:use-module ((guix licenses) #:prefix license:))
+  #:use-module (nonguix licenses))
 
 (define (linux-urls version)
   "Return a list of URLS for Linux VERSION."
@@ -87,7 +87,7 @@ on hardware which requires nonfree software to function.")))
       (description "Non-free firmware blobs for enabling support for various
 hardware in the Linux kernel.")
       (license
-       (license:non-copyleft
+       (nonfree
         (string-append "https://git.kernel.org/pub/scm/linux/kernel/git/"
                        "firmware/linux-firmware.git/plain/WHENCE"))))))
 
@@ -110,4 +110,14 @@ hardware in the Linux kernel.")
                     #t))))
    (synopsis "Non-free firmware blobs for the ath3k Bluetooth driver")
    (description "Non-free firmware blobs for the ath3k Bluetooth driver. ath3k
-is the Linux Bluetooth driver for Atheros AR3011/AR3012 Bluetooth chipsets.")))
+is the Linux Bluetooth driver for Atheros AR3011/AR3012 Bluetooth chipsets.")
+   (license
+    (list
+     (nonfree
+      (string-append
+       "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+       "/linux-firmware.git/plain/LICENCE.atheros_firmware"))
+     (nonfree
+      (string-append
+       "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+       "/linux-firmware.git/plain/LICENSE.QualcommAtheros_ar3k"))))))
