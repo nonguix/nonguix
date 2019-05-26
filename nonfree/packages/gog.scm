@@ -14,10 +14,52 @@
 ;;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (nonfree packages gog)
+  #:use-module (gnu packages boost)
+  #:use-module (gnu packages compression)
+  #:use-module (gnu packages crypto)
+  #:use-module (gnu packages curl)
+  #:use-module (gnu packages pkg-config)
+  #:use-module (gnu packages serialization)
+  #:use-module (gnu packages web)
+  #:use-module (gnu packages xml)
   #:use-module (guix packages)
   #:use-module (guix download)
+  #:use-module (guix git-download)
+  #:use-module (guix build-system cmake)
   #:use-module (guix build-system gnu)
   #:use-module ((guix licenses) #:prefix license:))
+
+(define-public lgogdownloader
+  (package
+   (name "lgogdownloader")
+   (version "3.5")
+   (source
+    (origin
+      (method git-fetch)
+      (uri (git-reference
+            (url "https://github.com/Sude-/lgogdownloader.git")
+            (commit (string-append "v" version))))
+      (file-name (git-file-name name version))
+      (sha256
+       (base32 "0a3rrkgqwdqxx3ghzw182jx88gzzw6ldp3jasmgnr4l7gpxkmwws"))))
+   (build-system cmake-build-system)
+   (arguments '(#:tests? #f))           ; no tests
+   (inputs
+    `(("boost" ,boost)
+      ("curl" ,curl)
+      ("htmlcxx" ,htmlcxx)
+      ("jsoncpp" ,jsoncpp)
+      ("liboauth" ,liboauth)
+      ("rhash" ,rhash)
+      ("tinyxml2" ,tinyxml2)
+      ("zlib" ,zlib)))
+   (native-inputs
+    `(("pkg-config" ,pkg-config)))
+   (home-page "https://sites.google.com/site/gogdownloader/")
+   (synopsis "Downloader for GOG.com files")
+   (description "LGOGDownloader is a client for the GOG.com download API,
+allowing simple downloads and updates of games and other files from GOG.com.")
+   (license license:wtfpl2)))
 
 (define-public htmlcxx
   (package
