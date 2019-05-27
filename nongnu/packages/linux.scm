@@ -21,6 +21,7 @@
 ;;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (nongnu packages linux)
+  #:use-module (gnu packages compression)
   #:use-module (gnu packages linux)
   #:use-module (guix packages)
   #:use-module (guix download)
@@ -121,3 +122,92 @@ is the Linux Bluetooth driver for Atheros AR3011/AR3012 Bluetooth chipsets.")
       (string-append
        "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
        "/linux-firmware.git/plain/LICENSE.QualcommAtheros_ar3k"))))))
+
+(define-public broadcom-bt-firmware
+  (package
+    (name "broadcom-bt-firmware")
+    (version "12.0.1.710")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "http://dlcdnet.asus.com/pub/ASUS/wireless/"
+                           "USB-BT400/DR_USB_BT400_"
+                           (string-filter (char-set-complement (char-set #\.))
+                                                               version)
+                           "_Windows.zip"))
+       (sha256
+        (base32
+         "1jzg1yl2hrfdh9prr2ds4rl6c69m2f8bf94m72p3rlddjvi8jj58"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils)
+                  (ice-9 rdelim)
+                  (ice-9 regex))
+       #:builder
+       (begin
+         (use-modules (guix build utils)
+                      (ice-9 rdelim)
+                      (ice-9 regex))
+         (let ((PATH (string-append (assoc-ref %build-inputs "unzip") "/bin:"
+                                    (assoc-ref %build-inputs "bluez") "/bin"))
+               (source (assoc-ref %build-inputs "source"))
+               (firmware-dir (string-append %output "/lib/firmware/brcm/")))
+           (setenv "PATH" PATH)
+           (system* "unzip" source)
+           (chdir "Win10_USB-BT400_DRIVERS/Win10_USB-BT400_Driver_Package/64/")
+           (mkdir-p firmware-dir)
+           ;; process the inf file to get the correct filenames
+           (with-input-from-file "bcbtums-win8x64-brcm.inf"
+             (lambda ()
+               (do ((line (read-line) (read-line))
+                    (devices '()))
+                   ((eof-object? line) #t)
+                 ;; these two `lets' are like awk patterns matching against
+                 ;; records. link devices in this file with its vids and pids
+                 (let ((rcrd (string-match "%=Blue(.*),.*VID_(....).*PID_(....)"
+                                           line)))
+                   (when rcrd
+                     (set! devices
+                           (assoc-set! devices (match:substring rcrd 1)
+                                       `((vid . ,(match:substring rcrd 2))
+                                         (pid . ,(match:substring rcrd 3)))))))
+                 ;; find the hex file associated with each device, build the
+                 ;; output file name
+                 (let ((rcrd (string-match "\\[(RAMUSB.*)\\.CopyList\\]" line)))
+                   (when rcrd
+                     (let* ((key (match:substring rcrd 1))
+                            ;; this happens to be 3 lines down every time
+                            (hex-file (begin (read-line)
+                                             (read-line)
+                                             (string-drop-right (read-line) 1)))
+                            (chipset (car (string-tokenize
+                                           hex-file
+                                           char-set:letter+digit)))
+                            (vid (assoc-ref (assoc-ref devices key) 'vid))
+                            (pid (assoc-ref (assoc-ref devices key) 'pid))
+                            (hcd-file (string-append chipset "-"
+                                                     (string-downcase vid) "-"
+                                                     (string-downcase pid)
+                                                     ".hcd")))
+                       ;; finally convert the file, phew!
+                       (system* "hex2hcd"
+                                "-o" (string-append firmware-dir hcd-file)
+                                hex-file)))))))))))
+    (native-inputs
+     `(("bluez" ,bluez)
+       ("unzip" ,unzip)))
+    (home-page "http://www.broadcom.com/support/bluetooth")
+    (synopsis "Broadcom bluetooth firmware")
+    (description
+     "This package contains nonfree firmware for the following bluetooth
+chipsets from Broadcom:
+@itemize
+@item BCM4335C0
+@item BCM4350C5
+@item BCM4356A2
+@item BCM20702A1
+@item BCM20702B0
+@item BCM20703A1
+@item BCM43142A0
+@end itemize")
+    (license (undistributable "http://www.broadcom.com/support/bluetooth"))))
