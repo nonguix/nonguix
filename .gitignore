@@ -1,0 +1,8 @@
+*.go
+*.tmp
+*~
+.#*
+\#*\#
+,*
+tmp
+/.dir-locals-2.el
