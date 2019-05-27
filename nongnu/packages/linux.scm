@@ -58,6 +58,10 @@ on hardware which requires nonfree software to function.")))
   (corrupt-linux linux-libre-4.19 "4.19.46"
                  "0yp6azpw1phnng39jlyykhyqdfgpxar739fvlgs5j8l7ibz54yq9"))
 
+(define-public linux-4.14
+  (corrupt-linux linux-libre-4.14 "4.14.122"
+                 "1xb87zwnw0sv9v53c61jlw9d1dl15m7rbq4h50yqpqbpz07g98y8"))
+
 (define-public linux-firmware
   (let ((commit "92e17d0dd2437140fab044ae62baf69b35d7d1fa")
         (revision "1"))
