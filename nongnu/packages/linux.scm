@@ -100,8 +100,8 @@ on hardware which requires nonfree software to function.")))
                        #t))))
       (home-page
        "http://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git")
-      (synopsis "Non-free firmware blobs for Linux")
-      (description "Non-free firmware blobs for enabling support for various
+      (synopsis "Nonfree firmware blobs for Linux")
+      (description "Nonfree firmware blobs for enabling support for various
 hardware in the Linux kernel.")
       (license
        (nonfree
@@ -125,8 +125,8 @@ hardware in the Linux kernel.")
                     (copy-recursively (string-append source "/ar3k")
                                       (string-append fw-dir "/ar3k"))
                     #t))))
-   (synopsis "Non-free firmware blobs for the ath3k Bluetooth driver")
-   (description "Non-free firmware blobs for the ath3k Bluetooth driver. ath3k
+   (synopsis "Nonfree firmware blobs for the ath3k Bluetooth driver")
+   (description "Nonfree firmware blobs for the ath3k Bluetooth driver. ath3k
 is the Linux Bluetooth driver for Atheros AR3011/AR3012 Bluetooth chipsets.")
    (license
     (list
