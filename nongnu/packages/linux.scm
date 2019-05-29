@@ -96,7 +96,8 @@ on hardware which requires nonfree software to function.")))
        "http://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git")
       (synopsis "Nonfree firmware blobs for Linux")
       (description "Nonfree firmware blobs for enabling support for various
-hardware in the Linux kernel.")
+hardware in the Linux kernel.  This is a large package which may be overkill
+if your hardware is supported by one of the smaller firmware packages.")
       (license
        (nonfree
         (string-append "https://git.kernel.org/pub/scm/linux/kernel/git/"
