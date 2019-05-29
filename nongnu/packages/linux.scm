@@ -105,40 +105,40 @@ if your hardware is supported by one of the smaller firmware packages.")
 
 (define-public ath3k-firmware
   (package
-   (inherit linux-firmware)
-   (name "ath3k-firmware")
-   (build-system trivial-build-system)
-   (arguments
-    `(#:modules ((guix build utils))
-      #:builder
-      (begin
-        (use-modules (guix build utils))
-        (let ((source (assoc-ref %build-inputs "source"))
-              (fw-dir (string-append %output "/lib/firmware")))
-          (mkdir-p fw-dir)
-          (for-each (lambda (file)
-                      (copy-file (string-append source "/" file)
-                                 (string-append fw-dir "/" file)))
-                    (list "ath3k-1.fw"
-                          "LICENCE.atheros_firmware"
-                          "LICENSE.QualcommAtheros_ar3k"
-                          "WHENCE"))
-          (copy-recursively (string-append source "/ar3k")
-                            (string-append fw-dir "/ar3k"))
-          #t))))
-   (synopsis "Nonfree firmware blobs for the ath3k Bluetooth driver")
-   (description "Nonfree firmware blobs for the ath3k Bluetooth driver. ath3k
+    (inherit linux-firmware)
+    (name "ath3k-firmware")
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let ((source (assoc-ref %build-inputs "source"))
+               (fw-dir (string-append %output "/lib/firmware")))
+           (mkdir-p fw-dir)
+           (for-each (lambda (file)
+                       (copy-file (string-append source "/" file)
+                                  (string-append fw-dir "/" file)))
+                     (list "ath3k-1.fw"
+                           "LICENCE.atheros_firmware"
+                           "LICENSE.QualcommAtheros_ar3k"
+                           "WHENCE"))
+           (copy-recursively (string-append source "/ar3k")
+                             (string-append fw-dir "/ar3k"))
+           #t))))
+    (synopsis "Nonfree firmware blobs for the ath3k Bluetooth driver")
+    (description "Nonfree firmware blobs for the ath3k Bluetooth driver. ath3k
 is the Linux Bluetooth driver for Atheros AR3011/AR3012 Bluetooth chipsets.")
-   (license
-    (list
-     (nonfree
-      (string-append
-       "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
-       "/linux-firmware.git/plain/LICENCE.atheros_firmware"))
-     (nonfree
-      (string-append
-       "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
-       "/linux-firmware.git/plain/LICENSE.QualcommAtheros_ar3k"))))))
+    (license
+     (list
+      (nonfree
+       (string-append
+        "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+        "/linux-firmware.git/plain/LICENCE.atheros_firmware"))
+      (nonfree
+       (string-append
+        "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+        "/linux-firmware.git/plain/LICENSE.QualcommAtheros_ar3k"))))))
 
 (define-public iwlwifi-firmware
   (package
@@ -181,7 +181,7 @@ support for 5GHz and 802.11ac, among others.")
        (uri (string-append "http://dlcdnet.asus.com/pub/ASUS/wireless/"
                            "USB-BT400/DR_USB_BT400_"
                            (string-filter (char-set-complement (char-set #\.))
-                                                               version)
+                                          version)
                            "_Windows.zip"))
        (sha256
         (base32
