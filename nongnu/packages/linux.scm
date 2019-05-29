@@ -140,6 +140,37 @@ is the Linux Bluetooth driver for Atheros AR3011/AR3012 Bluetooth chipsets.")
        "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
        "/linux-firmware.git/plain/LICENSE.QualcommAtheros_ar3k"))))))
 
+(define-public iwlwifi-firmware
+  (package
+    (inherit linux-firmware)
+    (name "iwlwifi-firmware")
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let ((source (assoc-ref %build-inputs "source"))
+               (fw-dir (string-append %output "/lib/firmware/")))
+           (mkdir-p fw-dir)
+           (for-each (lambda (file)
+                       (copy-file file
+                                  (string-append fw-dir (basename file))))
+                     (cons*
+                      (string-append source "/LICENCE.iwlwifi_firmware")
+                      (find-files source
+                                  "iwlwifi-.*\\.ucode$")))
+           #t))))
+    (home-page "https://wireless.wiki.kernel.org/en/users/drivers/iwlwifi")
+    (synopsis "Nonfree firmware for Intel wifi chips")
+    (description "The proprietary iwlwifi kernel module is required by many
+modern Intel wifi cards (commonly found in laptops).  This blob enables
+support for 5GHz and 802.11ac, among others.")
+    (license
+     (nonfree (string-append
+               "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+               "/linux-firmware.git/plain/LICENCE.iwlwifi_firmware")))))
+
 (define-public broadcom-bt-firmware
   (package
     (name "broadcom-bt-firmware")
