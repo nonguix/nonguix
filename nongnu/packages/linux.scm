@@ -109,16 +109,22 @@ hardware in the Linux kernel.")
    (build-system trivial-build-system)
    (arguments
     `(#:modules ((guix build utils))
-      #:builder (begin
-                  (use-modules (guix build utils))
-                  (let ((source (assoc-ref %build-inputs "source"))
-                        (fw-dir (string-append %output "/lib/firmware")))
-                    (mkdir-p fw-dir)
-                    (copy-file (string-append source "/ath3k-1.fw")
-                               (string-append fw-dir "/ath3k-1.fw"))
-                    (copy-recursively (string-append source "/ar3k")
-                                      (string-append fw-dir "/ar3k"))
-                    #t))))
+      #:builder
+      (begin
+        (use-modules (guix build utils))
+        (let ((source (assoc-ref %build-inputs "source"))
+              (fw-dir (string-append %output "/lib/firmware")))
+          (mkdir-p fw-dir)
+          (for-each (lambda (file)
+                      (copy-file (string-append source "/" file)
+                                 (string-append fw-dir "/" file)))
+                    (list "ath3k-1.fw"
+                          "LICENCE.atheros_firmware"
+                          "LICENSE.QualcommAtheros_ar3k"
+                          "WHENCE"))
+          (copy-recursively (string-append source "/ar3k")
+                            (string-append fw-dir "/ar3k"))
+          #t))))
    (synopsis "Nonfree firmware blobs for the ath3k Bluetooth driver")
    (description "Nonfree firmware blobs for the ath3k Bluetooth driver. ath3k
 is the Linux Bluetooth driver for Atheros AR3011/AR3012 Bluetooth chipsets.")
