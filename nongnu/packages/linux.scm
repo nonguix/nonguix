@@ -1,11 +1,5 @@
 ;;; Copyright © 2019 Alex Griffin <a@ajgrf.com>
-;;; Copyright © 2012, 2013, 2014, 2015, 2017, 2018 Ludovic Courtès <ludo@gnu.org>
-;;; Copyright © 2013, 2014 Andreas Enge <andreas@enge.fr>
-;;; Copyright © 2012 Nikita Karetnikov <nikita@karetnikov.org>
-;;; Copyright © 2014, 2015 Mark H Weaver <mhw@netris.org>
-;;; Copyright © 2015 Federico Beffa <beffa@fbengineering.ch>
-;;; Copyright © 2015 Taylan Ulrich Bayırlı/Kammer <taylanbayirli@gmail.com>
-;;; Copyright © 2015, 2017, 2018 Andy Wingo <wingo@igalia.com>
+;;; Copyright © 2019 Pierre Neidhardt <mail@ambrevar.xyz>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -94,9 +88,9 @@ on hardware which requires nonfree software to function.")))
          #:builder (begin
                      (use-modules (guix build utils))
                      (let ((source (assoc-ref %build-inputs "source"))
-                           (fw-dir (string-append %output "/lib/firmware/")))
-                       (mkdir-p fw-dir)
-                       (copy-recursively source fw-dir)
+                           (destination (string-append %output "/lib/firmware")))
+                       (mkdir-p destination)
+                       (copy-recursively source destination #:follow-symlinks? #t)
                        #t))))
       (home-page
        "http://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git")
