@@ -15,11 +15,14 @@
 ;;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (nongnu packages linux)
+  #:use-module (gnu packages)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages linux)
   #:use-module (guix packages)
+  #:use-module (guix utils)
   #:use-module (guix download)
   #:use-module (guix git-download)
+  #:use-module (guix build-system linux-module)
   #:use-module (guix build-system trivial)
   #:use-module (nonguix licenses))
 
@@ -170,6 +173,66 @@ support for 5GHz and 802.11ac, among others.")
      (nonfree (string-append
                "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
                "/linux-firmware.git/plain/LICENCE.iwlwifi_firmware")))))
+
+(define-public broadcom-sta
+  (package
+    (name "broadcom-sta")
+    (version "6.30.223.271")
+    (source
+     (origin
+       (method url-fetch/tarbomb)
+       (uri (string-append "https://docs.broadcom.com/docs-and-downloads/"
+                           "docs/linux_sta/hybrid-v35_64-nodebug-pcoem-"
+                           (string-replace-substring version "." "_")
+                           ".tar.gz"))
+       (patches
+        (parameterize
+            ((%patch-path
+              (map (lambda (directory)
+                     (string-append directory "/nongnu/packages/patches"))
+                   %load-path)))
+          ;; https://github.com/NixOS/nixpkgs/tree/master/pkgs/os-specific/linux/broadcom-sta
+          ;; https://git.archlinux.org/svntogit/community.git/tree/trunk?h=packages/broadcom-wl-dkms
+          (search-patches "broadcom-sta-gcc.patch"
+                          "broadcom-sta-license.patch"
+                          "broadcom-sta-null-pointer-fix.patch"
+                          "broadcom-sta-rdtscl.patch"
+                          "broadcom-sta-linux-4.7.patch"
+                          "broadcom-sta-linux-4.8.patch"
+                          "broadcom-sta-debian-fix-kernel-warnings.patch"
+                          "broadcom-sta-linux-4.11.patch"
+                          "broadcom-sta-linux-4.12.patch"
+                          "broadcom-sta-linux-4.15.patch"
+                          "broadcom-sta-fix_mac_profile_discrepancy.patch"
+                          "broadcom-sta-linux-5.1.patch")))
+       (sha256
+        (base32
+         "1gj485qqr190idilacpxwgqyw21il03zph2rddizgj7fbd6pfyaz"))))
+    (build-system linux-module-build-system)
+    (arguments
+     `(#:linux ,linux
+       #:tests? #f))
+    (supported-systems '("x86_64-linux"))
+    (home-page "https://www.broadcom.com/support/802.11")
+    (synopsis "Broadcom 802.11 Linux STA wireless driver")
+    (description "This package contains Broadcom's IEEE 802.11a/b/g/n/ac hybrid
+Linux device driver for the following chipsets:
+@itemize
+@item BCM4311
+@item BCM4312
+@item BCM4313
+@item BCM4321
+@item BCM4322
+@item BCM43224
+@item BCM43225
+@item BCM43227
+@item BCM43228
+@item BCM43142
+@item BCM4331
+@item BCM4352
+@item BCM4360
+@end itemize")
+    (license (nonfree "https://www.broadcom.com/support/802.11"))))
 
 (define-public broadcom-bt-firmware
   (package
