@@ -28,9 +28,8 @@
 
 (define (linux-urls version)
   "Return a list of URLS for Linux VERSION."
-  (let ((major-version (string-take version 1)))
-    (list (string-append "https://www.kernel.org/pub/linux/kernel/v"
-                         major-version ".x/linux-" version ".tar.xz"))))
+  (list (string-append "https://www.kernel.org/pub/linux/kernel/v"
+                       (version-major version) ".x/linux-" version ".tar.xz")))
 
 (define (corrupt-linux freedo version hash)
   (package
