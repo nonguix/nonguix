@@ -236,18 +236,19 @@ Linux device driver for the following chipsets:
 (define-public broadcom-bt-firmware
   (package
     (name "broadcom-bt-firmware")
-    (version "12.0.1.710")
+    (version "12.0.1.1012")
     (source
      (origin
        (method url-fetch)
-       (uri (string-append "http://dlcdnet.asus.com/pub/ASUS/wireless/"
-                           "USB-BT400/DR_USB_BT400_"
-                           (string-filter (char-set-complement (char-set #\.))
-                                          version)
-                           "_Windows.zip"))
+       (uri
+        (string-append
+         "http://download.windowsupdate.com/c/msdownload/update/driver/drvs/2017/04/"
+         "852bb503-de7b-4810-a7dd-cbab62742f09_7cf83a4c194116648d17707ae37d564f9c70bec2"
+         ".cab"))
+       (file-name (string-append name "-" version ".cab"))
        (sha256
         (base32
-         "1jzg1yl2hrfdh9prr2ds4rl6c69m2f8bf94m72p3rlddjvi8jj58"))))
+         "1b1qjwxjk4y91l3iz157kms8601n0mmiik32cs6w9b1q4sl4pxx9"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils)
@@ -258,23 +259,22 @@ Linux device driver for the following chipsets:
          (use-modules (guix build utils)
                       (ice-9 rdelim)
                       (ice-9 regex))
-         (let ((PATH (string-append (assoc-ref %build-inputs "unzip") "/bin:"
+         (let ((PATH (string-append (assoc-ref %build-inputs "cabextract") "/bin:"
                                     (assoc-ref %build-inputs "bluez") "/bin"))
                (source (assoc-ref %build-inputs "source"))
                (firmware-dir (string-append %output "/lib/firmware/brcm/")))
            (setenv "PATH" PATH)
-           (system* "unzip" source)
-           (chdir "Win10_USB-BT400_DRIVERS/Win10_USB-BT400_Driver_Package/64/")
+           (system* "cabextract" source)
            (mkdir-p firmware-dir)
            ;; process the inf file to get the correct filenames
-           (with-input-from-file "bcbtums-win8x64-brcm.inf"
+           (with-input-from-file "bcbtums.inf"
              (lambda ()
                (do ((line (read-line) (read-line))
                     (devices '()))
                    ((eof-object? line) #t)
                  ;; these two `lets' are like awk patterns matching against
                  ;; records. link devices in this file with its vids and pids
-                 (let ((rcrd (string-match "%=Blue(.*),.*VID_(....).*PID_(....)"
+                 (let ((rcrd (string-match "%.*%=(.*),.*VID_(....).*PID_(....)"
                                            line)))
                    (when rcrd
                      (set! devices
@@ -286,10 +286,9 @@ Linux device driver for the following chipsets:
                  (let ((rcrd (string-match "\\[(RAMUSB.*)\\.CopyList\\]" line)))
                    (when rcrd
                      (let* ((key (match:substring rcrd 1))
-                            ;; this happens to be 3 lines down every time
-                            (hex-file (begin (read-line)
-                                             (read-line)
-                                             (string-drop-right (read-line) 1)))
+                            (hex-file (begin (do ((line (read-line) (read-line)))
+                                                 ((string-match "^([0-9A-Z_.]+\\.hex)" line)
+                                                  (string-drop-right line 1)))))
                             (chipset (car (string-tokenize
                                            hex-file
                                            char-set:letter+digit)))
@@ -305,7 +304,7 @@ Linux device driver for the following chipsets:
                                 hex-file)))))))))))
     (native-inputs
      `(("bluez" ,bluez)
-       ("unzip" ,unzip)))
+       ("cabextract" ,cabextract)))
     (home-page "http://www.broadcom.com/support/bluetooth")
     (synopsis "Broadcom bluetooth firmware")
     (description
@@ -315,9 +314,15 @@ chipsets from Broadcom:
 @item BCM4335C0
 @item BCM4350C5
 @item BCM4356A2
+@item BCM4371C2
 @item BCM20702A1
 @item BCM20702B0
 @item BCM20703A1
 @item BCM43142A0
 @end itemize")
-    (license (undistributable "http://www.broadcom.com/support/bluetooth"))))
+    (license
+     (undistributable
+      (string-append
+       "https://raw.githubusercontent.com/winterheart/broadcom-bt-firmware"
+       "/b60fa04881bf8f9b9d578f57d1dfa596cae2a82e"
+       "/LICENSE.broadcom_bcm20702")))))
