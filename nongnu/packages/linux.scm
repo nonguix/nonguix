@@ -71,8 +71,7 @@ on hardware which requires nonfree software to function.")))
         (revision "1"))
     (package
       (name "linux-firmware")
-      (version (string-append "20190502-" revision "."
-                              (string-take commit 7)))
+      (version (git-version "20190502" revision commit))
       (source (origin
                 (method git-fetch)
                 (uri (git-reference
