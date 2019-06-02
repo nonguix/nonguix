@@ -11,6 +11,10 @@ response to support requests!  This is to show respect for the Guix project's
 [[http://www.gnu.org/distros/free-system-distribution-guidelines.html][strict policy]]
 against recommending nonfree software, and to avoid any unnecessary hostility.
 
+Before using this channel, you should understand the implications of using
+nonfree software.  Read [[https://www.gnu.org/philosophy/free-sw.en.html][What is free software?]]
+for more information.
+
 * Installation
 
 Nonguix can be installed as a
@@ -23,3 +27,79 @@ To do so, add it to =~/.config/guix/channels.scm=:
           (url "https://gitlab.com/nonguix/nonguix"))
          %default-channels)
 #+END_SRC
+
+* Using Nonfree Firmware and Drivers
+
+To use Guix System with the standard Linux kernel and nonfree firmware, edit
+the ~kernel~ and ~firmware~ fields of the ~operating-system~ definition in
+=config.scm=:
+
+#+BEGIN_SRC scheme
+  ;; Import nonfree linux module.
+  (use-modules (nongnu packages linux))
+
+  (operating-system
+    (kernel linux)
+    (firmware (list linux-firmware))
+    ...
+    )
+#+END_SRC
+
+If you only need firmware for a specific piece of hardware, you may be able to
+save disk space by using a smaller firmware package instead:
+
+#+BEGIN_SRC scheme
+  (firmware (cons* iwlwifi-firmware
+                   %base-firmware))
+#+END_SRC
+
+Then of course, run ~sudo guix system reconfigure /etc/config.scm~ to apply
+your configuration.
+
+** Broadcom Wireless
+
+Some Broadcom wireless hardware requires a proprietary kernel module in
+addition to firmware. To use such hardware you will also need to add a service
+to load that module on boot, and blacklist conflicting kernel modules:
+
+#+BEGIN_SRC scheme
+  (use-modules (nongnu packages linux)
+               (nongnu services kernel-modules))
+
+  (operating-system
+    (kernel linux)
+    ;; Blacklist conflicting kernel modules.
+    (kernel-arguments '("modprobe.blacklist=b43,b43legacy,ssb,bcm43xx,brcm80211,brcmfmac,brcmsmac,bcma"))
+    (firmware (cons* broadcom-bt-firmware
+                     %base-firmware))
+    ...
+    (services
+     (cons* (load-broadcom-sta-service)
+            ...
+            %desktop-services)))
+#+END_SRC
+
+* Contributing
+
+Contributions are welcome!  If there's a package you would like to add, just
+fork the repository and create a Merge Request when your package is ready.
+Keep in mind:
+
+- Nonguix follows the same
+  [[https://www.gnu.org/software/guix/manual/en/html_node/Coding-Style.html][coding style]]
+  as GNU Guix.  If you don't use Emacs, you should make use of the indent
+  script from the GNU Guix repository (=./etc/indent-code.el=).
+- Commit messages should follow the same
+  [[https://www.gnu.org/prep/standards/html_node/Change-Logs.html][conventions]]
+  set by GNU Guix.
+- Although licensing restrictions are relaxed, packages should still have
+  accurate license metadata.
+- If a package could be added to upstream GNU Guix with a reasonable amount of
+  effort, then it probably doesn't belong in Nonguix.  This isn't a dumping
+  ground for subpar packages, but sometimes we may accept free software
+  packages which are currently too cumbersome to properly build from source.
+
+If you have a history of making quality contributions to GNU Guix or Nonguix
+and would like commit access, just ask!  Nontrivial changes should still go
+through a simple Merge Request and code review process, but Nonguix needs more
+people involved to succeed as a community project.
