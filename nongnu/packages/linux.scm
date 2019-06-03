@@ -104,6 +104,35 @@ if your hardware is supported by one of the smaller firmware packages.")
         (string-append "https://git.kernel.org/pub/scm/linux/kernel/git/"
                        "firmware/linux-firmware.git/plain/WHENCE"))))))
 
+(define-public amdgpu-firmware
+  (package
+    (inherit linux-firmware)
+    (name "amdgpu-firmware")
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((source (assoc-ref %build-inputs "source"))
+                (fw-dir (string-append %output "/lib/firmware/"))
+                (bin-dir (string-append fw-dir "/amdgpu")))
+           (mkdir-p bin-dir)
+           (copy-recursively (string-append source "/amdgpu") bin-dir)
+           (install-file (string-append source "/LICENSE.amdgpu") fw-dir)
+           #t))))
+    (home-page "http://support.amd.com/en-us/download/linux")
+    (synopsis "Nonfree firmware for AMD graphics chips")
+    (description "Nonfree firmware for AMD graphics chips.  While most AMD
+graphics cards can be run with the free Mesa, many modern cards require a
+nonfree kernel module to run properly and support features like hibernation and
+advanced 3D.")
+    (license
+     (nonfree
+      (string-append
+       "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+       "/linux-firmware.git/plain/LICENSE.amdgpu")))))
+
 (define-public ath3k-firmware
   (package
     (inherit linux-firmware)
