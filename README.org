@@ -59,6 +59,16 @@ save disk space by using a smaller firmware package instead:
 Then of course, run ~sudo guix system reconfigure /etc/config.scm~ to apply
 your configuration.
 
+** Installation image
+
+For some hardware the official Guix installation image won't do
+(e.g. unsupported wifi).  You can generate an installation image running the
+nonfree Linux kernel and nonfree firmware with the following command:
+
+#+begin_src sh
+guix system disk-image /path/to/this/channel/nongnu/system/install.scm
+#+end_src
+
 ** Broadcom Wireless
 
 Some Broadcom wireless hardware requires a proprietary kernel module in
