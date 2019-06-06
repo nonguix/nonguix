@@ -18,6 +18,28 @@ for more information.
 (Check out the [[https://gitlab.com/guix-gaming-channels][Guix Gaming Channels]]
 if you're interested in nonfree games too!)
 
+* Warning
+
+This channel does not endorse any non-free application.
+We believe it is non-ethical, harmful to software development and
+restricts the users freedom.
+See the [[https://www.gnu.org/philosophy/free-sw.en.html][GNU philosophy]] for a more thorough discussion.
+
+Those packages are provided as a last resort, should none of the official Guix
+packages work for you.
+
+You should understand the implication of using non-free software.  Some of those
+implications include:
+
+- Endorsement of non-free products and the perpetration of a culture of
+  restriction on liberties.
+
+- Non-free software cannot (or hardly) be audited: it can potentially spy on
+  you, destroy or steal your data.
+
+As a minimal security measure, it's heavily recommended to run any non-free
+software inside a container.
+
 * Installation
 
 Nonguix can be installed as a
