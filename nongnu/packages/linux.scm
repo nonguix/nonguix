@@ -374,10 +374,10 @@ chipsets from Broadcom:
            (install-file (string-append source "/LICENCE.rtlwifi_firmware.txt") fw-dir)
            #t))))
     (home-page "https://wireless.wiki.kernel.org/en/users/drivers/rtl819x")
-    (synopsis "Non-free firmware for Realtek wifi chips")
+    (synopsis "Nonfree firmware for Realtek wifi chips")
     (description
-     (string-append "Non-free firmware for Realtek wifi chips. This package contains "
-                    "non-free firmware for the following chips:
+     "Nonfree firmware for Realtek wifi chips.  This package contains nonfree
+firmware for the following chips:
 @itemize
 @item Realtek RTL8188EE firmware (rtlwifi/rtl8188efw.bin)
 @item Realtek RTL8188EU firmware (rtlwifi/rtl8188eufw.bin)
@@ -411,7 +411,7 @@ chipsets from Broadcom:
 @item Realtek RTL8821AE firmware (rtlwifi/rtl8821aefw_wowlan.bin)
 @item Realtek RTL8821AE firmware (rtlwifi/rtl8821aefw.bin)
 @item Realtek RTL8822BE firmware (rtlwifi/rtl8822befw.bin)
-@end itemize"))
+@end itemize")
     (license
      (nonfree
       (string-append
