@@ -48,8 +48,8 @@
 on hardware which requires nonfree software to function.")))
 
 (define-public linux
-  (corrupt-linux linux-libre "5.1.8"
-                 "1v56hzzb147mdnhajkgcjwjrmd7qyayky7bprjb3maz2qvy4y5nh"))
+  (corrupt-linux linux-libre "5.1.9"
+                 "0y9a2bvls756f8hrpffhmbrg7hw5r6b2jc2rnpszzlixkjlyrjaq"))
 
 (define-public linux-4.19
   (corrupt-linux linux-libre-4.19 "4.19.49"
