@@ -56,8 +56,8 @@ on hardware which requires nonfree software to function.")))
                  "1gasmcdsrsk81dscslmrsxqsvkfp5xxdx3ay95izggpk7piqnvvs"))
 
 (define-public linux-4.14
-  (corrupt-linux linux-libre-4.14 "4.14.136"
-                 "0w6z5fhwqgpqnz2js8vj9j5dl6isx8n7rnzrm0vr9r8njaazz396"))
+  (corrupt-linux linux-libre-4.14 "4.14.138"
+                 "0yw39cqpk6g42q0xcv2aq8yyzsi0kzx9nvlfbw0iyg58wcfvsl7j"))
 
 (define-public linux-4.9
   (corrupt-linux linux-libre-4.9 "4.9.188"
