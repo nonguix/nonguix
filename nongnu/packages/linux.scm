@@ -64,8 +64,8 @@ on hardware which requires nonfree software to function.")))
                  "08p2cfc9982b804vmkapfasgipf6969g625ih7z3062xn99rhlr7"))
 
 (define-public linux-4.4
-  (corrupt-linux linux-libre-4.4 "4.4.188"
-                 "1llxamm62kgqd7dig98n8m16qas8dd8rrkmwpfcdgyf8rag216ff"))
+  (corrupt-linux linux-libre-4.4 "4.4.189"
+                 "0nc8v62gw89m3ykqg6nqf749fzm8y1n481ns8vny4gbinyikjhlp"))
 
 (define-public linux-firmware
   (let ((commit "92e17d0dd2437140fab044ae62baf69b35d7d1fa")
