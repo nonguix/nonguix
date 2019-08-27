@@ -1,6 +1,7 @@
 ;;; Copyright © 2019 Alex Griffin <a@ajgrf.com>
 ;;; Copyright © 2019 Pierre Neidhardt <mail@ambrevar.xyz>
 ;;; Copyright © 2019 Giacomo Leidi <goodoldpaul@autistici.org>
+;;; Copyright © 2019 Timotej Lazar <timotej.lazar@araneo.si>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -507,3 +508,44 @@ firmware for the following chips:
       (string-append
        "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
        "/linux-firmware.git/plain/LICENCE.rtlwifi_firmware.txt")))))
+
+(define-public intel-microcode
+  (package
+    (name "intel-microcode")
+    (version "20190618")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url (string-append
+                   "https://github.com/intel/"
+                   "Intel-Linux-Processor-Microcode-Data-Files.git"))
+             (commit (string-append "microcode-" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "0fdhrpxvsq0rm5mzj82gvmfb3lm7mhc9hwvimv7dl1jaidbp6lvs"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((source (assoc-ref %build-inputs "source"))
+                (fw-dir (string-append %output "/lib/firmware"))
+                (bin-dir (string-append fw-dir "/intel-ucode")))
+           (mkdir-p bin-dir)
+           (copy-recursively (string-append source "/intel-ucode") bin-dir)
+           (copy-file
+            (string-append source "/license")
+            (string-append fw-dir "/LICENSE.intel-ucode"))
+           #t))))
+    (home-page
+     "https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files")
+    (synopsis "Processor microcode firmware for Intel CPUs")
+    (description "Updated system processor microcode for Intel i686 and Intel
+x86-64 processors.  Intel releases microcode updates to correct processor
+behavior as documented in the respective processor specification updates.  The
+@code{iucode-tool} package can be used to determine the appropriate file for
+your CPU.")
+    (license (nonfree "file://license"))))
