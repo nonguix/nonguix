@@ -417,3 +417,51 @@ firmware for the following chips:
       (string-append
        "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
        "/linux-firmware.git/plain/LICENCE.rtlwifi_firmware.txt")))))
+
+(define-public rtl-nic-firmware
+  (package
+    (inherit linux-firmware)
+    (name "rtl-nic-firmware")
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((source (assoc-ref %build-inputs "source"))
+                (fw-dir (string-append %output "/lib/firmware/"))
+                (bin-dir (string-append fw-dir "/rtl_nic")))
+           (mkdir-p bin-dir)
+           (copy-recursively (string-append source "/rtl_nic") bin-dir)
+           (install-file (string-append source "/LICENCE.rtlwifi_firmware.txt") fw-dir)
+           #t))))
+    (synopsis "Nonfree firmware for Realtek ethernet chips")
+    (description
+     "This package contains nonfree firmware for the following Realtek ethernet chips:
+@itemize
+ @item Realtek RTL8105E-1 firmware (rtl_nic/rtl8105e-1.fw)
+ @item Realtek RTL8106E-1 firmware, version 0.0.1 (rtl_nic/rtl8106e-1.fw)
+ @item Realtek RTL8106E-2 firmware, version 0.0.1 (rtl_nic/rtl8106e-2.fw)
+ @item Realtek RTL8107E-1 firmware, version 0.0.2 (rtl_nic/rtl8107e-1.fw)
+ @item Realtek RTL8107E-2 firmware, version 0.0.2 (rtl_nic/rtl8107e-2.fw)
+ @item Realtek RTL8111D-1/RTL8168D-1 firmware (rtl_nic/rtl8168d-1.fw)
+ @item Realtek RTL8111D-2/RTL8168D-2 firmware (rtl_nic/rtl8168d-2.fw)
+ @item Realtek RTL8168E-1 firmware (rtl_nic/rtl8168e-1.fw)
+ @item Realtek RTL8168E-2 firmware (rtl_nic/rtl8168e-2.fw)
+ @item Realtek RTL8168E-3 firmware, version 0.0.4 (rtl_nic/rtl8168e-3.fw)
+ @item Realtek RTL8168F-1 firmware, version 0.0.5 (rtl_nic/rtl8168f-1.fw)
+ @item Realtek RTL8168F-2 firmware, version 0.0.4 (rtl_nic/rtl8168f-2.fw)
+ @item Realtek RTL8168G-1 firmware, version 0.0.3 (rtl_nic/rtl8168g-1.fw)
+ @item Realtek RTL8168G-2 firmware, version 0.0.1 (rtl_nic/rtl8168g-2.fw)
+ @item Realtek RTL8168G-3 firmware, version 0.0.1 (rtl_nic/rtl8168g-3.fw)
+ @item Realtek RTL8168H-1 firmware, version 0.0.2 (rtl_nic/rtl8168h-1.fw)
+ @item Realtek RTL8168H-2 firmware, version 0.0.2 (rtl_nic/rtl8168h-2.fw)
+ @item Realtek RTL8402-1 firmware, version 0.0.1 (rtl_nic/rtl8402-1.fw)
+ @item Realtek RTL8411-1 firmware, version 0.0.3 (rtl_nic/rtl8411-1.fw)
+ @item Realtek RTL8411-2 firmware, version 0.0.1 (rtl_nic/rtl8411-2.fw)
+@end itemize")
+    (license
+     (nonfree
+      (string-append
+       "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+       "/linux-firmware.git/plain/LICENCE.rtlwifi_firmware.txt")))))
