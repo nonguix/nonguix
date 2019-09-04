@@ -465,3 +465,45 @@ firmware for the following chips:
       (string-append
        "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
        "/linux-firmware.git/plain/LICENCE.rtlwifi_firmware.txt")))))
+
+(define-public rtl-bt-firmware
+  (package
+    (inherit linux-firmware)
+    (name "rtl-bt-firmware")
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((source (assoc-ref %build-inputs "source"))
+                (fw-dir (string-append %output "/lib/firmware/"))
+                (bin-dir (string-append fw-dir "/rtl_bt")))
+           (mkdir-p bin-dir)
+           (copy-recursively (string-append source "/rtl_bt") bin-dir)
+           (install-file (string-append source "/LICENCE.rtlwifi_firmware.txt") fw-dir)
+           #t))))
+    (synopsis "Nonfree firmware for Realtek bluetooth chips")
+    (description
+     "This package contains nonfree firmware for the following Realtek bluetooth chips:
+@itemize
+ @item Realtek RTL8192EE Bluetooth firmware (rtl_bt/rtl8192ee_fw.bin)
+ @item Realtek RTL8812AE Bluetooth firmware (rtl_bt/rtl8812ae_fw.bin)
+ @item Realtek RTL8761A Bluetooth firmware (rtl_bt/rtl8761a_fw.bin)
+ @item Realtek RTL8821A Bluetooth firmware (rtl_bt/rtl8821a_fw.bin)
+ @item Realtek RTL8192EU Bluetooth firmware (rtl_bt/rtl8192eu_fw.bin)
+ @item Realtek RTL8723AU rev A Bluetooth firmware (rtl_bt/rtl8723a_fw.bin)
+ @item Realtek RTL8723BU rev B Bluetooth firmware (rtl_bt/rtl8723b_fw.bin)
+ @item Realtek RTL8723D Bluetooth config (rtl_bt/rtl8723d_config.bin)
+ @item Realtek RTL8723D Bluetooth firmware (rtl_bt/rtl8723d_fw.bin)
+ @item Realtek RTL8821C Bluetooth config (rtl_bt/rtl8821c_config.bin)
+ @item Realtek RTL8821C Bluetooth firmware (rtl_bt/rtl8821c_fw.bin)
+ @item Realtek RTL8822B Bluetooth config (rtl_bt/rtl8822b_config.bin)
+ @item Realtek RTL8822B Bluetooth firmware (rtl_bt/rtl8822b_fw.bin)
+ @item Realtek RTL8822CU Bluetooth firmware (rtl_bt/rtl8822cu_fw.bin)
+@end itemize")
+    (license
+     (nonfree
+      (string-append
+       "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+       "/linux-firmware.git/plain/LICENCE.rtlwifi_firmware.txt")))))
