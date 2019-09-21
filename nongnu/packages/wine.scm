@@ -82,14 +82,14 @@ tweaking of various Wine settings.")
 (define-public dxvk
   (package
     (name "dxvk")
-    (version "1.2.1")
+    (version "1.4")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://github.com/doitsujin/dxvk/releases/download/v"
                                   version "/dxvk-" version ".tar.gz"))
               (sha256
                (base32
-                "1aix9isys8n0hp8vwrmm4c58716g6famsm62x40z24sdlfhfqaqr"))))
+                "1pl1a5rh66w6wnnjrjj9h1qv84j1j8sm0qdlryyqnwnfw5fph8mz"))))
     (build-system trivial-build-system)
     (native-inputs
      `(("gzip" ,gzip)
