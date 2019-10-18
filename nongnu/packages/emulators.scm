@@ -16,6 +16,16 @@
 ;;; You should have received a copy of the GNU General Public License
 ;;; along with GNU Guix.  If not, see <http://www.gnu.org/licenses/>.
 
+(define-module (nongnu packages emulators)
+  #:use-module (gnu packages backup)
+  #:use-module (gnu packages gl)
+  #:use-module (gnu packages sdl)
+  #:use-module (guix build-system gnu)
+  #:use-module (guix download)
+  #:use-module ((guix licenses) #:prefix license:)
+  #:use-module (guix packages)
+  #:use-module (nonguix licenses))
+
 (define-public dgen
   (package
     (name "dgen")
