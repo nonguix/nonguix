@@ -199,4 +199,4 @@ HostData=lib/qt5
     (description "Qt5WebEngine provides support for web
 applications using the Chromium browser project.")
     (license
-     (package-license qt))))
+     (package-license qtbase))))
