@@ -18,6 +18,7 @@
 
 (define-module (nongnu packages linux)
   #:use-module (gnu packages)
+  #:use-module (gnu packages base)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages linux)
   #:use-module (guix packages)
@@ -71,42 +72,45 @@ on hardware which requires nonfree software to function.")))
 (define-public linux linux-5.3)
 
 (define-public linux-firmware
-  (let ((commit "92e17d0dd2437140fab044ae62baf69b35d7d1fa")
-        (revision "1"))
-    (package
-      (name "linux-firmware")
-      (version (git-version "20190502" revision commit))
-      (source (origin
-                (method git-fetch)
-                (uri (git-reference
-                      (url (string-append
-                            "https://git.kernel.org/pub/scm/"
-                            "linux/kernel/git/firmware/linux-firmware.git"))
-                      (commit commit)))
-                (file-name (git-file-name name version))
-                (sha256
-                 (base32
-                  "1bsgp124jhs9bbjjq0fzmdsziwx1y5aivkgpj8v56ar0y2zmrw2d"))))
-      (build-system trivial-build-system)
-      (arguments
-       `(#:modules ((guix build utils))
-         #:builder (begin
-                     (use-modules (guix build utils))
-                     (let ((source (assoc-ref %build-inputs "source"))
-                           (destination (string-append %output "/lib/firmware")))
-                       (mkdir-p destination)
-                       (copy-recursively source destination #:follow-symlinks? #t)
-                       #t))))
-      (home-page
-       "http://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git")
-      (synopsis "Nonfree firmware blobs for Linux")
-      (description "Nonfree firmware blobs for enabling support for various
+  (package
+    (name "linux-firmware")
+    (version "20191022")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://git.kernel.org/pub/scm/linux/kernel"
+                                  "/git/firmware/linux-firmware.git/snapshot/"
+                                  "linux-firmware-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1pb32ldi0qw5hsxkng4bs1xfcadrgl8js93zl4g1rngl8bsvfgyw"))))
+    (build-system trivial-build-system)
+    (arguments
+     `(#:modules ((guix build utils))
+       #:builder (begin
+                   (use-modules (guix build utils))
+                   (let ((source (assoc-ref %build-inputs "source"))
+                         (destination (string-append %output "/lib/firmware"))
+                         (gzip (assoc-ref %build-inputs "gzip"))
+                         (tar (assoc-ref %build-inputs "tar")))
+                     (set-path-environment-variable "PATH" '("bin")
+                                                    (list tar gzip))
+                     (invoke "tar" "--strip-components=1" "-xvf" source)
+                     (mkdir-p destination)
+                     (copy-recursively "." destination #:follow-symlinks? #t)
+                     #t))))
+    (native-inputs
+     `(("gzip" ,gzip)
+       ("tar" ,tar)))
+    (home-page
+     "http://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git")
+    (synopsis "Nonfree firmware blobs for Linux")
+    (description "Nonfree firmware blobs for enabling support for various
 hardware in the Linux kernel.  This is a large package which may be overkill
 if your hardware is supported by one of the smaller firmware packages.")
-      (license
-       (nonfree
-        (string-append "https://git.kernel.org/pub/scm/linux/kernel/git/"
-                       "firmware/linux-firmware.git/plain/WHENCE"))))))
+    (license
+     (nonfree
+      (string-append "https://git.kernel.org/pub/scm/linux/kernel/git/"
+                     "firmware/linux-firmware.git/plain/WHENCE")))))
 
 (define-public amdgpu-firmware
   (package
@@ -120,10 +124,15 @@ if your hardware is supported by one of the smaller firmware packages.")
          (use-modules (guix build utils))
          (let* ((source (assoc-ref %build-inputs "source"))
                 (fw-dir (string-append %output "/lib/firmware/"))
-                (bin-dir (string-append fw-dir "/amdgpu")))
+                (bin-dir (string-append fw-dir "/amdgpu"))
+                (gzip (assoc-ref %build-inputs "gzip"))
+                (tar (assoc-ref %build-inputs "tar")))
+           (set-path-environment-variable "PATH" '("bin")
+                                          (list tar gzip))
+           (invoke "tar" "--strip-components=1" "-xvf" source)
            (mkdir-p bin-dir)
-           (copy-recursively (string-append source "/amdgpu") bin-dir)
-           (install-file (string-append source "/LICENSE.amdgpu") fw-dir)
+           (copy-recursively "./amdgpu" bin-dir)
+           (install-file "./LICENSE.amdgpu" fw-dir)
            #t))))
     (home-page "http://support.amd.com/en-us/download/linux")
     (synopsis "Nonfree firmware for AMD graphics chips")
@@ -148,16 +157,21 @@ advanced 3D.")
        (begin
          (use-modules (guix build utils))
          (let ((source (assoc-ref %build-inputs "source"))
-               (fw-dir (string-append %output "/lib/firmware")))
+               (fw-dir (string-append %output "/lib/firmware"))
+               (gzip (assoc-ref %build-inputs "gzip"))
+               (tar (assoc-ref %build-inputs "tar")))
+           (set-path-environment-variable "PATH" '("bin")
+                                          (list tar gzip))
+           (invoke "tar" "--strip-components=1" "-xvf" source)
            (mkdir-p fw-dir)
            (for-each (lambda (file)
-                       (copy-file (string-append source "/" file)
+                       (copy-file file
                                   (string-append fw-dir "/" file)))
                      (list "ath3k-1.fw"
                            "LICENCE.atheros_firmware"
                            "LICENSE.QualcommAtheros_ar3k"
                            "WHENCE"))
-           (copy-recursively (string-append source "/ar3k")
+           (copy-recursively "./ar3k"
                              (string-append fw-dir "/ar3k"))
            #t))))
     (synopsis "Nonfree firmware blobs for the ath3k Bluetooth driver")
@@ -185,14 +199,19 @@ is the Linux Bluetooth driver for Atheros AR3011/AR3012 Bluetooth chipsets.")
        (begin
          (use-modules (guix build utils))
          (let ((source (assoc-ref %build-inputs "source"))
-               (fw-dir (string-append %output "/lib/firmware/")))
+               (fw-dir (string-append %output "/lib/firmware/"))
+               (gzip (assoc-ref %build-inputs "gzip"))
+               (tar (assoc-ref %build-inputs "tar")))
+           (set-path-environment-variable "PATH" '("bin")
+                                          (list tar gzip))
+           (invoke "tar" "--strip-components=1" "-xvf" source)
            (mkdir-p fw-dir)
            (for-each (lambda (file)
                        (copy-file file
                                   (string-append fw-dir (basename file))))
                      (cons*
-                      (string-append source "/LICENCE.iwlwifi_firmware")
-                      (find-files source
+                      "./LICENCE.iwlwifi_firmware"
+                      (find-files "."
                                   "iwlwifi-.*\\.ucode$")))
            #t))))
     (home-page "https://wireless.wiki.kernel.org/en/users/drivers/iwlwifi")
@@ -371,10 +390,15 @@ chipsets from Broadcom:
          (use-modules (guix build utils))
          (let* ((source (assoc-ref %build-inputs "source"))
                 (fw-dir (string-append %output "/lib/firmware/"))
-                (bin-dir (string-append fw-dir "/rtlwifi")))
+                (bin-dir (string-append fw-dir "/rtlwifi"))
+                (gzip (assoc-ref %build-inputs "gzip"))
+                (tar (assoc-ref %build-inputs "tar")))
+           (set-path-environment-variable "PATH" '("bin")
+                                          (list tar gzip))
+           (invoke "tar" "--strip-components=1" "-xvf" source)
            (mkdir-p bin-dir)
-           (copy-recursively (string-append source "/rtlwifi") bin-dir)
-           (install-file (string-append source "/LICENCE.rtlwifi_firmware.txt") fw-dir)
+           (copy-recursively "./rtlwifi" bin-dir)
+           (install-file "./LICENCE.rtlwifi_firmware.txt" fw-dir)
            #t))))
     (home-page "https://wireless.wiki.kernel.org/en/users/drivers/rtl819x")
     (synopsis "Nonfree firmware for Realtek wifi chips")
@@ -433,10 +457,15 @@ firmware for the following chips:
          (use-modules (guix build utils))
          (let* ((source (assoc-ref %build-inputs "source"))
                 (fw-dir (string-append %output "/lib/firmware/"))
-                (bin-dir (string-append fw-dir "/rtl_nic")))
+                (bin-dir (string-append fw-dir "/rtl_nic"))
+                (gzip (assoc-ref %build-inputs "gzip"))
+                (tar (assoc-ref %build-inputs "tar")))
+           (set-path-environment-variable "PATH" '("bin")
+                                          (list tar gzip))
+           (invoke "tar" "--strip-components=1" "-xvf" source)
            (mkdir-p bin-dir)
-           (copy-recursively (string-append source "/rtl_nic") bin-dir)
-           (install-file (string-append source "/LICENCE.rtlwifi_firmware.txt") fw-dir)
+           (copy-recursively "./rtl_nic" bin-dir)
+           (install-file "./LICENCE.rtlwifi_firmware.txt" fw-dir)
            #t))))
     (synopsis "Nonfree firmware for Realtek ethernet chips")
     (description
@@ -481,10 +510,15 @@ firmware for the following chips:
          (use-modules (guix build utils))
          (let* ((source (assoc-ref %build-inputs "source"))
                 (fw-dir (string-append %output "/lib/firmware/"))
-                (bin-dir (string-append fw-dir "/rtl_bt")))
+                (bin-dir (string-append fw-dir "/rtl_bt"))
+                (gzip (assoc-ref %build-inputs "gzip"))
+                (tar (assoc-ref %build-inputs "tar")))
+           (set-path-environment-variable "PATH" '("bin")
+                                          (list tar gzip))
+           (invoke "tar" "--strip-components=1" "-xvf" source)
            (mkdir-p bin-dir)
-           (copy-recursively (string-append source "/rtl_bt") bin-dir)
-           (install-file (string-append source "/LICENCE.rtlwifi_firmware.txt") fw-dir)
+           (copy-recursively "./rtl_bt" bin-dir)
+           (install-file "./LICENCE.rtlwifi_firmware.txt" fw-dir)
            #t))))
     (synopsis "Nonfree firmware for Realtek bluetooth chips")
     (description
@@ -536,6 +570,9 @@ firmware for the following chips:
          (let* ((source (assoc-ref %build-inputs "source"))
                 (fw-dir (string-append %output "/lib/firmware"))
                 (bin-dir (string-append fw-dir "/intel-ucode")))
+           (set-path-environment-variable "PATH" '("bin")
+                                          (list tar gzip))
+           (invoke "tar" "--strip-components=1" "-xvf" source)
            (mkdir-p bin-dir)
            (copy-recursively (string-append source "/intel-ucode") bin-dir)
            (copy-file
