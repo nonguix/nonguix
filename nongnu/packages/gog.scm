@@ -43,7 +43,15 @@
        (sha256
         (base32 "0a3rrkgqwdqxx3ghzw182jx88gzzw6ldp3jasmgnr4l7gpxkmwws"))))
     (build-system cmake-build-system)
-    (arguments '(#:tests? #f))           ; no tests
+    (arguments
+     `(#:tests? #f                       ; no tests
+       #:phases
+       (modify-phases %standard-phases
+         (add-before 'configure 'patch-find-jsoncpp
+           (lambda* _
+             (substitute* "cmake/FindJsoncpp.cmake"
+               (("features.h") "allocator.h"))
+             #t)))))
     (inputs
      `(("boost" ,boost)
        ("curl" ,curl)
