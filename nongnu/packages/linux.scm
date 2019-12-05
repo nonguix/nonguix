@@ -548,7 +548,7 @@ firmware for the following chips:
 (define-public intel-microcode
   (package
     (name "intel-microcode")
-    (version "20191113")
+    (version "20191115")
     (source
      (origin
        (method git-fetch)
@@ -560,7 +560,7 @@ firmware for the following chips:
        (file-name (git-file-name name version))
        (sha256
         (base32
-         "04138j9n14197ybkh2vxfjy21wcgvbd183ya4b6k262y9nzjmvsa"))))
+         "0pzi5qmrcrdf6nsds4bvyq1hnvv9d1dlrvqrbzcrpxk84rcjwq1x"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
