@@ -570,9 +570,6 @@ firmware for the following chips:
          (let* ((source (assoc-ref %build-inputs "source"))
                 (fw-dir (string-append %output "/lib/firmware"))
                 (bin-dir (string-append fw-dir "/intel-ucode")))
-           (set-path-environment-variable "PATH" '("bin")
-                                          (list tar gzip))
-           (invoke "tar" "--strip-components=1" "-xvf" source)
            (mkdir-p bin-dir)
            (copy-recursively (string-append source "/intel-ucode") bin-dir)
            (copy-file
