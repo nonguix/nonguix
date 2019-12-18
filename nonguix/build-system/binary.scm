@@ -93,8 +93,8 @@
 (define* (binary-build store name inputs
                        #:key (guile #f)
                        (outputs '("out"))
-                       (patchelf-plan '())
-                       (install-plan '(("" ".*")))
+                       (patchelf-plan ''())
+                       (install-plan ''(("." (".") "./")))
                        (search-paths '())
                        (out-of-source? #t)
                        (validate-runpath? #t)

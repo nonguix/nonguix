@@ -97,22 +97,25 @@ The inputs are optional when the file is an executable."
                     ":")))
         (invoke "patchelf" "--set-rpath" rpath binary)))
     #t)
-  (let ((interpreter (car (find-files (assoc-ref inputs "libc") "ld-linux.*\\.so")))
-        (interpreter32 (car (find-files (assoc-ref inputs "libc32") "ld-linux.*\\.so"))))
-    (for-each
-      (lambda (plan)
-        (match plan
-          ((binary runpath)
-           (binary-patch binary (if (64-bit? binary)
-                                    interpreter
-                                    interpreter32)
-                         runpath))
-          ((binary)
-           (binary-patch binary (if (64-bit? binary)
-                                    interpreter
-                                    interpreter32)
-                         #f))))
-      patchelf-plan))
+
+  (when (and patchelf-plan
+             (not (null? patchelf-plan)))
+    (let ((interpreter (car (find-files (assoc-ref inputs "libc") "ld-linux.*\\.so")))
+          (interpreter32 (car (find-files (assoc-ref inputs "libc32") "ld-linux.*\\.so"))))
+      (for-each
+       (lambda (plan)
+         (match plan
+           ((binary runpath)
+            (binary-patch binary (if (64-bit? binary)
+                                     interpreter
+                                     interpreter32)
+                          runpath))
+           ((binary)
+            (binary-patch binary (if (64-bit? binary)
+                                     interpreter
+                                     interpreter32)
+                          #f))))
+       patchelf-plan)))
   #t)
 
 (define %standard-phases
