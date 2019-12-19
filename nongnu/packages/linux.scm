@@ -49,9 +49,9 @@
      "The unmodified Linux kernel, including nonfree blobs, for running GuixSD
 on hardware which requires nonfree software to function.")))
 
-(define-public linux-5.3
-  (corrupt-linux linux-libre-5.3 "5.3.18"
-                 "133342nv9ddjad2rizmcbilg9rhg339sfqr9l77j4cgkqhblkw90"))
+(define-public linux-5.4
+  (corrupt-linux linux-libre-5.4 "5.4.5"
+                 "1h1ynb51gd4kiakqlkcc7vny45j2snbg4j985qf171mszckrz3jn"))
 
 (define-public linux-4.19
   (corrupt-linux linux-libre-4.19 "4.19.90"
@@ -69,7 +69,7 @@ on hardware which requires nonfree software to function.")))
   (corrupt-linux linux-libre-4.4 "4.4.206"
                  "14ylg9cm7z12mvkzg8z92gsw0libw9xz392ayzw0d9cgw1py39ax"))
 
-(define-public linux linux-5.3)
+(define-public linux linux-5.4)
 
 (define-public linux-firmware
   (package
