@@ -74,7 +74,7 @@ on hardware which requires nonfree software to function.")))
 (define-public linux-firmware
   (package
     (name "linux-firmware")
-    (version "20191022")
+    (version "20191215")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://git.kernel.org/pub/scm/linux/kernel"
@@ -82,7 +82,7 @@ on hardware which requires nonfree software to function.")))
                                   "linux-firmware-" version ".tar.gz"))
               (sha256
                (base32
-                "1pb32ldi0qw5hsxkng4bs1xfcadrgl8js93zl4g1rngl8bsvfgyw"))))
+                "024napabn3zwl8gr50w9cp4gdxhch8pkl2qx814c93ydkfj81znd"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
