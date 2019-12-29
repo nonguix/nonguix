@@ -22,8 +22,7 @@
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 popen)
   #:use-module (guix utils)
-  #:use-module (guix packages)
-  #:export (getenv*))
+  #:use-module (guix packages))
 
 (define-public (to32 package64)
   "Build package for i686-linux.
