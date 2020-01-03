@@ -1,4 +1,4 @@
-;;; Copyright © 2019 Alex Griffin <a@ajgrf.com>
+;;; Copyright © 2019, 2020 Alex Griffin <a@ajgrf.com>
 ;;; Copyright © 2019 Pierre Neidhardt <mail@ambrevar.xyz>
 ;;; Copyright © 2019 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2019 Timotej Lazar <timotej.lazar@araneo.si>
@@ -102,7 +102,7 @@ on hardware which requires nonfree software to function.")))
      `(("gzip" ,gzip)
        ("tar" ,tar)))
     (home-page
-     "http://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git")
+     "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git")
     (synopsis "Nonfree firmware blobs for Linux")
     (description "Nonfree firmware blobs for enabling support for various
 hardware in the Linux kernel.  This is a large package which may be overkill
