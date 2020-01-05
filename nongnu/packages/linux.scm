@@ -145,30 +145,23 @@ advanced 3D.")
   (package
     (inherit linux-firmware)
     (name "ath3k-firmware")
-    (build-system trivial-build-system)
+    (build-system gnu-build-system)
     (arguments
-     `(#:modules ((guix build utils))
-       #:builder
-       (begin
-         (use-modules (guix build utils))
-         (let ((source (assoc-ref %build-inputs "source"))
-               (fw-dir (string-append %output "/lib/firmware"))
-               (gzip (assoc-ref %build-inputs "gzip"))
-               (tar (assoc-ref %build-inputs "tar")))
-           (set-path-environment-variable "PATH" '("bin")
-                                          (list tar gzip))
-           (invoke "tar" "--strip-components=1" "-xvf" source)
-           (mkdir-p fw-dir)
-           (for-each (lambda (file)
-                       (copy-file file
-                                  (string-append fw-dir "/" file)))
-                     (list "ath3k-1.fw"
-                           "LICENCE.atheros_firmware"
-                           "LICENSE.QualcommAtheros_ar3k"
-                           "WHENCE"))
-           (copy-recursively "./ar3k"
-                             (string-append fw-dir "/ar3k"))
-           #t))))
+     `(#:tests? #f
+       #:license-file-regexp
+       "LICEN[CS]E\\.(atheros_firmware|QualcommAtheros_ar3k)"
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (fw-dir (string-append out "/lib/firmware"))
+                    (bin-dir (string-append fw-dir "/ar3k")))
+               (mkdir-p bin-dir)
+               (copy-recursively "./ar3k" bin-dir)
+               (install-file "ath3k-1.fw" fw-dir)
+               #t)))
+         (delete 'validate-runpath))))
     (synopsis "Nonfree firmware blobs for the ath3k Bluetooth driver")
     (description "Nonfree firmware blobs for the ath3k Bluetooth driver. ath3k
 is the Linux Bluetooth driver for Atheros AR3011/AR3012 Bluetooth chipsets.")
