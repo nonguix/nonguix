@@ -21,6 +21,7 @@
   #:use-module (gnu packages base)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages linux)
+  #:use-module (guix licenses)
   #:use-module (guix packages)
   #:use-module (guix utils)
   #:use-module (guix download)
@@ -315,10 +316,18 @@ WLAN.TF.2.1-00021-QCARMSWP-1 (ath10k/QCA9377/hw1.0/firmware-6.bin)
        (string-append
         "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
         "/linux-firmware.git/plain/LICENCE.atheros_firmware"))
+      (non-copyleft
+       (string-append
+        "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+        "/linux-firmware.git/plain/LICENCE.open-ath9k-htc-firmware"))
       (nonfree
        (string-append
         "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
-        "/linux-firmware.git/plain/LICENSE.QualcommAtheros_ar3k"))))))
+        "/linux-firmware.git/plain/LICENCE.QualcommAtheros_ar3k"))
+      (nonfree
+       (string-append
+        "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+        "/linux-firmware.git/plain/LICENSE.QualcommAtheros_ath10k"))))))
 
 (define-public ath3k-firmware
   (deprecated-package "ath3k-firmware" atheros-firmware))
