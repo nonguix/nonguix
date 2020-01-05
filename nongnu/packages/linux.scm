@@ -323,7 +323,7 @@ WLAN.TF.2.1-00021-QCARMSWP-1 (ath10k/QCA9377/hw1.0/firmware-6.bin)
       (nonfree
        (string-append
         "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
-        "/linux-firmware.git/plain/LICENCE.QualcommAtheros_ar3k"))
+        "/linux-firmware.git/plain/LICENSE.QualcommAtheros_ar3k"))
       (nonfree
        (string-append
         "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
