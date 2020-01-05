@@ -505,24 +505,21 @@ firmware for the following chips:
   (package
     (inherit linux-firmware)
     (name "rtl-bt-firmware")
-    (build-system trivial-build-system)
+    (build-system gnu-build-system)
     (arguments
-     `(#:modules ((guix build utils))
-       #:builder
-       (begin
-         (use-modules (guix build utils))
-         (let* ((source (assoc-ref %build-inputs "source"))
-                (fw-dir (string-append %output "/lib/firmware/"))
-                (bin-dir (string-append fw-dir "/rtl_bt"))
-                (gzip (assoc-ref %build-inputs "gzip"))
-                (tar (assoc-ref %build-inputs "tar")))
-           (set-path-environment-variable "PATH" '("bin")
-                                          (list tar gzip))
-           (invoke "tar" "--strip-components=1" "-xvf" source)
-           (mkdir-p bin-dir)
-           (copy-recursively "./rtl_bt" bin-dir)
-           (install-file "./LICENCE.rtlwifi_firmware.txt" fw-dir)
-           #t))))
+     `(#:tests? #f
+       #:license-file-regexp "LICENCE.rtlwifi_firmware.txt"
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (fw-dir (string-append out "/lib/firmware"))
+                    (bin-dir (string-append fw-dir "/rtl_bt")))
+               (mkdir-p bin-dir)
+               (copy-recursively "./rtl_bt" bin-dir)
+               #t)))
+         (delete 'validate-runpath))))
     (synopsis "Nonfree firmware for Realtek bluetooth chips")
     (description
      "This package contains nonfree firmware for the following Realtek bluetooth chips:
