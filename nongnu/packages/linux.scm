@@ -321,39 +321,7 @@ WLAN.TF.2.1-00021-QCARMSWP-1 (ath10k/QCA9377/hw1.0/firmware-6.bin)
         "/linux-firmware.git/plain/LICENSE.QualcommAtheros_ar3k"))))))
 
 (define-public ath3k-firmware
-  (package
-    (inherit linux-firmware)
-    (name "ath3k-firmware")
-    (build-system gnu-build-system)
-    (arguments
-     `(#:tests? #f
-       #:license-file-regexp
-       "LICEN[CS]E\\.(atheros_firmware|QualcommAtheros_ar3k)"
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'install
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let* ((out (assoc-ref outputs "out"))
-                    (fw-dir (string-append out "/lib/firmware"))
-                    (bin-dir (string-append fw-dir "/ar3k")))
-               (mkdir-p bin-dir)
-               (copy-recursively "./ar3k" bin-dir)
-               (install-file "ath3k-1.fw" fw-dir)
-               #t)))
-         (delete 'validate-runpath))))
-    (synopsis "Nonfree firmware blobs for the ath3k Bluetooth driver")
-    (description "Nonfree firmware blobs for the ath3k Bluetooth driver. ath3k
-is the Linux Bluetooth driver for Atheros AR3011/AR3012 Bluetooth chipsets.")
-    (license
-     (list
-      (nonfree
-       (string-append
-        "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
-        "/linux-firmware.git/plain/LICENCE.atheros_firmware"))
-      (nonfree
-       (string-append
-        "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
-        "/linux-firmware.git/plain/LICENSE.QualcommAtheros_ar3k"))))))
+  (deprecated-package "ath3k-firmware" atheros-firmware))
 
 (define-public iwlwifi-firmware
   (package
