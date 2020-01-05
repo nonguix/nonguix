@@ -25,6 +25,7 @@
   #:use-module (guix utils)
   #:use-module (guix download)
   #:use-module (guix git-download)
+  #:use-module (guix build-system gnu)
   #:use-module (guix build-system linux-module)
   #:use-module (guix build-system trivial)
   #:use-module (ice-9 match)
@@ -84,21 +85,17 @@ on hardware which requires nonfree software to function.")))
               (sha256
                (base32
                 "024napabn3zwl8gr50w9cp4gdxhch8pkl2qx814c93ydkfj81znd"))))
-    (build-system trivial-build-system)
+    (build-system gnu-build-system)
     (arguments
-     `(#:modules ((guix build utils))
-       #:builder (begin
-                   (use-modules (guix build utils))
-                   (let ((source (assoc-ref %build-inputs "source"))
-                         (destination (string-append %output "/lib/firmware"))
-                         (gzip (assoc-ref %build-inputs "gzip"))
-                         (tar (assoc-ref %build-inputs "tar")))
-                     (set-path-environment-variable "PATH" '("bin")
-                                                    (list tar gzip))
-                     (invoke "tar" "--strip-components=1" "-xvf" source)
-                     (mkdir-p destination)
-                     (copy-recursively "." destination #:follow-symlinks? #t)
-                     #t))))
+     `(#:tests? #f
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (invoke "make" "install"
+                       (string-append "DESTDIR=" out)))))
+         (delete 'validate-runpath))))
     (native-inputs
      `(("gzip" ,gzip)
        ("tar" ,tar)))
