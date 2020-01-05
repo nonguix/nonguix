@@ -96,9 +96,6 @@ on hardware which requires nonfree software to function.")))
                (invoke "make" "install"
                        (string-append "DESTDIR=" out)))))
          (delete 'validate-runpath))))
-    (native-inputs
-     `(("gzip" ,gzip)
-       ("tar" ,tar)))
     (home-page
      "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git")
     (synopsis "Nonfree firmware blobs for Linux")
