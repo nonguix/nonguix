@@ -302,6 +302,9 @@ package contains nonfree firmware for the following chips:
        "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
        "/linux-firmware.git/plain/LICENCE.rtlwifi_firmware.txt")))))
 
+(define-public rtlwifi-firmware
+  (deprecated-package "rtlwifi-firmware" realtek-firmware))
+
 (define broadcom-sta-version "6.30.223.271")
 
 (define broadcom-sta-x86_64-source
@@ -483,70 +486,6 @@ chipsets from Broadcom:
        "https://raw.githubusercontent.com/winterheart/broadcom-bt-firmware"
        "/b60fa04881bf8f9b9d578f57d1dfa596cae2a82e"
        "/LICENSE.broadcom_bcm20702")))))
-
-(define-public rtlwifi-firmware
-  (package
-    (inherit linux-firmware)
-    (name "rtlwifi-firmware")
-    (build-system gnu-build-system)
-    (arguments
-     `(#:tests? #f
-       #:license-file-regexp "LICENCE.rtlwifi_firmware.txt"
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'install
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let* ((out (assoc-ref outputs "out"))
-                    (fw-dir (string-append out "/lib/firmware"))
-                    (bin-dir (string-append fw-dir "/rtlwifi")))
-               (mkdir-p bin-dir)
-               (copy-recursively "./rtlwifi" bin-dir)
-               #t)))
-         (delete 'validate-runpath))))
-    (home-page "https://wireless.wiki.kernel.org/en/users/drivers/rtl819x")
-    (synopsis "Nonfree firmware for Realtek wifi chips")
-    (description
-     "Nonfree firmware for Realtek wifi chips.  This package contains nonfree
-firmware for the following chips:
-@itemize
-@item Realtek RTL8188EE firmware (rtlwifi/rtl8188efw.bin)
-@item Realtek RTL8188EU firmware (rtlwifi/rtl8188eufw.bin)
-@item Realtek RTL8192CE/RTL8188CE firmware (rtlwifi/rtl8192cfw.bin)
-@item Realtek RTL8192CE/RTL8188CE B-cut firmware (rtlwifi/rtl8192cfwU_B.bin)
-@item Realtek RTL8188CE A-cut firmware, version 4.816.2011 (rtlwifi/rtl8192cfwU.bin)
-@item Realtek RTL8192CU/RTL8188CU UMC A-cut firmware (rtlwifi/rtl8192cufw_A.bin)
-@item Realtek RTL8192CU/RTL8188CU UMC B-cut firmware (rtlwifi/rtl8192cufw_B.bin)
-@item Realtek RTL8192CU/RTL8188CU TMSC firmware (rtlwifi/rtl8192cufw_TMSC.bin)
-@item Realtek RTL8192CU/RTL8188CU fallback firmware (rtlwifi/rtl8192cufw.bin)
-@item Realtek RTL8192DE firmware (rtlwifi/rtl8192defw.bin)
-@item Realtek RTL8192EE wifi firmware (rtlwifi/rtl8192eefw.bin)
-@item Realtek RTL8192EU non-WoWLAN firmware (rtlwifi/rtl8192eu_nic.bin)
-@item Realtek RTL8192EU WoWLAN firmware (rtlwifi/rtl8192eu_wowlan.bin)
-@item Realtek RTL8192SE/RTL8191SE firmware, version 4.816.2011 (rtlwifi/rtl8192sefw.bin)
-@item Realtek RTL8192SU/RTL8712U firmware (rtlwifi/rtl8712u.bin)
-@item Realtek RTL8723AU rev A wifi-with-BT firmware (rtlwifi/rtl8723aufw_A.bin)
-@item Realtek RTL8723AU rev B wifi-with-BT firmware (rtlwifi/rtl8723aufw_B.bin)
-@item Realtek RTL8723AU rev B wifi-only firmware (rtlwifi/rtl8723aufw_B_NoBT.bin)
-@item Realtek RTL8723BE firmware, version 36 (rtlwifi/rtl8723befw_36.bin)
-@item Realtek RTL8723BE firmware (rtlwifi/rtl8723befw.bin)
-@item Realtek RTL8723BS BT firmware (rtlwifi/rtl8723bs_bt.bin)
-@item Realtek RTL8723BS wifi non-WoWLAN firmware (rtlwifi/rtl8723bs_nic.bin)
-@item Realtek RTL8723BS wifi WoWLAN firmware (rtlwifi/rtl8723bs_wowlan.bin)
-@item Realtek RTL8723BU non-WoWLAN firmware (rtlwifi/rtl8723bu_nic.bin)
-@item Realtek RTL8723BU WoWLAN firmware (rtlwifi/rtl8723bu_wowlan.bin)
-@item Realtek RTL8723DE firmware (rtlwifi/rtl8723defw.bin)
-@item Realtek RTL8723AE rev B firmware (rtlwifi/rtl8723fw_B.bin)
-@item Realtek RTL8723AE rev A firmware (rtlwifi/rtl8723fw.bin)
-@item Realtek RTL8821AE firmware, version 29 (rtlwifi/rtl8821aefw_29.bin)
-@item Realtek RTL8821AE firmware (rtlwifi/rtl8821aefw_wowlan.bin)
-@item Realtek RTL8821AE firmware (rtlwifi/rtl8821aefw.bin)
-@item Realtek RTL8822BE firmware (rtlwifi/rtl8822befw.bin)
-@end itemize")
-    (license
-     (nonfree
-      (string-append
-       "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
-       "/linux-firmware.git/plain/LICENCE.rtlwifi_firmware.txt")))))
 
 (define-public rtl-nic-firmware
   (package
