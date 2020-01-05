@@ -308,6 +308,9 @@ package contains nonfree firmware for the following chips:
 (define-public rtl-nic-firmware
   (deprecated-package "rtl-nic-firmware" realtek-firmware))
 
+(define-public rtl-bt-firmware
+  (deprecated-package "rtl-bt-firmware" realtek-firmware))
+
 (define broadcom-sta-version "6.30.223.271")
 
 (define broadcom-sta-x86_64-source
@@ -489,50 +492,6 @@ chipsets from Broadcom:
        "https://raw.githubusercontent.com/winterheart/broadcom-bt-firmware"
        "/b60fa04881bf8f9b9d578f57d1dfa596cae2a82e"
        "/LICENSE.broadcom_bcm20702")))))
-
-(define-public rtl-bt-firmware
-  (package
-    (inherit linux-firmware)
-    (name "rtl-bt-firmware")
-    (build-system gnu-build-system)
-    (arguments
-     `(#:tests? #f
-       #:license-file-regexp "LICENCE.rtlwifi_firmware.txt"
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'install
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let* ((out (assoc-ref outputs "out"))
-                    (fw-dir (string-append out "/lib/firmware"))
-                    (bin-dir (string-append fw-dir "/rtl_bt")))
-               (mkdir-p bin-dir)
-               (copy-recursively "./rtl_bt" bin-dir)
-               #t)))
-         (delete 'validate-runpath))))
-    (synopsis "Nonfree firmware for Realtek bluetooth chips")
-    (description
-     "This package contains nonfree firmware for the following Realtek bluetooth chips:
-@itemize
- @item Realtek RTL8192EE Bluetooth firmware (rtl_bt/rtl8192ee_fw.bin)
- @item Realtek RTL8812AE Bluetooth firmware (rtl_bt/rtl8812ae_fw.bin)
- @item Realtek RTL8761A Bluetooth firmware (rtl_bt/rtl8761a_fw.bin)
- @item Realtek RTL8821A Bluetooth firmware (rtl_bt/rtl8821a_fw.bin)
- @item Realtek RTL8192EU Bluetooth firmware (rtl_bt/rtl8192eu_fw.bin)
- @item Realtek RTL8723AU rev A Bluetooth firmware (rtl_bt/rtl8723a_fw.bin)
- @item Realtek RTL8723BU rev B Bluetooth firmware (rtl_bt/rtl8723b_fw.bin)
- @item Realtek RTL8723D Bluetooth config (rtl_bt/rtl8723d_config.bin)
- @item Realtek RTL8723D Bluetooth firmware (rtl_bt/rtl8723d_fw.bin)
- @item Realtek RTL8821C Bluetooth config (rtl_bt/rtl8821c_config.bin)
- @item Realtek RTL8821C Bluetooth firmware (rtl_bt/rtl8821c_fw.bin)
- @item Realtek RTL8822B Bluetooth config (rtl_bt/rtl8822b_config.bin)
- @item Realtek RTL8822B Bluetooth firmware (rtl_bt/rtl8822b_fw.bin)
- @item Realtek RTL8822CU Bluetooth firmware (rtl_bt/rtl8822cu_fw.bin)
-@end itemize")
-    (license
-     (nonfree
-      (string-append
-       "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
-       "/linux-firmware.git/plain/LICENCE.rtlwifi_firmware.txt")))))
 
 (define-public intel-microcode
   (package
