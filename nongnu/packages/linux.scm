@@ -693,3 +693,32 @@ behavior as documented in the respective processor specification updates.  The
 @code{iucode-tool} package can be used to determine the appropriate file for
 your CPU.")
     (license (nonfree "file://license"))))
+
+(define-public amd-microcode
+  (package
+    (inherit linux-firmware)
+    (name "amd-microcode")
+    (build-system gnu-build-system)
+    (arguments
+     `(#:tests? #f
+       #:license-file-regexp "LICENSE.amd-ucode"
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (fw-dir (string-append out "/lib/firmware"))
+                    (bin-dir (string-append fw-dir "/amd-ucode")))
+               (for-each (lambda (file)
+                           (install-file file bin-dir))
+                         (find-files "amd-ucode" "^microcode_amd.*\\.bin$"))
+               #t)))
+         (delete 'validate-runpath))))
+    (synopsis "Processor microcode firmware for AMD CPUs")
+    (description "Updated system processor microcode for AMD x86-64
+processors.  AMD releases microcode updates to correct processor behavior as
+documented in the respective processor revision guides.")
+    (license
+     (nonfree
+      (string-append "https://git.kernel.org/pub/scm/linux/kernel/git/"
+                     "firmware/linux-firmware.git/plain/LICENSE.amd-ucode")))))
