@@ -668,21 +668,22 @@ chipsets from Broadcom:
        (sha256
         (base32
          "0pzi5qmrcrdf6nsds4bvyq1hnvv9d1dlrvqrbzcrpxk84rcjwq1x"))))
-    (build-system trivial-build-system)
+    (build-system gnu-build-system)
     (arguments
-     `(#:modules ((guix build utils))
-       #:builder
-       (begin
-         (use-modules (guix build utils))
-         (let* ((source (assoc-ref %build-inputs "source"))
-                (fw-dir (string-append %output "/lib/firmware"))
-                (bin-dir (string-append fw-dir "/intel-ucode")))
-           (mkdir-p bin-dir)
-           (copy-recursively (string-append source "/intel-ucode") bin-dir)
-           (copy-file
-            (string-append source "/license")
-            (string-append fw-dir "/LICENSE.intel-ucode"))
-           #t))))
+     `(#:tests? #f
+       #:phases
+       (modify-phases %standard-phases
+         (delete 'configure)
+         (delete 'build)
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (fw-dir (string-append out "/lib/firmware"))
+                    (bin-dir (string-append fw-dir "/intel-ucode")))
+               (mkdir-p bin-dir)
+               (copy-recursively "intel-ucode" bin-dir)
+               #t)))
+         (delete 'validate-runpath))))
     (home-page
      "https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files")
     (synopsis "Processor microcode firmware for Intel CPUs")
