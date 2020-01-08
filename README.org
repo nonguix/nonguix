@@ -61,10 +61,12 @@ the ~kernel~ and ~firmware~ fields of the ~operating-system~ definition in
 
 #+BEGIN_SRC scheme
   ;; Import nonfree linux module.
-  (use-modules (nongnu packages linux))
+  (use-modules (nongnu packages linux)
+               (nongnu system linux-initrd))
 
   (operating-system
     (kernel linux)
+    (initrd microcode-initrd)
     (firmware (list linux-firmware))
     ...
     )
@@ -90,6 +92,39 @@ nonfree Linux kernel and nonfree firmware with the following command:
 #+begin_src sh
 guix system disk-image /path/to/this/channel/nongnu/system/install.scm
 #+end_src
+
+** CPU Microcode
+
+CPU microcode updates are nonfree blobs that apply directly to a processor to
+patch its behavior, and are therefore not included in upstream GNU Guix.
+However, running the latest microcode is important to avoid nasty CPU bugs and
+hardware security vulnerabilities.
+
+To enable early loading of CPU microcode, use the ~microcode-initrd~ function
+to add the microcode to the Initial RAM Disk.  Most users can simply import
+~(nongnu system linux-initrd)~ and add ~(initrd microcode-initrd)~ to their
+~operating-system~ definition, as illustrated above.
+
+If you need to customize the ~initrd~ for some reason, you should first
+understand the upstream documentation on
+[[https://guix.gnu.org/manual/en/html_node/Initial-RAM-Disk.html][Initial RAM Disks]].
+~microcode-initrd~ simply wraps another ~initrd~ function, which you can swap
+out for your own. For example, this:
+
+#+BEGIN_SRC scheme
+  (initrd microcode-initrd)
+#+END_SRC
+
+is exactly equivalent to:
+
+#+BEGIN_SRC scheme
+  (initrd (lambda (file-systems . rest)
+            (apply microcode-initrd file-systems
+                   #:initrd base-initrd
+                   #:microcode-packages (list amd-microcode
+                                              intel-microcode)
+                   rest)))
+#+END_SRC
 
 ** Broadcom Wireless
 
