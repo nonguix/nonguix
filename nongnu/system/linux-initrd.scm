@@ -19,6 +19,7 @@
   #:use-module (guix modules)
   #:use-module (guix utils)
   #:use-module (nongnu packages linux)
+  #:use-module (nonguix modules)
   #:export (microcode-initrd))
 
 ;; See https://www.kernel.org/doc/Documentation/x86/microcode.txt
@@ -45,7 +46,7 @@ MICROCODE-PACKAGES, in the format expected by the kernel."
                             '((gnu build linux-initrd)
                               (guix build utils)
                               (nonguix build utils))
-                            #:select? (const #t))
+                            #:select? nonguix-module-name?)
       #~(begin
           (use-modules (gnu build linux-initrd)
                        (guix build utils)
@@ -83,7 +84,7 @@ MICROCODE-PACKAGES, in the format expected by the kernel."
     (with-imported-modules (source-module-closure
                             '((guix build utils)
                               (nonguix build utils))
-                            #:select? (const #t))
+                            #:select? nonguix-module-name?)
       #~(begin
           (use-modules (guix build utils)
                        (nonguix build utils))
