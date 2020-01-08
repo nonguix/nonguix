@@ -1,5 +1,6 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2019 Pierre Neidhardt <mail@ambrevar.xyz>
+;;; Copyright © 2020 Alex Griffin <a@ajgrf.com>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -20,9 +21,11 @@
   #:use-module (ice-9 match)
   #:use-module (ice-9 binary-ports)
   #:use-module (guix build utils)
+  #:use-module (srfi srfi-26)
   #:export (64-bit?
             make-desktop-entry-file
-            make-wrapper))
+            make-wrapper
+            concatenate-files))
 
 (define (64-bit? file)
   "Return true if ELF file is in 64-bit format, false otherwise.
@@ -183,3 +186,15 @@ contents:
               (dirname real-file)
               (canonicalize-path real-file))))
   (chmod wrapper #o755))
+
+(define (concatenate-files files result)
+  "Make RESULT the concatenation of all of FILES."
+  (define (dump file port)
+    (put-bytevector
+     port
+     (call-with-input-file file
+       get-bytevector-all)))
+
+  (call-with-output-file result
+    (lambda (port)
+      (for-each (cut dump <> port) files))))
