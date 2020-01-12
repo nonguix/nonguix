@@ -53,10 +53,8 @@
      (base32 "0y4qms4lm9xiix93g45337rx5nrp0y3gb0x0avyv7l9qrkk03zz8"))))
 
 (define (lib)
-  (match (or (%current-target-system)
-             (%current-system))
-    ("x86_64-linux" "lib64")
-    ("i686-linux" "lib")))
+  (if (string=? (or (%current-target-system) (%current-system)) "x86_64-linux")
+      "lib64" "lib"))
 
 (define-public nvidia-cg-toolkit
   (package
