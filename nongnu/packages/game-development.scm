@@ -119,3 +119,47 @@ because future hardware features may not be supported.  Going forward, new
 development should opt for GLSL rather than Cg.")
     (supported-systems '("i686-linux" "x86_64-linux"))
     (license (license:nonfree "file://share/Cg/docs/license.txt"))))
+
+(define-public libsteam
+  (package
+    (name "libsteam")
+    (version "2013")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://github.com/ValveSoftware/source-sdk-"
+                           version
+                           "/raw/master/sp/src/lib/public/linux32/libsteam_api.so"))
+       (sha256
+        (base32
+         "1ivxvikm8i6mmmqvib8j5m7g5n1cdlki2sf4v7g13c7xba7aj438"))))
+    (build-system binary-build-system)
+    (supported-systems '("i686-linux" "x86_64-linux"))
+    (arguments
+     `(#:system "i686-linux"
+       #:validate-runpath? #f           ; TODO: Why doesn't it pass?
+       #:patchelf-plan
+       `(("libsteam_api.so"
+          ("gcc:lib")))
+       #:install-plan
+       `(("." ("steam") "lib/"))
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'unpack
+           (lambda* (#:key inputs #:allow-other-keys)
+             (copy-file (assoc-ref inputs "source") "libsteam_api.so")
+             (chmod "libsteam_api.so" #o644)
+             #t))
+         (add-after 'install 'symlink
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (symlink (string-append out "/lib/libsteam_api.so")
+                        (string-append out "/lib/libsteam_api.so.1")))
+             #t)))))
+    (inputs
+     `(("gcc:lib" ,gcc "lib")))
+    (home-page "https://developer.valvesoftware.com/wiki/SDK2013_GettingStarted")
+    (synopsis "Redistribution binary needed by some video games")
+    (description "")
+    (license (license:nonfree
+              "https://raw.githubusercontent.com/ValveSoftware/source-sdk-2013/master/LICENSE"))))
