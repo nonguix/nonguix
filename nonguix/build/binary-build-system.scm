@@ -82,7 +82,9 @@ Both executables and dynamic libraries are accepted.
 The inputs are optional when the file is an executable."
   (define (binary-patch binary interpreter runpath)
     (unless (string-contains binary ".so")
-      (invoke "patchelf" "--set-interpreter" interpreter binary))
+      ;; Use `system*' and not `invoke' since this may raise an error if
+      ;; library does not end with .so.
+      (system* "patchelf" "--set-interpreter" interpreter binary))
     (when runpath
       (let ((rpath (string-join
                     (map
