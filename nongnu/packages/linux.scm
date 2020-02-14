@@ -69,8 +69,8 @@ on hardware which requires nonfree software to function.")))
                  "0r7bqpvbpiiniwsm338b38mv6flfgm1r09avxqsakhkh8rvgz1dg"))
 
 (define-public linux-4.4
-  (corrupt-linux linux-libre-4.4 "4.4.213"
-                 "1cmwn9zvz14jqjy6qkszglhs2p5h6yh82b2269cbzvibg8y3rxq0"))
+  (corrupt-linux linux-libre-4.4 "4.4.214"
+                 "0v575wl85fg9c3ksdj570hxjcl9p1dxwzag3fm0qcrq75kp6bamn"))
 
 (define-public linux linux-5.4)
 
