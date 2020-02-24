@@ -77,10 +77,10 @@
          (,,(string-append (lib) "/libCgGL.so")
           ("out" "glibc")))
        #:install-plan
-       `(("bin" (".") "bin/")
-         (,,(lib) (".") "lib/")
-         ("include" (".") "include/")
-         ("local" (".") "share/"))
+       `(("bin" "./")
+         (,,(lib) "lib")
+         ("include" "./")
+         ("local/" "share/"))
        #:phases
        (modify-phases %standard-phases
          (replace 'unpack
