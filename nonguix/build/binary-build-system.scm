@@ -18,6 +18,8 @@
 
 (define-module (nonguix build binary-build-system)
   #:use-module ((guix build gnu-build-system) #:prefix gnu:)
+  #:use-module ((guix build-system copy)) ; TODO: Do we need it?
+  #:use-module ((guix build copy-build-system))
   #:use-module (nonguix build utils)
   #:use-module (guix build utils)
   #:use-module (ice-9 match)
@@ -30,7 +32,16 @@
 ;;
 ;; Code:
 
-(define* (install #:key install-plan outputs #:allow-other-keys)
+(define (new-install)
+  "Return the copy-build-system `install' procedure."
+
+  ;; Do not use `@' to avoid introducing circular dependencies.
+  ;; TODO: Does not work?!?
+  ;; (let ((module (resolve-interface '(guix build copy-build-system))))
+  ;;   (module-ref module 'install))
+  (@@ (guix build copy-build-system) install))
+
+(define* (old-install #:key install-plan outputs #:allow-other-keys)
   "Copy files from the \"source\" build input to the \"out\" output according to INSTALL-PLAN.
 
 An INSTALL-PLAN is made of three elements:
@@ -69,6 +80,18 @@ represent the target full path, which only makes sense for single files."
 
   (for-each install install-plan)
   #t)
+
+(define* (install #:key install-plan outputs #:allow-other-keys)
+  (define (install-old-format)
+     (warn "Install-plan format deprecated.
+Please update to the format of the copy-build-system.")
+     (old-install #:install-plan install-plan #:outputs outputs))
+  (match (car install-plan)
+    ((source (. matches) target)
+     (install-old-format))
+    ((source #f target)
+     (install-old-format))
+    (_ ((new-install) #:install-plan install-plan #:outputs outputs))))
 
 (define* (patchelf #:key inputs outputs patchelf-plan #:allow-other-keys)
   "Set the interpreter and the RPATH of files as per the PATCHELF-PLAN.
@@ -132,7 +155,7 @@ The inputs are optional when the file is an executable."
     (replace 'install install)))
 
 (define* (binary-build #:key inputs (phases %standard-phases)
-                      #:allow-other-keys #:rest args)
+                       #:allow-other-keys #:rest args)
   "Build the given package, applying all of PHASES in order."
   (apply gnu:gnu-build #:inputs inputs #:phases phases args))
 
