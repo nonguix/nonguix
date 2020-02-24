@@ -23,6 +23,7 @@
   #:use-module (guix search-paths)
   #:use-module (guix build-system)
   #:use-module (guix build-system gnu)
+  #:use-module (guix build-system copy)
   #:use-module (guix packages)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
@@ -37,7 +38,7 @@
 ;; Commentary:
 ;;
 ;; Standard build procedure for binary packages.  This is implemented as an
-;; extension of `gnu-build-system'.
+;; extension of `copy-build-system'.
 ;;
 ;; Code:
 
@@ -45,7 +46,7 @@
   ;; Build-side modules imported by default.
   `((nonguix build binary-build-system)
     (nonguix build utils)
-    ,@%gnu-build-system-modules))
+    ,@%copy-build-system-modules))
 
 (define (default-patchelf)
   "Return the default patchelf package."
@@ -78,7 +79,6 @@
                               `(("source" ,source))
                               '())
                         ,@inputs
-
                         ;; Keep the standard inputs of 'gnu-build-system'.
                         ,@(standard-packages)))
          (build-inputs `(("patchelf" ,patchelf)
@@ -94,7 +94,7 @@
                        #:key (guile #f)
                        (outputs '("out"))
                        (patchelf-plan ''())
-                       (install-plan ''(("." (".") "./")))
+                       (install-plan ''(("." "./")))
                        (search-paths '())
                        (out-of-source? #t)
                        (validate-runpath? #t)
