@@ -43,6 +43,87 @@
   #:use-module (guix build-system copy)
   #:use-module (nonguix build-system binary))
 
+(define-public mono-5
+  (package
+    (name "mono")
+    (version "5.20.1.27")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://download.mono-project.com/sources/mono/"
+                    name "-" version ".tar.bz2"))
+              (sha256
+               (base32
+                "15rpwxw642ad1na93k5nj7d2lb24f21kncr924gxr00178a9x0jy"))
+              (patches
+               (parameterize
+                   ((%patch-path
+                     (map (lambda (directory)
+                            (string-append directory "/nongnu/packages/patches"))
+                          %load-path)))
+                 (search-patches "mono-pkgconfig-before-gac.patch"
+                                 "mono-mdoc-timestamping.patch")))))
+    (build-system gnu-build-system)
+    (native-inputs
+     `(("gettext" ,gettext-minimal)
+       ("glib" ,glib)
+       ("libxslt" ,libxslt)
+       ("perl" ,perl)
+       ("python" ,python-2)
+       ("cmake" ,cmake)
+       ("which" ,which)
+       ("libgdiplus" ,libgdiplus)
+       ("libx11" ,libx11)))
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'make-reproducible
+           (lambda _
+             (substitute* "mono/mini/Makefile.in"
+               (("build_date = [^;]*;")
+                "build_date = (void*) 0;"))
+             #t))
+         ;; TODO: Update Mono certs.  We need a certificate bundle, which nss-certs does not have.
+         ;; (add-after 'install 'update-mono-key-store
+         ;;   (lambda* (#:key outputs inputs #:allow-other-keys)
+         ;;     (let* ((out (assoc-ref outputs "out"))
+         ;;            (ca (assoc-ref inputs "nss-certs"))
+         ;;            (cert-sync (string-append out "/bin/cert-sync"))))
+         ;;     (invoke cert-sync (string-append ca "/etc/ssl/certs/ca-bundle.crt")
+         (add-after 'install 'install-gmcs
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out")))
+               (symlink (string-append out "/bin/mcs")
+                        (string-append out "/bin/gmcs")))
+             #t))
+         (add-after 'unpack 'set-env
+           (lambda _ ;;* (#:key inputs #:allow-other-keys)
+             ;; all tests under mcs/class fail trying to access $HOME
+             (setenv "HOME" "/tmp")
+             ;; ZIP files have "DOS time" which starts in Jan 1980.
+             (setenv "SOURCE_DATE_EPOCH" "315532800")
+             #t)))
+       #:configure-flags (list
+                          (string-append "--x-includes="
+                                         (assoc-ref %build-inputs "libx11")
+                                         "/include")
+                          (string-append "--x-libraries="
+                                         (assoc-ref %build-inputs "libx11")
+                                         "/lib")
+                          (string-append "--with-libgdiplus="
+                                         (assoc-ref %build-inputs "libgdiplus")
+                                         "/lib/libgdiplus.so"))
+       ;; TODO: Most tests pass but something fails.  See bug#39695 and
+       ;; https://github.com/mono/mono/issues/18979.
+       #:tests? #f))
+    (synopsis "Compiler and libraries for the C# programming language")
+    (description "Mono is a compiler, vm, debugger and set of libraries for
+C#, a C-style programming language from Microsoft that is very similar to
+Java.")
+    (home-page "https://www.mono-project.com/")
+    ;; TODO: Still x11?
+    (license license:x11)))
+
 ;; TODO: This can probably be upstreamed since only the check phase doesn't
 ;; pass (even if most of the tests succeed).
 (define-public mono-6
