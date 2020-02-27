@@ -40,6 +40,7 @@
   #:use-module (guix download)
   #:use-module (guix git-download)
   #:use-module (guix build-system gnu)
+  #:use-module (guix build-system copy)
   #:use-module (nonguix build-system binary))
 
 ;; TODO: This can probably be upstreamed since only the check phase doesn't
@@ -199,3 +200,50 @@ Java.")
     (description "This package provides a generic driver for the .NET Core
 command line interface.")
     (license license:expat)))
+
+;; TODO: Make a mono-binary-build-system.  See Nix' build-dotnet-package/default.nix.
+(define-public nuget
+  (let ((commit "7871fa26914593fdb2f2500df1196df7b8aecb1c")
+        (basename "Nuget"))
+    (package
+      (name "nuget")
+      (version "4.9.1.5694")
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/mono/nuget-binary/")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32
+           "07r63xam6icm17pf6amh1qkmna13nxa3ncdan7a3ql307i5isriz"))))
+      (build-system copy-build-system)
+      (inputs
+       `(("mono" ,mono-6)))
+      (arguments
+       `(#:strip-binaries? #f
+         #:install-plan
+         '(("." ,(string-append "lib/dotnet/" basename "/")))
+         #:phases
+         (modify-phases %standard-phases
+           (add-after 'install 'make-wrapper
+             (lambda* (#:key inputs outputs #:allow-other-keys)
+               (let* ((out (assoc-ref outputs "out"))
+                      (wrapper (string-append out "/bin/nuget"))
+                      (real (string-append out "/lib/dotnet/" ,basename "/nuget.exe"))
+                      (mono (string-append (assoc-ref inputs "mono") "/bin/mono")))
+                 (mkdir-p (dirname wrapper))
+                 (with-output-to-file wrapper
+                   (lambda ()
+                     (format #t "#!~a~%~a ~a \"$@\""
+                             (which "bash")
+                             mono real)))
+                 (chmod wrapper #o755)
+                 #t))))))
+      (supported-systems '("x86_64-linux"))
+      (home-page "")
+      (synopsis "")
+      (description "")
+      ;; TODO: License?
+      (license license:expat))))
