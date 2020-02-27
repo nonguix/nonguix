@@ -328,3 +328,281 @@ command line interface.")
       (description "")
       ;; TODO: License?
       (license license:expat))))
+
+;; TODO: Make fetcher.
+(define* (nuget-fetch #:key name version url sha256)
+  (if name
+      (origin
+        (method url-fetch)
+        (uri url)
+        (file-name (string-append name "-" version))
+        (sha256
+         (base32 sha256)))
+      (origin
+        (method url-fetch)
+        (uri url)
+        (sha256
+         (base32 sha256)))))
+
+(define-public msbuild
+  (let ((date "2019.07.26.14.57")
+        ;; (bootstrap-version "0.08")
+        )
+    (package
+      (name "msbuild")
+      (version "16.3")
+      (source
+       (origin
+         (method url-fetch)
+         (uri (string-append
+               "https://download.mono-project.com/sources/msbuild/msbuild-"
+               version "+xamarinxplat." date ".tar.xz")) ;
+         ;; (file-name (git-file-name name version))
+         (sha256
+          (base32
+           "1zcdfx4xsh62wj3g1jc2an0lppsfs691lz4dv05xbgi01aq1hk6a"))))
+      (build-system gnu-build-system)
+      (inputs
+       `(("mono" ,mono-6)))
+      (native-inputs
+       `(("dotnet-sdk" ,dotnet-sdk)
+         ("nuget" ,nuget)
+         ("unzip" ,unzip)
+         ("xplat" ,(origin
+                     (method url-fetch)
+                     ;; (uri "https://github.com/mono/msbuild/releases/download/0.07/mono_msbuild_xplat-master-8f608e49.zip")
+                     (uri (string-append "https://github.com/mono/msbuild/releases/download/0.07/mono_msbuild_xplat-master-8f608e49.zip"))
+                     ;; (file-name "mono_msbuild_6.4.0.208.zip")
+                     (sha256
+                      (base32
+                       "1jxq3fk9a6q2a8i9zacxaz3fkvc22i9qvzlpa7wbb95h42g0ffhq"))))
+         ;; ("microsoft.build"
+         ;;  ,(nuget-fetch #:version "14.3.0"
+         ;;                #:url "https://www.nuget.org/api/v2/package/microsoft.build/14.3.0"
+         ;;                #:sha256 "1zamn3p8xxi0wsjlpln0y71ncb977f3fp08mvaz4wmbmi76nr0rz"))
+         ("microsoft.dotnet.arcade.sdk"
+          ,(nuget-fetch #:version "1.0.0-beta.19372.10"
+                        #:url (string-append "https://dotnetfeed.blob.core.windows.net/dotnet-core/"
+                                             "flatcontainer/microsoft.dotnet.arcade.sdk/1.0.0-beta.19372.10/"
+                                             "microsoft.dotnet.arcade.sdk.1.0.0-beta.19372.10.nupkg")
+                        #:sha256 "1lii0yg4fbsma80mmvw2zwplc26abb46q6gkxwbsbkyszkw128hv"))
+         ("sn"
+          ,(nuget-fetch #:version "1.0.0"
+                        #:url (string-append "https://dotnetfeed.blob.core.windows.net/dotnet-core/"
+                                             "flatcontainer/sn/1.0.0/sn.1.0.0.nupkg")
+                        #:sha256 "1012fcdc6vq2355v86h434s6p2nnqgpdapb7p25l4h39g5q8p1qs"))
+         ("microbuild.core"
+          ,(nuget-fetch #:name "microbuild.core"
+                        #:version "0.2.0"
+                        #:url "https://www.nuget.org/api/v2/package/microbuild.core/0.2.0"
+                        #:sha256 "0q4s45jskbyxfx4ay6znnvv94zma2wd85b8rwmwszd2nb0xl3194"))
+         ("microbuild.core.sentinel"
+          ,(nuget-fetch #:version "1.0.0"
+                        #:url (string-append
+                               "https://dotnetfeed.blob.core.windows.net/"
+                               "dotnet-core/flatcontainer/microbuild.core.sentinel/"
+                               "1.0.0/microbuild.core.sentinel.1.0.0.nupkg")
+                        #:sha256 "035kqx5fkapql108n222lz8psvxk04mv3dy1qg3h08i4b8j3dy8i"))
+         ("vswhere"
+          ,(nuget-fetch #:name "vswhere"
+                        #:version "2.6.7"
+                        #:url "https://www.nuget.org/api/v2/package/vswhere/2.6.7"
+                        #:sha256 "0h4k5i96p7633zzf4xsv7615f9x72rr5qr7b9934ri2y6gshfcwk"))
+         ("microsoft.diasymreader.pdb2pdb"
+          ,(nuget-fetch #:version "1.1.0-beta1-62506-02"
+                        #:url (string-append
+                               "https://dotnetfeed.blob.core.windows.net/dotnet-core/"
+                               "flatcontainer/microsoft.diasymreader.pdb2pdb/"
+                               "1.1.0-beta1-62506-02/"
+                               "microsoft.diasymreader.pdb2pdb.1.1.0-beta1-62506-02.nupkg")
+                        #:sha256 "1dkhpmq5aw34nndvb4xc370866vf33x70zrjhgvnpwwspb6vb0zh"))
+         ("microsoft.dotnet.signtool"
+          ,(nuget-fetch #:version "1.0.0-beta.19372.10"
+                        #:url (string-append
+                               "https://dotnetfeed.blob.core.windows.net/dotnet-core/"
+                               "flatcontainer/microsoft.dotnet.signtool/"
+                               "1.0.0-beta.19372.10/"
+                               "microsoft.dotnet.signtool.1.0.0-beta.19372.10.nupkg")
+                        #:sha256 "1f2im2lilw10zslfclxh49knr542jy7q09p009flxsgn68riy0j6"))))
+      (arguments
+       `(#:phases
+         (modify-phases %standard-phases
+           (delete 'configure)
+           (replace 'build
+             (lambda* (#:key inputs #:allow-other-keys)
+               (let* ((unzip (string-append (assoc-ref inputs "unzip") "/bin/unzip"))
+                      (xplat (assoc-ref inputs "xplat"))
+                      (nuget (string-append (assoc-ref inputs "nuget") "/bin/nuget"))
+                      (dotnet-sdk (assoc-ref inputs "dotnet-sdk"))
+                      (libhostfxr (string-append dotnet-sdk "/host/fxr/3.1.1/libhostfxr.so"))
+                      (microsoft.dotnet.arcade.sdk (assoc-ref inputs "microsoft.dotnet.arcade.sdk")))
+                 ;; Set up nuget packages.
+                 (setenv "HOME" (string-append (getcwd) "/fake-home"))
+                 (for-each
+                  (lambda (mono-dep)
+                    (invoke nuget "add" (assoc-ref inputs mono-dep)  "-Source" "guix"))
+                  '("microsoft.dotnet.arcade.sdk"
+                    "sn"
+                    "microbuild.core"
+                    "microbuild.core.sentinel"
+                    "vswhere"
+                    "microsoft.diasymreader.pdb2pdb"
+                    "microsoft.dotnet.signtool"))
+                 (invoke nuget "sources" "Disable" "-Name" "nuget.org")
+                 (invoke nuget "sources" "Add" "-Name" "guix" "-Source" (string-append (getcwd) "/guix"))
+                 ;; Extract bootstrap.
+                 (mkdir-p "artifacts")
+                 (invoke unzip xplat "-d" "artifacts")
+                 (rename-file ;; (string-append "artifacts/msbuild-" ,bootstrap-version)
+                  "artifacts/msbuild" "artifacts/mono-msbuild")
+                 (chmod "artifacts/mono-msbuild/MSBuild.dll" #o755)
+                 (symlink libhostfxr
+                          (string-append
+                           "artifacts/mono-msbuild/SdkResolvers/Microsoft.DotNet.MSBuildSdkResolver/"
+                           (basename libhostfxr)))
+                 ;; Prevent installer from running.
+                 (with-output-to-file "eng/common/dotnet-install.sh"
+                   (lambda _
+                     (format #t "#!~a~%" (which "bash"))))
+                 ;; msbuild response files to use only our source
+                 (with-output-to-file "artifacts/mono-msbuild/MSBuild.rsp"
+                   (lambda _
+                     (display "/p:RestoreSources=guix\n")))
+                 (with-output-to-file "src/MSBuild/MSBuild.rsp"
+                   (lambda _
+                     (display "/p:RestoreSources=guix\n")))
+
+                 (substitute* "./eng/cibuild_bootstrapped_msbuild.sh"
+                   (("\t/bin/bash") (string-append "\t" (which "bash"))))
+                 (pk 'BUILDING)
+                 (invoke "./eng/cibuild_bootstrapped_msbuild.sh"
+                         "--host_type" "mono"
+                         "--configuration" "Release"
+                         ;; TODO there are some (many?) failing tests
+                         "--skip_tests" "/p:DisableNerdbankVersioning=true")))))))
+      (supported-systems '("x86_64-linux"))
+      (home-page "https://github.com/mono/msbuild")
+      (synopsis "Implementation of the Microsoft build system for Mono")
+      (description "This is the Mono version of Microsoft Build Engine, the
+build platform for .NET, and Visual Studio.")
+      (license license:expat))))
+
+;; (define-public msbuild
+;;   (let ((date "2020.01.10.05.36"))
+;;     (package
+;;       (name "msbuild")
+;;       (version "16.5")
+;;       (source
+;;        (origin
+;;          (method git-fetch)
+;;          (uri (git-reference
+;;                (url "https://github.com/mono/linux-packaging-msbuild")
+;;                (commit (string-append "upstream/" version "+xamarinxplat." date))))
+;;          (file-name (git-file-name name version))
+;;          (sha256
+;;           (base32
+;;            "1knircr25qxvmm5v3mar3xfvcycrbn4l03kyhfx8jmyzjxf5slcg"))))
+;;       (build-system gnu-build-system)
+;;       (inputs
+;;        `(("mono" ,mono)))
+;;       (native-inputs
+;;        `(("dotnet-sdk" ,dotnet-sdk)
+;;          ("unzip" ,unzip)))
+;;       (arguments
+;;        `(#:phases
+;;          (modify-phases %standard-phases
+;;            (delete 'configure)
+;;            (replace 'build
+;;              (lambda _
+;;                ;; TODO there are some (many?) failing tests
+;;                (invoke "./eng/cibuild_bootstrapped_msbuild.sh"
+;;                        "--host_type" "mono"
+;;                        "--configuration" "Release"
+;;                        "--skip_tests" "/p:DisableNerdbankVersioning=true"))))))
+;;       (supported-systems '("x86_64-linux"))
+;;       (home-page "https://github.com/mono/msbuild;")
+;;       (synopsis "Implementation of the Microsoft build system for Mono")
+;;       (description "This is the Mono version of Microsoft Build Engine, the
+;; build platform for .NET, and Visual Studio.")
+;;       (license license:expat))))
+
+;; (define-public msbuild
+;;   (let ((date "2020.01.10.05.36")
+;;         (bootstrap-version "0.08"))
+;;     (package
+;;       (name "msbuild")
+;;       (version "16.5")
+;;       (source
+;;        (origin
+;;          (method url-fetch)
+;;          (uri (string-append
+;;                "https://download.mono-project.com/sources/msbuild/msbuild-"
+;;                version "+xamarinxplat." date ".tar.xz")) ;
+;;          ;; (file-name (git-file-name name version))
+;;          (sha256
+;;           (base32
+;;            "19ki9ch4wxkh0l9jnsjr5fc7zx6lmpkmdklk3wxwsgmdakn3jws8"
+;;            ;; "1knircr25qxvmm5v3mar3xfvcycrbn4l03kyhfx8jmyzjxf5slcg"
+;;            ))))
+;;       (build-system gnu-build-system)
+;;       (inputs
+;;        `(("mono" ,mono)))
+;;       (native-inputs
+;;        `(("dotnet-sdk" ,dotnet-sdk)
+;;          ("unzip" ,unzip)
+;;          ("xplat" ,(origin
+;;                      (method url-fetch)
+;;                      ;; (uri "https://github.com/mono/msbuild/releases/download/0.07/mono_msbuild_xplat-master-8f608e49.zip")
+;;                      (uri (string-append "https://github.com/mono/msbuild/releases/download/"
+;;                                          bootstrap-version "/mono_msbuild_6.4.0.208.zip"))
+;;                      ;; (file-name "mono_msbuild_6.4.0.208.zip")
+;;                      (sha256
+;;                       (base32
+;;                        "0w9x1sj8nrsfghf7qm7dbcbc4yxhnzyhsrpl5slblfiyrwddm3xk"
+;;                        ;; "1jxq3fk9a6q2a8i9zacxaz3fkvc22i9qvzlpa7wbb95h42g0ffhq"
+;;                        ))))))
+;;       (arguments
+;;        `(#:phases
+;;          (modify-phases %standard-phases
+;;            (delete 'configure)
+;;            (replace 'build
+;;              (lambda* (#:key inputs #:allow-other-keys)
+;;                (let* ((unzip (string-append (assoc-ref inputs "unzip") "/bin/unzip"))
+;;                       (xplat (assoc-ref inputs "xplat"))
+;;                       (dotnet-sdk (assoc-ref inputs "dotnet-sdk"))
+;;                       (libhostfxr (string-append dotnet-sdk "/host/fxr/3.1.1/libhostfxr.so")))
+;;                  (mkdir-p "artifacts")
+;;                  (invoke unzip xplat "-d" "artifacts")
+;;                  (rename-file ;; (string-append "artifacts/msbuild-" ,bootstrap-version)
+;;                   "artifacts/msbuild" "artifacts/mono-msbuild")
+;;                  (chmod "artifacts/mono-msbuild/MSBuild.dll" #o755)
+;;                  (symlink libhostfxr
+;;                           (string-append
+;;                            "artifacts/mono-msbuild/SdkResolvers/Microsoft.DotNet.MSBuildSdkResolver/"
+;;                            (basename libhostfxr)))
+;;                  ;; Prevent installer from running.
+;;                  (with-output-to-file "eng/common/dotnet-install.sh"
+;;                    (lambda _
+;;                      (format #t "#!~a/bin/bash~%" (which "bash"))))
+;;                  ;; msbuild response files to use only our source
+;;                  (with-output-to-file "artifacts/mono-msbuild/MSBuild.rsp"
+;;                    (lambda _
+;;                      (display "/p:RestoreSources=guix\n")))
+;;                  (with-output-to-file "src/MSBuild/MSBuild.rsp"
+;;                    (lambda _
+;;                      (display "/p:RestoreSources=guix\n")))
+
+;;                  (substitute* "./eng/cibuild_bootstrapped_msbuild.sh"
+;;                    (("\t/bin/bash") (string-append "\t" (which "bash"))))
+;;                  (pk 'BUILDING)
+;;                  (invoke "./eng/cibuild_bootstrapped_msbuild.sh"
+;;                          "--host_type" "mono"
+;;                          "--configuration" "Release"
+;;                          ;; TODO there are some (many?) failing tests
+;;                          "--skip_tests" "/p:DisableNerdbankVersioning=true")))))))
+;;       (supported-systems '("x86_64-linux"))
+;;       (home-page "https://github.com/mono/msbuild;")
+;;       (synopsis "Implementation of the Microsoft build system for Mono")
+;;       (description "This is the Mono version of Microsoft Build Engine, the
+;; build platform for .NET, and Visual Studio.")
+;;       (license license:expat))))
