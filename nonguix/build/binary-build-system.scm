@@ -73,10 +73,12 @@ represent the target full path, which only makes sense for single files."
 (define* (patchelf #:key inputs outputs patchelf-plan #:allow-other-keys)
   "Set the interpreter and the RPATH of files as per the PATCHELF-PLAN.
 
-The PATCHELF-PLAN elements are lists of:
+The PATCHELF-PLAN elements are lists of pairs:
 
 - The file to patch.
 - The inputs (as strings) to include in the rpath, e.g. \"mesa\".
+  It can also be an output, e.g. \"out\", or \"$ORIGIN\", which in RPATH
+  parlance means the library directory.
 
 Both executables and dynamic libraries are accepted.
 The inputs are optional when the file is an executable."
@@ -90,6 +92,8 @@ The inputs are optional when the file is an executable."
                     (map
                      (lambda (input-or-output)
                        (cond
+                        ((string=? input-or-output "$ORIGIN")
+                         "$ORIGIN")
                         ((assoc-ref outputs input-or-output)
                          (string-append (assoc-ref outputs input-or-output) "/lib"))
                         ((assoc-ref inputs input-or-output)
