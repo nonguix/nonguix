@@ -20,17 +20,27 @@
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (gnu packages base)
   #:use-module (gnu packages cmake)
+  #:use-module (gnu packages compression)
+  #:use-module (gnu packages curl)
+  #:use-module (gnu packages gcc)
   #:use-module (gnu packages gettext)
   #:use-module (gnu packages glib)
+  #:use-module (gnu packages icu4c)
+  #:use-module (gnu packages kerberos)
+  #:use-module (gnu packages libunwind)
+  #:use-module (gnu packages linux)
   #:use-module (gnu packages mono)
   #:use-module (gnu packages perl)
   #:use-module (gnu packages python)
+  #:use-module (gnu packages tls)
   #:use-module (gnu packages xml)
   #:use-module (gnu packages xorg)
   #:use-module (gnu packages)
   #:use-module (guix packages)
   #:use-module (guix download)
-  #:use-module (guix build-system gnu))
+  #:use-module (guix git-download)
+  #:use-module (guix build-system gnu)
+  #:use-module (nonguix build-system binary))
 
 ;; TODO: This can probably be upstreamed since only the check phase doesn't
 ;; pass (even if most of the tests succeed).
@@ -114,3 +124,78 @@ Java.")
     (home-page "https://www.mono-project.com/")
     ;; TODO: Still x11?
     (license license:x11)))
+
+;; TODO: Needs to build from source in order to upstream to Guix.
+;; Nix does not do it.
+;; See https://www.archlinux.org/packages/community/x86_64/dotnet-sdk/.
+(define-public dotnet-sdk
+  (package
+    (name "dotnet-sdk")
+    (version "3.1.101")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://dotnetcli.azureedge.net/dotnet/Sdk/"
+             version
+             "/dotnet-sdk-" version "-linux-x64.tar.gz"))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "079156dzsi1337didvv5dk1qp0ypjrrm8yw7darz8rr2928hh1m1"))))
+    (build-system binary-build-system)
+    (inputs
+     `(("curl" ,curl)
+       ("gcc" ,gcc "lib")
+       ("icu" ,icu4c)
+       ("krb5" ,mit-krb5)
+       ("libunwind" ,libunwind)
+       ("lttng-ust" ,lttng-ust)
+       ("openssl" ,openssl)
+       ("zlib" ,zlib)))
+    (arguments
+     `(#:patchelf-plan
+       `(("dotnet"
+          ("gcc"))
+         ("sdk/3.1.101/AppHostTemplate/apphost"
+          ("gcc"))
+         ("packs/Microsoft.NETCore.App.Host.linux-x64/3.1.1/runtimes/linux-x64/native/apphost"
+          ("gcc"))
+         ,@(map (lambda (lib)
+                  (list lib '("$ORIGIN"
+                              "curl" "gcc" "icu" "krb5" "lttng-ust" "openssl" "zlib")))
+                '("shared/Microsoft.NETCore.App/3.1.1/System.Net.Http.Native.so"
+                  "shared/Microsoft.NETCore.App/3.1.1/libclrjit.so"
+                  "shared/Microsoft.NETCore.App/3.1.1/System.Globalization.Native.so"
+                  "shared/Microsoft.NETCore.App/3.1.1/libcoreclrtraceptprovider.so"
+                  "shared/Microsoft.NETCore.App/3.1.1/System.Security.Cryptography.Native.OpenSsl.so"
+                  "shared/Microsoft.NETCore.App/3.1.1/System.Net.Security.Native.so"
+                  "shared/Microsoft.NETCore.App/3.1.1/libmscordaccore.so"
+                  "shared/Microsoft.NETCore.App/3.1.1/System.IO.Compression.Native.so"
+                  "shared/Microsoft.NETCore.App/3.1.1/libcoreclr.so"
+                  "shared/Microsoft.NETCore.App/3.1.1/libmscordbi.so"
+                  "shared/Microsoft.NETCore.App/3.1.1/System.Native.so"
+                  "shared/Microsoft.NETCore.App/3.1.1/libdbgshim.so"
+                  "shared/Microsoft.NETCore.App/3.1.1/libhostpolicy.so"
+                  "packs/Microsoft.NETCore.App.Host.linux-x64/3.1.1/runtimes/linux-x64/native/libnethost.so"
+                  "host/fxr/3.1.1/libhostfxr.so")))
+       #:validate-runpath? #f           ; TODO: Fails because of the symlink?
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'cd-root
+           (lambda _
+             (chdir "..")
+             #t))
+         (add-after 'install 'symlink
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (mkdir-p (string-append out "/bin"))
+               (symlink (string-append out "/dotnet")
+                        (string-append out "/bin/dotnet"))
+               #t))))))
+    (supported-systems '("x86_64-linux"))
+    (home-page "https://www.microsoft.com/net/core")
+    (synopsis "Generic driver for the .NET Core command line interface")
+    (description "This package provides a generic driver for the .NET Core
+command line interface.")
+    (license license:expat)))
