@@ -1332,6 +1332,9 @@ command line interface.")
                       (nuget (string-append (assoc-ref inputs "nuget") "/bin/nuget"))
                       (dotnet-sdk (assoc-ref inputs "dotnet-sdk"))
                       (libhostfxr (string-append dotnet-sdk "/host/fxr/3.1.1/libhostfxr.so")))
+                 ;; No hostfxr: https://git.archlinux.org/svntogit/community.git/tree/trunk/mono-msbuild-no-hostfxr.patch?h=packages/mono-msbuild
+                 (substitute* "mono/build/sdks_and_nugets/update_sdks_and_nugets.proj"
+                   ((".*extract_and_copy_hostfxr.sh.*") ""))
                  ;; Set up nuget packages.
                  (setenv "HOME" (string-append (getcwd) "/fake-home"))
                  (for-each
@@ -1347,7 +1350,7 @@ command line interface.")
                  (invoke unzip xplat "-d" "artifacts")
                  (rename-file ;; (string-append "artifacts/msbuild-" ,bootstrap-version)
                   "artifacts/msbuild" "artifacts/mono-msbuild")
-                 (chmod "artifacts/mono-msbuild/MSBuild.dll" 493)
+                 (chmod "artifacts/mono-msbuild/MSBuild.dll" #o755)
                  (symlink libhostfxr
                           (string-append
                            "artifacts/mono-msbuild/SdkResolvers/Microsoft.DotNet.MSBuildSdkResolver/"
@@ -1374,7 +1377,8 @@ command line interface.")
            (replace 'install
              (lambda* (#:key outputs inputs #:allow-other-keys)
                (let* ((mono (assoc-ref inputs "mono"))
-                      (mono-bin (string-append mono "/bin/mono"))
+                      (mono-bin ;; "./stage1/mono-msbuild/msbuild"
+                                (string-append mono "/bin/mono"))
                       (roslyn-path "/lib/mono/msbuild/Current/bin/Roslyn")
                       (roslyn (string-append mono roslyn-path))
                       (out (assoc-ref outputs "out")))
@@ -1382,7 +1386,8 @@ command line interface.")
                          "mono/build/install.proj"
                          (string-append "/p:MonoInstallPrefix=" out)
                          "/p:Configuration=Release-MONO")
-                 (symlink roslyn (string-append out roslyn-path)))))
+                 (symlink roslyn (string-append out roslyn-path))
+                 #t)))
            (add-after 'install 'make-wrapper
              (lambda* (#:key inputs outputs #:allow-other-keys)
                (let* ((out (assoc-ref outputs "out"))
