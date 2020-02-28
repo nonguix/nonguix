@@ -1278,6 +1278,15 @@ command line interface.")
       #:url "https://www.nuget.org/api/v2/package/system.security.cryptography.algorithms/4.3.0"
       #:sha256 "03sq183pfl5kp7gkvq77myv7kbpdnq3y0xj7vi4q1kaw54sny0ml")))
 
+;; TODO: Apply Arch Linux patches?
+;; https://git.archlinux.org/svntogit/community.git/tree/trunk/mono-msbuild-no-hostfxr.patch?h=packages/mono-msbuild
+;; https://git.archlinux.org/svntogit/community.git/tree/trunk/mono-msbuild-dotnetbits-case.patch?h=packages/mono-msbuild
+;; TODO: Like Arch Linux, install with stage1 script?
+;; TODO: Building OpenRA returns:
+;; /tmp/guix-build-openra-20200202.drv-0/source/OpenRA.Game/OpenRA.Game.csproj : warning MSB4242: The SDK resolver "Microsoft.DotNet.MSBuildSdkResolver" failed to run. hostfxr assembly:<unknown assembly> type:<unknown type> member:(null)
+;; /gnu/store/0dy10phgvfvs31qxk3a2i7ll31gpn29n-msbuild-16.3/lib/mono/msbuild/Current/bin/Sdks/Microsoft.NET.Sdk/targets/Microsoft.NET.ILLink.targets(14,3): warning MSB4242: The SDK resolver "Microsoft.DotNet.MSBuildSdkResolver" failed to run. hostfxr assembly:<unknown assembly> type:<unknown type> member:(null)
+  ;; You are using a preview version of .NET Core. See: https://aka.ms/dotnet-core-preview
+;; /gnu/store/0dy10phgvfvs31qxk3a2i7ll31gpn29n-msbuild-16.3/lib/mono/msbuild/Current/bin/Sdks/Microsoft.NET.Sdk/targets/Microsoft.PackageDependencyResolution.targets(234,5): error NETSDK1004: Assets file '/tmp/guix-build-openra-20200202.drv-0/source/OpenRA.Game/obj/project.assets.json' not found. Run a NuGet package restore to generate this file. [/tmp/guix-build-openra-20200202.drv-0/source/OpenRA.Game/OpenRA.Game.csproj]
 (define-public msbuild
   (let ((date "2019.07.26.14.57"))
     (package
@@ -1357,7 +1366,6 @@ command line interface.")
 
                  (substitute* "./eng/cibuild_bootstrapped_msbuild.sh"
                    (("\t/bin/bash") (string-append "\t" (which "bash"))))
-                 (pk 'BUILDING)
                  (invoke "./eng/cibuild_bootstrapped_msbuild.sh"
                          "--host_type" "mono"
                          "--configuration" "Release"
@@ -1385,8 +1393,9 @@ command line interface.")
                  (mkdir-p (dirname wrapper))
                  (with-output-to-file wrapper
                    (lambda ()
-                     (format #t "#!~a~%~a ~a \"$@\""
+                     (format #t "#!~a~%export ~a=~a~%~a ~a \"$@\""
                              (which "bash")
+                             "MSBuildExtensionsPath" (string-append out "/lib/mono/xbuild")
                              mono real)))
                  (chmod wrapper #o755)
                  #t))))))
