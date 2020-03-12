@@ -43,7 +43,7 @@ if you run a substitute server on your machine."
        (basename url))))
 
   (mlet %store-monad ()
-    (raw-derivation file-name "builtin:download" '()
+    (raw-derivation (or name file-name) "builtin:download" '()
                 #:system system
                 #:hash-algo hash-algo
                 #:hash hash
