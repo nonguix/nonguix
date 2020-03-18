@@ -1,6 +1,7 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2019 Pierre Neidhardt <mail@ambrevar.xyz>
 ;;; Copyright © 2020 Jelle Licht <jlicht@fsfe.org>
+;;; Copyright © 2020 Alex Griffin <a@ajgrf.com>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -29,15 +30,15 @@
 (define leiningen-jar
   (package
     (name "leiningen-jar")
-    (version "2.9.1")
+    (version "2.9.3")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://github.com/technomancy/leiningen/releases/download/"
-                                  version "/leiningen-2.9.1-standalone.zip"))
+                                  version "/leiningen-" version "-standalone.zip"))
               (file-name "leiningen-standalone.jar")
               (sha256
                (base32
-                "1y2mva5s2w2szzn1b9rhz0dvkffls4ravii677ybcf2w9wd86z7a"))))
+                "1fybxlyvw2akgnjlwm03lfg7a6ryaj6mlcs71xbns8lpphcdzq93"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
@@ -59,7 +60,7 @@ lets you focus on your code.")
   (package
     (inherit leiningen-jar)
     (name "leiningen")
-    (version "2.9.1")
+    (version "2.9.3")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -68,7 +69,7 @@ lets you focus on your code.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "0qv9vp6ypdilwv818fpwknr9sj40sz2vdcqxbd42m1l0ljjggiy1"))))
+                "15jkxb9rz5vci4bjq9b4n6bpz9fs280yf17mqfi6k7syxxawf3mm"))))
     (build-system gnu-build-system)
     (arguments
      `(#:tests? #f
