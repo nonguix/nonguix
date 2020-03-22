@@ -1,4 +1,4 @@
-;;; Copyright © 2019 Alex Griffin <a@ajgrf.com>
+;;; Copyright © 2019, 2020 Alex Griffin <a@ajgrf.com>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -66,6 +66,8 @@
 
 (define* (load-broadcom-sta-service #:key (broadcom-sta broadcom-sta))
   "Return a service that loads the nonfree Broadcom wireless driver.
+This function is here only for backwards compatibility.  You should prefer
+the `kernel-loadable-modules' mechanism to this now.
 
 Users should also blacklist conflicting modules by adding the following
 to kernel-arguments:
