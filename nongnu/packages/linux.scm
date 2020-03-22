@@ -333,6 +333,34 @@ WLAN.TF.2.1-00021-QCARMSWP-1 (ath10k/QCA9377/hw1.0/firmware-6.bin)
 (define-public ath3k-firmware
   (deprecated-package "ath3k-firmware" atheros-firmware))
 
+(define-public ibt-hw-firmware
+  (package
+    (inherit linux-firmware)
+    (name "ibt-hw-firmware")
+    (arguments
+     `(#:tests? #f
+       #:license-file-regexp "LICENCE.ibt_firmware"
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (fw-dir (string-append out "/lib/firmware")))
+               (for-each (lambda (file)
+                           (install-file file fw-dir))
+                         (find-files "." "ibt-hw-.*\\.bseq$"))
+               #t)))
+         (delete 'validate-runpath))))
+    (home-page "http://www.intel.com/support/wireless/wlan/sb/CS-016675.htm")
+    (synopsis "Non-free firmware for Intel bluetooth chips")
+    (description "This firmware is required by the btintel kernel module to
+support many modern bluetooth Intel wireless cards (commonly found in
+laptops).")
+    (license
+     (nonfree (string-append
+               "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+               "/linux-firmware.git/plain/LICENCE.ibt_firmware")))))
+
 (define-public iwlwifi-firmware
   (package
     (inherit linux-firmware)
