@@ -145,6 +145,44 @@ to load that module on boot, and blacklist conflicting kernel modules:
     ...)
 #+END_SRC
 
+** Avoiding kernel recompilation
+
+Since prebuilt substitutes are not currently available for Nonguix, you may find
+that ~guix system reconfigure~ recompiles the kernel frequently due to version
+bumps in the kernel package. An inferior can be used to pin the kernel version
+and avoid lengthy rebuilds.
+
+You must pin both Guix and Nonguix, as the Nonguix kernel packages derive from
+those in Guix (so changes in either could cause a rebuild). Your preferred kernel
+version must be available in both pinned channels.
+
+Consult the output of ~guix system describe~ to get the commits of Guix and
+Nonguix for the current generation. Once you have determined the commits to use,
+create an inferior in your system configuration file that pins the channels to
+them. Then grab the appropriately-versioned Linux package from the inferior to
+use as your kernel.
+
+#+BEGIN_SRC scheme
+  (use-modules (srfi srfi-1)    ; for `first'
+               (guix channels))
+  (operating-system
+    (kernel
+      (let*
+        ((channels
+          (list (channel
+                 (name 'nonguix)
+                 (url "https://gitlab.com/nonguix/nonguix")
+                 (commit "ff6ca98099c7c90e64256236a49ab21fa96fe11e"))
+                (channel
+                 (name 'guix)
+                 (url "https://git.savannah.gnu.org/git/guix.git")
+                 (commit "3be96aa9d93ea760e2d965cb3ef03540f01a0a22"))))
+         (inferior
+          (inferior-for-channels channels)))
+        (first (lookup-inferior-packages inferior "linux" "5.4.21"))))
+    ...)
+#+END_SRC
+
 * Contributing
 
 Contributions are welcome!  If there's a package you would like to add, just
