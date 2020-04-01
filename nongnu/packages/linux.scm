@@ -50,8 +50,8 @@
     (home-page "https://www.kernel.org/")
     (synopsis "Linux kernel with nonfree binary blobs included")
     (description
-     "The unmodified Linux kernel, including nonfree blobs, for running GuixSD
-on hardware which requires nonfree software to function.")))
+     "The unmodified Linux kernel, including nonfree blobs, for running Guix
+System on hardware which requires nonfree software to function.")))
 
 (define-public linux-5.4
   (corrupt-linux linux-libre-5.4 "5.4.29"
