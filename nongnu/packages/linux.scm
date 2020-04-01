@@ -140,6 +140,30 @@ advanced 3D.")
        "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
        "/linux-firmware.git/plain/LICENSE.amdgpu")))))
 
+(define-public radeon-firmware
+  (package
+    (inherit amdgpu-firmware)
+    (name "radeon-firmware")
+    (arguments
+     `(#:tests? #f
+       #:license-file-regexp "LICENSE.radeon"
+       #:phases
+       (modify-phases %standard-phases
+         (replace 'install
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (fw-dir (string-append out "/lib/firmware"))
+                    (bin-dir (string-append fw-dir "/radeon")))
+               (mkdir-p bin-dir)
+               (copy-recursively "./radeon" bin-dir)
+               #t)))
+         (delete 'validate-runpath))))
+    (synopsis "Nonfree firmware for older AMD graphics chips")
+    (description "Nonfree firmware for AMD graphics chips.  While most AMD
+graphics cards can be run with the free Mesa, some cards require a nonfree
+kernel module to run properly and support features like hibernation and
+advanced 3D.")))
+
 (define-public atheros-firmware
   (package
     (inherit linux-firmware)
