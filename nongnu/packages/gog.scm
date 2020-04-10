@@ -1,4 +1,4 @@
-;;; Copyright © 2019 Alex Griffin <a@ajgrf.com>
+;;; Copyright © 2019, 2020 Alex Griffin <a@ajgrf.com>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 (define-public lgogdownloader
   (package
     (name "lgogdownloader")
-    (version "3.5")
+    (version "3.7")
     (source
      (origin
        (method git-fetch)
@@ -39,17 +39,10 @@
              (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "0a3rrkgqwdqxx3ghzw182jx88gzzw6ldp3jasmgnr4l7gpxkmwws"))))
+        (base32 "02zn4zc9hqym81vbs88x5ayk2xb808jlvfyvn96ksx1ai4b6a4fz"))))
     (build-system cmake-build-system)
     (arguments
-     `(#:tests? #f                       ; no tests
-       #:phases
-       (modify-phases %standard-phases
-         (add-before 'configure 'patch-find-jsoncpp
-           (lambda* _
-             (substitute* "cmake/FindJsoncpp.cmake"
-               (("features.h") "allocator.h"))
-             #t)))))
+     `(#:tests? #f))                    ; no tests
     (inputs
      `(("boost" ,boost)
        ("curl" ,curl)
