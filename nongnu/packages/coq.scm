@@ -43,7 +43,7 @@
          (replace 'configure
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((system ,(match (or (%current-target-system) (%current-system))
-                              ("armhf-linux" "arm-linux")
+                              ("armhf-linux" "arm-eabihf")
                               ("i686-linux" "x86_32-linux")
                               (s s))))
                (format #t "Building for ~a~%" system)
