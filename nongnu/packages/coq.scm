@@ -43,9 +43,9 @@
          (replace 'configure
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((system ,(match (or (%current-target-system) (%current-system))
-                              ("x86_64-linux" "x86_64-linux")
+                              ("armhf-linux" "arm-linux")
                               ("i686-linux" "x86_32-linux")
-                              ("armhf-linux" "arm-linux"))))
+                              (s s))))
                (format #t "Building for ~a~%" system)
                (invoke "./configure" system "-prefix"
                        (assoc-ref outputs "out")))
@@ -62,6 +62,8 @@
                (find-files "." ".*.vo$"))
              #t)))
        #:tests? #f))
+    ;; MIPS is not supported.
+    (supported-systems (delete "mips64el-linux" %supported-systems))
     (native-inputs
      `(("ocaml" ,ocaml)
        ("ocaml-findlib" ,ocaml-findlib); for menhir --suggest-menhirlib
