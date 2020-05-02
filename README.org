@@ -209,3 +209,8 @@ If you have a history of making quality contributions to GNU Guix or Nonguix
 and would like commit access, just ask!  Nontrivial changes should still go
 through a simple Merge Request and code review process, but Nonguix needs more
 people involved to succeed as a community project.
+
+* Community
+
+If you want to discuss Nonguix-related topics, you can hang out and stay in
+touch on the =#nonguix= IRC channel.
