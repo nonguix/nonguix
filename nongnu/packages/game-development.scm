@@ -24,6 +24,7 @@
   #:use-module (guix build-system gnu)
   #:use-module (guix download)
   #:use-module (guix git-download)
+  #:use-module (guix utils)
   #:use-module (gnu packages audio)
   #:use-module (gnu packages base)
   #:use-module (gnu packages gcc)
@@ -283,3 +284,27 @@ with game files or or put @file{.grp} game files manually in
       (home-page "https://eduke32.com/")
       (license (license:nonfree
                 "https://eduke32.com/buildlic.txt")))))
+
+(define-public fury
+  (package
+    (inherit eduke32)
+    (name "fury")
+    (arguments
+     (substitute-keyword-arguments (package-arguments eduke32)
+       ((#:make-flags flags ''()) `(cons* "FURY=1" ,flags))
+       ((#:phases phases '%standard-phases)
+        `(modify-phases ,phases
+           (replace 'install
+             (lambda _
+               (let* ((out (assoc-ref %outputs "out")))
+                 (install-file "fury" (string-append out "/bin"))
+                 (install-file "mapster32" (string-append out "/bin"))
+                 (install-file "package/common/buildlic.txt"
+                               (string-append out "/share/licenses")))
+               #t))))))
+    (synopsis "Game engine for the first-person shooter Ion Fury")
+    (description
+     (string-append
+      "This is the @code{eduke32} engine built with support for the Ion Fury
+game.  Game data is not provided.  Run @command{fury} with the option
+@option{-j} to specify the directory containing @file{fury.grp}."))))
