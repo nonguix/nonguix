@@ -33,7 +33,6 @@ Only x86_64-linux and i686-linux are supported.
     ("x86_64-linux"
      (package
        (inherit package64)
-       (name (string-append (package-name package64) "32"))
        (arguments `(#:system "i686-linux"
                     ,@(package-arguments package64)))))
     (_ package64)))
