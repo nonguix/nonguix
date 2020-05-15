@@ -721,7 +721,12 @@ chipsets from Broadcom:
        (sha256
         (base32 "1cs4b7q9j2lw2y09rfa82aijbfmy4lddahz8qlz9gwajf2ziqns8"))))
     (build-system copy-build-system)
-    (arguments '(#:install-plan '(("intel-ucode" "lib/firmware/"))))
+    (arguments
+     `(#:install-plan
+       (let ((doc (string-append "share/doc/" ,name "-" ,version "/")))
+         `(("intel-ucode" "lib/firmware/")
+           ("releasenote" ,doc)
+           ("security.md" ,doc)))))
     (home-page
      "https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files")
     (synopsis "Processor microcode firmware for Intel CPUs")
