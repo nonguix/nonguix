@@ -82,10 +82,10 @@
                         ;; Keep the standard inputs of 'gnu-build-system'.
                         ,@(standard-packages)))
          (build-inputs `(("patchelf" ,patchelf)
+                         ,@native-inputs
                          ;; If current system is i686, the *32 packages will be the
                          ;; same as the non-32, but that's OK.
-                         ("libc32" ,(to32 glibc))
-                         ,@native-inputs))
+                         ("libc32" ,(to32 glibc))))
          (outputs outputs)
          (build binary-build)
          (arguments (strip-keyword-arguments private-keywords arguments)))))
