@@ -708,7 +708,7 @@ chipsets from Broadcom:
 (define-public intel-microcode
   (package
     (name "intel-microcode")
-    (version "20200508")
+    (version "20200520")
     (source
      (origin
        (method git-fetch)
@@ -719,7 +719,7 @@ chipsets from Broadcom:
              (commit (string-append "microcode-" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1cs4b7q9j2lw2y09rfa82aijbfmy4lddahz8qlz9gwajf2ziqns8"))))
+        (base32 "1wvznqk1f6radzs0n2zazmmb6c73av9174kmrnkfx6cyck47xgml"))))
     (build-system copy-build-system)
     (arguments
      `(#:install-plan
