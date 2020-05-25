@@ -53,6 +53,8 @@ To do so, add it to =~/.config/guix/channels.scm=:
          %default-channels)
 #+END_SRC
 
+Then run =guix pull=.
+
 * Using Nonfree Firmware and Drivers
 
 To use Guix System with the standard Linux kernel and nonfree firmware, edit
