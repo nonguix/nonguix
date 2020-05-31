@@ -95,6 +95,30 @@ nonfree Linux kernel and nonfree firmware with the following command:
 guix system disk-image /path/to/this/channel/nongnu/system/install.scm
 #+end_src
 
+Then you can write the generated disk image to a USB thumbdrive with:
+
+#+BEGIN_SRC sh
+# NOTE: This example assumes your thumbdrive is recognized by Linux as /dev/sdb.
+dd if=/path/to/disk-image of=/dev/sdb bs=4M status=progress oflag=sync
+#+END_SRC
+
+The installation media produced by the above method does not automatically
+configure your channels specification.  You need to add Nonguix "manually"
+into ~/etc/guix/channels.scm~ and then run ~guix pull~ to make Guix aware of
+Nonguix scheme libraries. Below is Guile scheme code to include Nonguix in the
+channel specification.
+
+#+BEGIN_SRC scheme
+(use-modules (ice-9 pretty-print))
+(with-output-to-file "/etc/guix/channels.scm"
+  (lambda _
+    (pretty-print
+     '(cons*
+       (channel (name 'nonguix)
+		(url "https://gitlab.com/nonguix/nonguix"))
+       %default-channels))))
+#+END_SRC
+
 ** CPU Microcode
 
 CPU microcode updates are nonfree blobs that apply directly to a processor to
