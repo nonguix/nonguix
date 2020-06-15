@@ -97,7 +97,7 @@ tweaking of various Wine settings.")
      `(#:install-plan
        `(,@,(if (string=? (or (%current-target-system) (%current-system))
                           "x86_64-linux")
-                ''("x64" "share/dxvk/lib")
+                '(list '("x64" "share/dxvk/lib"))
                 ''())
          ("x32" ,,(if (string=? (or (%current-target-system) (%current-system))
                                 "i686-linux")
