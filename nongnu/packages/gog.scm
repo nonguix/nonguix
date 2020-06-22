@@ -18,6 +18,7 @@
   #:use-module (gnu packages compression)
   #:use-module (gnu packages crypto)
   #:use-module (gnu packages curl)
+  #:use-module (gnu packages man)
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages serialization)
   #:use-module (gnu packages web)
@@ -53,7 +54,8 @@
        ("tinyxml2" ,tinyxml2)
        ("zlib" ,zlib)))
     (native-inputs
-     `(("pkg-config" ,pkg-config)))
+     `(("help2man" ,help2man)
+       ("pkg-config" ,pkg-config)))
     (home-page "https://sites.google.com/site/gogdownloader/")
     (synopsis "Downloader for GOG.com files")
     (description "LGOGDownloader is a client for the GOG.com download API,
