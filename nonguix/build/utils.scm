@@ -35,7 +35,7 @@ See https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#File_header."
          (array-ref (get-bytevector-n (current-input-port) 5) 4)))
     #:binary #t))
 
-(define* (make-wrapper wrapper real-file #:rest vars)
+(define* (make-wrapper wrapper real-file #:key (skip-argument-0? #f) #:rest vars)
   "Like `wrap-program' but create WRAPPER around REAL-FILE.
 The wrapper automatically changes directory to that of REAL-FILE.
 
@@ -76,13 +76,24 @@ contents:
        (format #f "export ~a=\"$~a${~a:+:}~a\""
                var var var (string-join rest ":")))))
 
+  (define (remove-keyword-arguments lst)
+    (match lst
+      (() '())
+      (((? keyword? _) _ lst ...)
+       (remove-keyword-arguments lst))
+      (_ lst)))
+
   (mkdir-p (dirname wrapper))
   (call-with-output-file wrapper
     (lambda (port)
       (format port
-              "#!~a~%~a~%cd \"~a\"~%exec -a \"$0\" \"~a\" \"$@\"~%"
+              (if skip-argument-0?
+                  "#!~a~%~a~%cd \"~a\"~%exec \"~a\" \"$@\"~%"
+                  "#!~a~%~a~%cd \"~a\"~%exec -a \"$0\" \"~a\" \"$@\"~%")
               (which "bash")
-              (string-join (map export-variable vars) "\n")
+              (string-join
+                (map export-variable (remove-keyword-arguments vars))
+                "\n")
               (dirname real-file)
               (canonicalize-path real-file))))
   (chmod wrapper #o755))
