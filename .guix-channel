@@ -1,0 +1,5 @@
+;; -*- mode: scheme; -*-
+
+(channel
+ (version 0)
+ (url "https://gitlab.com/nonguix/nonguix")) ; the primary URL
