@@ -1,0 +1,34 @@
+;;; Copyright © 2020 Alex Griffin <a@ajgrf.com>
+;;
+;; Copying and distribution of this file, with or without modification, are
+;; permitted in any medium without royalty provided the copyright notice and
+;; this notice are preserved.
+
+(channel-news
+ (version 0)
+
+ (entry (commit "1ac29b33f3ca19134fcbedd6dc22deb45c15229f")
+        (title (en "Nonguix authenticated updates"))
+        (body
+         (en "Nonguix can now take advantage of the new support for
+authenticated updates in @command{guix pull}, which protects you from attempts
+to tamper with the Nonguix repository and ship malicious code instead.
+To ensure you only receive genuine updates from Nonguix, you should update your
+@file{~/.config/guix/channels.scm} to include the channel introduction:
+
+@lisp
+(channel
+ (name 'nonguix)
+ (url \"https://gitlab.com/nonguix/nonguix\")
+ (introduction
+  (make-channel-introduction
+   \"897c1a470da759236cc11798f4e0a5f7d4d59fbc\"
+   (openpgp-fingerprint
+    \"2A39 3FFF 68F4 EF7A 3D29  12AF 6F51 20A0 22FB B2D5\"))))
+@end lisp "))))
+
+;; Local Variables:
+;; mode: scheme
+;; End:
+
+;; vim: filetype=scheme
