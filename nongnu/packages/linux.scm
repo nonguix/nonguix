@@ -53,6 +53,10 @@
      "The unmodified Linux kernel, including nonfree blobs, for running Guix
 System on hardware which requires nonfree software to function.")))
 
+(define-public linux-5.8
+  (corrupt-linux linux-libre-5.8 "5.8.3"
+                 "0y8prifvkywqsx5lk80bh31m505vinmicpvdrirgg0c9scg7x8lf"))
+
 (define-public linux-5.7
   (corrupt-linux linux-libre-5.7 "5.7.17"
                  "09ajavdyvr0025rwvwfp9yv2z8q779nan1i6dck2kkdxr48kd36c"))
@@ -77,7 +81,7 @@ System on hardware which requires nonfree software to function.")))
   (corrupt-linux linux-libre-4.4 "4.4.233"
                  "1z77dikgkvkp9ggwxp07hl8vxsf9kq57rhfdpbvhny1x13fqkrlp"))
 
-(define-public linux linux-5.7)
+(define-public linux linux-5.8)
 
 (define-public linux-firmware
   (package
