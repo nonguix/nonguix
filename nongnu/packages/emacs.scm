@@ -64,6 +64,9 @@
      "This package bundles the full Common Lisp HyperSpec ready for offline browsing.
 An Emacs package is provided for easy access.  Load it with:
 
-  (require 'clhs)
-  (clhs-setup)")
+@lisp
+(require 'clhs)
+(clhs-setup)
+@end lisp
+")
     (license (nonfree "http://quickdocs.org/clhs/"))))
