@@ -62,8 +62,8 @@ System on hardware which requires nonfree software to function.")))
                  "09ajavdyvr0025rwvwfp9yv2z8q779nan1i6dck2kkdxr48kd36c"))
 
 (define-public linux-5.4
-  (corrupt-linux linux-libre-5.4 "5.4.60"
-                 "08x2a78n23371k7l5p677mihnl58dpjh7r7bvyiwj3y4hlisplmd"))
+  (corrupt-linux linux-libre-5.4 "5.4.61"
+                 "197y2yb60m1k8i7mig4pa9wsrklfxq81ba3zfahwb2b31w2kvwc6"))
 
 (define-public linux-4.19
   (corrupt-linux linux-libre-4.19 "4.19.142"
