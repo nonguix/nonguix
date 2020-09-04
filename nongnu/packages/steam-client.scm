@@ -367,7 +367,7 @@ in the Guix store"
          (add-after 'unpack 'patch-desktop-file
            (lambda _
              (substitute* "steam.desktop"
-               (("Exec=/usr/bin/steam") "Exec=steam-sandbox"))
+               (("Exec=/usr/bin/steam") "Exec=steam"))
              #t))
          ;; /bin/steamdeps allows Steam to install missing packages, which doesn't play well with Guix, so remove it.
          (add-after 'install-binaries 'remove-unneccessary-file
@@ -392,7 +392,7 @@ in the Guix store"
                     (steam-real (move-file (string-append out "/bin/steam")
                                            (string-append out "/bin/.steam-real")))
                     (manifest-dir (string-append out "/etc"))
-                    (manifest-path (string-append manifest-dir "/manifest"))
+                    (manifest-path (string-append manifest-dir "/manifest.scm"))
                     (sandbox (string-append out "/bin/steam"))
                     (sandbox-helper (string-append out "/bin/.sandbox-helper"))
                     (steam-libs-32 (assoc-ref inputs "steam-libs-32"))
@@ -413,6 +413,8 @@ in the Guix store"
              (guix profiles)
              (guix store)
              (srfi srfi-11))
+
+;;; Copied from guix/scripts/package.scm
 (define (store-item->manifest-entry item)
   \"Return a manifest entry for ITEM, a \\\"/gnu/store/...\\\" file name.\"
   (let-values (((name version)
@@ -423,6 +425,7 @@ in the Guix store"
       (version version)
       (output \"out\")                              ;XXX: wild guess
       (item item))))
+
 (manifest-add
   (packages->manifest
     (list coreutils
@@ -476,7 +479,7 @@ guix environment --ad-hoc --container --no-cwd --network \\
      --expose=/sys/devices \\
      --expose=/dev/dri \\
      --share=/dev/shm \\
-     -m \"" out "/etc/manifest\" \\
+     -m \"" manifest-path "\" \\
      \"${shell_command[@]}\"\n"))
                (chmod sandbox #o555)
 
