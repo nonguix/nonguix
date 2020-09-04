@@ -379,14 +379,17 @@ in the Guix store"
              (define (move-file old new)
                (rename-file old new)
                new)
-             (define (write-file path str)
-               (with-output-to-file path
-                 (lambda ()
-                   (let loop ((ls1 (string->list str)))
-                     (unless (null? ls1)
-                       (begin
-                         (write-char (car ls1))
-                         (loop (cdr ls1))))))))
+             (define (write-file path data)
+               (let ((str (if (list? data)
+                              (format #f "~{~y~}" data)
+                              data)))
+                 (with-output-to-file path
+                   (lambda ()
+                     (let loop ((ls1 (string->list str)))
+                       (unless (null? ls1)
+                         (begin
+                           (write-char (car ls1))
+                           (loop (cdr ls1)))))))))
              (let* ((out (assoc-ref outputs "out"))
                     (shebang (string-append "#!" (which "bash")))
                     (steam-real (move-file (string-append out "/bin/steam")
@@ -405,46 +408,46 @@ in the Guix store"
                     (python (assoc-ref inputs "python")))
 
                (mkdir-p manifest-dir)
-               (write-file manifest-path
-                           (string-append "
-(use-package-modules
-  base certs compression file gawk gnome linux)
-(use-modules (guix utils)
-             (guix profiles)
-             (guix store)
-             (srfi srfi-11))
+               (write-file
+                manifest-path
+                `((use-package-modules
+                   base certs compression file gawk gnome linux)
+                  (use-modules (guix utils)
+                               (guix profiles)
+                               (guix store)
+                               (srfi srfi-11))
 
-;;; Copied from guix/scripts/package.scm
-(define (store-item->manifest-entry item)
-  \"Return a manifest entry for ITEM, a \\\"/gnu/store/...\\\" file name.\"
-  (let-values (((name version)
-                (package-name->name+version (store-path-package-name item)
-                                            #\\-)))
-    (manifest-entry
-      (name name)
-      (version version)
-      (output \"out\")                              ;XXX: wild guess
-      (item item))))
+                  ;; Copied from guix/scripts/package.scm.
+                  (define (store-item->manifest-entry item)
+                    "Return a manifest entry for ITEM, a \"/gnu/store/...\" file name."
+                    (let-values (((name version)
+                                  (package-name->name+version (store-path-package-name item)
+                                                              #\-)))
+                      (manifest-entry
+                        (name name)
+                        (version version)
+                        (output ,out)                              ;XXX: wild guess
+                        (item item))))
 
-(manifest-add
-  (packages->manifest
-    (list coreutils
-          diffutils
-          file
-          findutils
-          gawk
-          glibc-locales
-          grep
-          gzip
-          nss-certs
-          sed
-          strace
-          tar
-          util-linux+udev
-          which
-          xz
-          zenity))
-  `(,(store-item->manifest-entry \"" out "\")))"))
+                  (manifest-add
+                   (packages->manifest
+                    (list coreutils
+                          diffutils
+                          file
+                          findutils
+                          gawk
+                          glibc-locales
+                          grep
+                          gzip
+                          nss-certs
+                          sed
+                          strace
+                          tar
+                          util-linux+udev
+                          which
+                          xz
+                          zenity))
+                   `(,(store-item->manifest-entry ,out)))))
 
                (write-file sandbox
                            (string-append shebang "
