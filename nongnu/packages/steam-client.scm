@@ -145,36 +145,6 @@ in the Guix store"
                    "-f" #$ld-conf ;; Use #$configuration as configuration file
                    "-C" #$output)))))) ;; Use #$output as cache file
 
-(define* (union name packages #:key options)
-  (computed-file name
-                 (with-imported-modules `((guix build union))
-                   #~(begin
-                       (use-modules (guix build union))
-                       (union-build #$output '#$packages)))
-                 #:options options))
-
-(define (package-output->package original-package package-output)
-  (package
-    (name (string-append (package-name original-package) "-" package-output))
-    (version (package-version original-package))
-    (source #f)
-    (build-system trivial-build-system)
-    (inputs
-     `(("package" ,original-package ,package-output)))
-    (arguments
-     `(#:modules ((guix build utils))
-       #:builder
-       (begin
-         (use-modules (guix build utils))
-         (let ((out (assoc-ref %outputs "out"))
-               (original-package (assoc-ref %build-inputs "package")))
-           (symlink original-package out)))))
-    (home-page #f)
-    (synopsis (string-append "Output " package-output
-                             " of package: " (package-name original-package)))
-    (description synopsis)
-    (license (package-license original-package))))
-
 (define libgcrypt-1.5.4 ; Half-Life needs libgcrypt.so.11.
   (package
     (inherit libgcrypt)
@@ -202,9 +172,9 @@ in the Guix store"
 
 (define steam-client-libs
   `(("alsa-lib" ,alsa-lib)
-    ("alsa-plugins:pulseaudio" ,(package-output->package alsa-plugins "pulseaudio"))
-    ("at-spi2-atk" ,at-spi2-atk) ; Required by steam client beta.
-    ("at-spi2-core" ,at-spi2-core) ; Required by steam client beta.
+    ("alsa-plugins:pulseaudio" ,alsa-plugins "pulseaudio")
+    ("at-spi2-atk" ,at-spi2-atk)        ; Required by steam client beta.
+    ("at-spi2-core" ,at-spi2-core)      ; Required by steam client beta.
     ("atk" ,atk)
     ("bzip2" ,bzip2)
     ("cairo" ,cairo)
@@ -216,7 +186,7 @@ in the Guix store"
     ("expat" ,expat)
     ("fontconfig" ,fontconfig)
     ("freetype" ,freetype)
-    ("gcc:lib" ,(package-output->package gcc "lib"))
+    ("gcc:lib" ,gcc "lib")
     ("gconf" ,gconf)
     ("gdk-pixbuf" ,gdk-pixbuf)
     ("glib" ,glib)
@@ -302,20 +272,40 @@ in the Guix store"
     ("util-linux" ,util-linux)
     ("xkeyboard-config" ,xkeyboard-config)))
 
-(define (inputs->packages inputs)
-  (map second inputs))
+(define steam-libs-32
+  (package
+    (name "steam-libs-32")
+    (version "0.0")
+    (source #f)
+    (build-system trivial-build-system)
+    (arguments
+     '(#:system "i686-linux"
+       #:modules ((guix build union))
+       #:builder
+       (begin
+         (use-modules (ice-9 match)
+                      (guix build union))
+         (match %build-inputs
+           (((names . directories) ...)
+            (union-build (assoc-ref %outputs "out")
+                         directories)
+            #t)))))
+    (inputs (append steam-client-libs steam-gameruntime-libs))
+    (home-page #f)
+    (synopsis "32-bit libraries used for Steam")
+    (description "32-bit libraries needed to build the Steam sandbox FHS.")
+    (license #f)))
 
 (define steam-libs-64
-  (union "steam-libs-64"
-         (append (inputs->packages steam-client-libs)
-                 (inputs->packages steam-gameruntime-libs))
-         #:options '(#:system "x86_64-linux")))
-
-(define steam-libs-32
-  (union "steam-libs-32"
-         (append (inputs->packages steam-client-libs)
-                 (inputs->packages steam-gameruntime-libs))
-         #:options '(#:system "i686-linux")))
+  (package
+    (inherit steam-libs-32)
+    (name "steam-libs-64")
+    (arguments
+     (substitute-keyword-arguments (package-arguments steam-libs-32)
+       ((#:system _)
+        "x86_64-linux")))
+    (synopsis "64-bit libraries used for Steam")
+    (description "64-bit libraries needed to build the Steam sandbox FHS.")))
 
 (define steam-ld.so.conf
   (packages->ld.so.conf `(,steam-libs-64 ,steam-libs-32)))
