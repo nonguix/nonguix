@@ -480,7 +480,7 @@ guix environment --ad-hoc --container --no-cwd --network \\
                (write-file sandbox-helper
                            (string-append "#!" (which "bash") "
 mkdir -p /sbin
-mkdir -p /usr/bin
+mkdir -p /usr/{bin,share}
 mkdir -p /run/current-system/profile/{etc,share}
 #FIXME: Setting up the below symlink should not require find.
 find /gnu/store/ -maxdepth 1 -name '*glibc-locales*' -exec ln -s \"{}\"/lib/locale /run/current-system/locale \\;
@@ -497,6 +497,7 @@ ln -s " steam-libs-64 "/lib /lib64
 ln -s " steam-ld.so.conf " /etc/ld.so.conf
 ln -s " steam-ld.so.cache " /etc/ld.so.cache
 ln -s " steam-libs-32 "/sbin/ldconfig /sbin/ldconfig
+ln -s " steam-libs-64 "/share/vulkan /usr/share/vulkan
 export PATH=" steam-libs-32 "/bin:" python "/bin:/bin:/sbin:/usr/bin${PATH:+:}$PATH
 export STEAM_RUNTIME=1
 export STEAM_RUNTIME_PREFER_HOST_LIBRARIES=1
