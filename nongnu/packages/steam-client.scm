@@ -334,10 +334,6 @@ in the Guix store"
               ("steam-libs-64" ,steam-libs-64)
               ("steam-ld.so.conf" ,steam-ld.so.conf)
               ("steam-ld.so.cache" ,steam-ld.so.cache)))
-    (propagated-inputs
-     ;; GMod segfaults if it doesn't find these fonts.
-     `(("font-liberation" ,font-liberation)
-       ("font-dejavu" ,font-dejavu)))
     (build-system gnu-build-system)
     (arguments
      `(#:tests? #f
@@ -401,7 +397,7 @@ in the Guix store"
                (write-file
                 manifest-path
                 `((use-package-modules
-                   base certs compression file gawk gnome linux)
+                   base certs compression file fonts gawk gnome linux)
                   (use-modules (guix utils)
                                (guix profiles)
                                (guix store)
@@ -416,7 +412,7 @@ in the Guix store"
                       (manifest-entry
                         (name name)
                         (version version)
-                        (output ,out)                              ;XXX: wild guess
+                        (output "out")                              ;XXX: wild guess
                         (item item))))
 
                   (manifest-add
@@ -425,6 +421,8 @@ in the Guix store"
                           diffutils
                           file
                           findutils
+                          font-dejavu
+                          font-liberation
                           gawk
                           glibc-locales
                           grep
