@@ -2,6 +2,7 @@
 ;;; Copyright © 2019 Pierre Neidhardt <mail@ambrevar.xyz>
 ;;; Copyright © 2019 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2019 Timotej Lazar <timotej.lazar@araneo.si>
+;;; Copyright © 2020 James Smith <jsubuntuxp@disroot.org>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -555,7 +556,9 @@ package contains nonfree firmware for the following chips:
                        "broadcom-sta-linux-4.12.patch"
                        "broadcom-sta-linux-4.15.patch"
                        "broadcom-sta-fix_mac_profile_discrepancy.patch"
-                       "broadcom-sta-linux-5.1.patch")))
+                       "broadcom-sta-linux-5.1.patch"
+		       ;; source: https://github.com/NixOS/nixpkgs/commit/8ce65087c333097ab714d23800b69fc471ec48ca
+		       "broadcom-sta-linux-5.6.patch")))
     (sha256
      (base32
       "1gj485qqr190idilacpxwgqyw21il03zph2rddizgj7fbd6pfyaz"))))
