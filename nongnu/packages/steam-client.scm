@@ -454,6 +454,7 @@ fi
 # Make sure pulseaudio is running, if it starts first time inside the sandbox it will be broken
 pulseaudio -D > /dev/null 2>&1
 # Start sandbox
+# /dev/input and /sys/class/input added for controller support.
 guix environment --ad-hoc --container --no-cwd --network \\
      --preserve=DISPLAY \\
      --preserve=SDL_AUDIODRIVER \\
@@ -465,10 +466,12 @@ guix environment --ad-hoc --container --no-cwd --network \\
      $(if [ -e \"/etc/machine-id\" ]; then echo -n \"--expose=/etc/machine-id\"; else echo -n ; fi) \\
      $(if [ -e \"/run/user/$UID/bus\" ]; then echo -n \"--share=/run/user/$UID/bus\"; else echo -n ; fi) \\
      $(if [ -e \"$HOME/.config/pulse\" ]; then echo -n \"--share=$HOME/.config/pulse\"; else echo -n ""; fi) \\
-     --expose=/var/run/dbus \\
+     --expose=/dev/dri \\
+     --expose=/dev/input \\
+     --expose=/sys/class/input \\
      --expose=/sys/dev \\
      --expose=/sys/devices \\
-     --expose=/dev/dri \\
+     --expose=/var/run/dbus \\
      --share=/dev/shm \\
      -m \"" manifest-path "\" \\
      \"${shell_command[@]}\"\n"))
