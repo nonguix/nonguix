@@ -404,6 +404,9 @@ relative path pkg-run from pkg inside a guix container with an FHS environment."
                 (sandbox-home (string-append home "/" #$(ngc-sandbox-home container)))
                 (preserved-env '("DISPLAY"
                                  "SDL_AUDIODRIVER"
+                                 "STEAM_RUNTIME"
+                                 "STEAM_RUNTIME_HEAVY"
+                                 "STEAM_RUNTIME_PREFER_HOST_LIBRARIES"
                                  "XAUTHORITY"
                                  "XDG_DATA_HOME"
                                  "XDG_RUNTIME_DIR"))
