@@ -284,7 +284,7 @@
 ;;; Building ld.so.conf using find-files from package union results in error
 ;;; "Argument list too long" when launching Steam.
 (define (fhs-ld.so.conf)
-  "Return a file-like object for ld.so.conf"
+  "Return a file-like object for ld.so.conf."
   (plain-file
    "ld.so.conf"
    (let ((dirs '("/lib"
@@ -300,6 +300,7 @@
      (string-join dirs "\n"))))
 
 (define (ld.so.conf->ld.so.cache ld-conf)
+  "Create a ld.so.cache file-like object from an ld.so.conf file."
   (computed-file
    "ld.so.cache"
    (with-imported-modules
@@ -338,8 +339,8 @@
     (license #f)))
 
 (define (nonguix-container->package container)
-  "Returns a package housing the script launcher-name which executes file at
-relative path pkg-run from pkg inside a guix container with an FHS environment."
+  "Return a package with wrapper script to launch the supplied container object
+in a sandboxed FHS environment."
   (let* ((fhs-internal (make-container-internal container))
          (fhs-manifest (make-container-manifest container fhs-internal))
          (fhs-wrapper (make-container-wrapper container fhs-manifest fhs-internal))
@@ -378,7 +379,8 @@ relative path pkg-run from pkg inside a guix container with an FHS environment."
                    (package-license pkg))))))
 
 (define (make-container-wrapper container fhs-manifest fhs-internal)
-  "Return a script file-like object that launches a guix container for pkg."
+  "Return a script file-like object that launches the supplied container object
+in a sandboxed FHS environment."
   (program-file
    (ngc-wrapper-name container)
    (with-imported-modules
@@ -445,7 +447,10 @@ relative path pkg-run from pkg inside a guix container with an FHS environment."
                     ,@command)))))))
 
 (define (make-container-manifest container fhs-internal)
-  "Return a scheme file-like object containing a container manifest."
+  "Return a scheme file-like object to be used as package manifest for FHS
+containers. This manifest will use the modules and packages specified in the
+container, and will also include the exact store paths of the containers wrapped
+package and unions, and the fhs-inernal package."
   (scheme-file
    (ngc-manifest-name container)
    #~(begin
@@ -479,7 +484,7 @@ relative path pkg-run from pkg inside a guix container with an FHS environment."
                #$(file-append fhs-internal)))))))
 
 (define (make-container-internal container)
-  "Return a package housing the fhs-internal-script."
+  "Return a dummy package housing the fhs-internal script."
   (package
     (name (ngc-internal-name container))
     (version (or (ngc-version container)
@@ -504,8 +509,9 @@ environment.")
     (license #f)))
 
 (define (make-internal-script container)
-  "Return a script file-like object that performas additional setup in the FHS
-container before launching pkg-run."
+  "Return an fhs-internal script which is used to perform additional steps to
+set up the environment inside an FHS container before launching the desired
+application."
   (let* ((ld.so.conf (fhs-ld.so.conf))
          (ld.so.cache (ld.so.conf->ld.so.cache ld.so.conf))
          (pkg (ngc-wrap-package container))
