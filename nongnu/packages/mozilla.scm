@@ -45,6 +45,7 @@
   #:use-module (gnu packages autotools)
   #:use-module (gnu packages base)
   #:use-module (gnu packages compression)
+  #:use-module (gnu packages crates-io)
   #:use-module (gnu packages cups)
   #:use-module (gnu packages fontutils)
   #:use-module (gnu packages gl)
@@ -72,6 +73,28 @@
   #:use-module (gnu packages video)
   #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xorg))
+
+(define rust-cbindgen-0.14.3
+  (package
+    (inherit rust-cbindgen-0.14)
+    (name "rust-cbindgen")
+    (version "0.14.3")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (crate-uri "cbindgen" version))
+       (file-name
+        (string-append name "-" version ".tar.gz"))
+       (sha256
+        (base32
+         "0n88s072g09sfnvsbbkfw0mgga15isj09wc6ak63brzjbmq3mq76"))))
+    (arguments
+     ;; Cannot build with rust-1.39
+     (cons* #:rust rust-1.43
+            (substitute-keyword-arguments (package-arguments rust-cbindgen-0.14)
+              ((#:cargo-inputs cargo-inputs)
+               `(("rust-heck" ,rust-heck-0.3)
+                 ,@cargo-inputs)))))))
 
 (define %firefox-build-id "20200719000000")
 
