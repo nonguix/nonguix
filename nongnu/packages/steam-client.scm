@@ -482,7 +482,8 @@ relative path pkg-run from pkg inside a guix container with an FHS environment."
   "Return a package housing the fhs-internal-script."
   (package
     (name (ngc-internal-name container))
-    (version (ngc-version container))
+    (version (or (ngc-version container)
+                 (package-version (ngc-wrap-package container))))
     (source #f)
     (inputs `(("fhs-internal-script" ,(make-internal-script container))))
     (build-system trivial-build-system)
