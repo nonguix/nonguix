@@ -39,6 +39,7 @@
   #:use-module (guix download)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (guix packages)
+  #:use-module (guix utils)
 
   #:use-module (gnu packages)
   #:use-module (gnu packages assembly)
@@ -96,19 +97,19 @@
                `(("rust-heck" ,rust-heck-0.3)
                  ,@cargo-inputs)))))))
 
-(define %firefox-build-id "20200719000000")
+(define %firefox-build-id "20200908000000")
 
 (define-public firefox
   (package
     (name "firefox")
-    (version "75.0")
+    (version "80.0.1")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "03vbfh5zhb93nqxh43inyxm9i0w479sx6mh590scc5r7ix6hbcdv"))))
+        (base32 "089ck6pq73nlw1bgjjvdaw7zjwb2bjk1w5hfjsx87mm269g0hssr"))))
     (build-system gnu-build-system)
     (arguments
      `(#:configure-flags
@@ -129,8 +130,6 @@
            ;; "--with-system-nspr"
            ;; "--with-system-nss"
 
-           "--with-system-bz2"             ;TODO: Remove in FF78
-           "--enable-startup-notification" ;TODO: Remove in FF78
            ,(string-append "--with-clang-path="
                            clang "/bin/clang")
            ,(string-append "--with-libclang-path="
@@ -200,10 +199,33 @@
              (let ((null-hash
                     ;; This is the SHA256 output of an empty string.
                     "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"))
-               (substitute* '("Cargo.lock" "gfx/wr/Cargo.lock")
-                 (("(checksum = )\".*\"" all name)
-                  (string-append name "\"" null-hash "\"")))
-               (generate-all-checksums "third_party/rust"))
+               (for-each
+                (lambda (file)
+                  (format #t "patch-cargo-checksums: patching checksums in ~a~%"
+                          file)
+                  (substitute* file
+                    (("(checksum = )\".*\"" all name)
+                     (string-append name "\"" null-hash "\""))))
+                (find-files "." "Cargo\\.lock$"))
+               (for-each generate-all-checksums
+                         '("build"
+                           "dom/media"
+                           "dom/webauthn"
+                           "gfx"
+                           "intl"
+                           "js"
+                           "media"
+                           "modules"
+                           "mozglue/static/rust"
+                           "netwerk"
+                           "remote"
+                           "security/manager/ssl"
+                           "servo"
+                           "storage"
+                           "third_party/rust"
+                           "toolkit"
+                           "xpcom/rust"
+                           "services")))
              #t))
          (delete 'bootstrap)
          (replace 'configure
@@ -370,17 +392,17 @@
        ("zlib" ,zlib)))
     (native-inputs
      `(("autoconf" ,autoconf-2.13)
-       ("cargo" ,rust-1.41 "cargo")
+       ("cargo" ,rust-1.43 "cargo")
        ("clang" ,clang)
        ("llvm" ,llvm)
        ("nasm" ,nasm)
-       ("node" ,node)
+       ("node" ,node-10.22)
        ("perl" ,perl)
        ("pkg-config" ,pkg-config)
        ("python" ,python)
        ("python2" ,python-2.7)
-       ("rust" ,rust-1.41)
-       ("rust-cbindgen" ,rust-cbindgen)
+       ("rust" ,rust-1.43)
+       ("rust-cbindgen" ,rust-cbindgen-0.14.3)
        ("which" ,which)
        ("yasm" ,yasm)))
     (home-page "https://mozilla.org/firefox/")
