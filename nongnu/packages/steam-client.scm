@@ -19,7 +19,7 @@
 ;;; The steam script provided by this package may optionally be started as
 ;;; a shell instead of automatically launching Steam by setting the
 ;;; environment variable DEBUG=1.  If the sandbox is started this way then
-;;; Steam should subsequently be launched via the .sandbox-helper script.
+;;; Steam should subsequently be launched via fhs-internal-script.
 
 ;;; The sandbox shell aids in debugging missing container elements.  For
 ;;; example a missing symlink may be created manually before launching Steam
@@ -30,6 +30,7 @@
   #:use-module (gnu packages)
   #:use-module (guix gexp)
   #:use-module (guix packages)
+  #:use-module (guix records)
   #:use-module (guix utils)
   #:use-module (guix download)
   #:use-module (guix build utils)
@@ -37,6 +38,7 @@
   #:use-module (guix build-system trivial)
   #:use-module (gnu packages audio)
   #:use-module (gnu packages base)
+  #:use-module (gnu packages bash)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages cups)
   #:use-module (gnu packages curl)
@@ -73,79 +75,38 @@
   #:use-module (gnu packages xorg)
   #:use-module (srfi srfi-1))
 
+(define-record-type* <nonguix-container>
+  nonguix-container make-nonguix-container
+  nonguix-container? this-nonguix-container
+  (name          ngc-name)
+  (version       ngc-version (default #f))
+  (wrap-package  ngc-wrap-package)
+  (run           ngc-run)
+  (wrapper-name  ngc-wrapper-name (default "nonguix-container-wrapper"))
+  (manifest-name ngc-manifest-name (default "nonguix-container-manifest.scm"))
+  (internal-name ngc-internal-name (default "fhs-internal"))
+  (sandbox-home  ngc-sandbox-home (default ".local/share/guix-sandbox-home"))
+  (union64       ngc-union64 (default '()))
+  (union32       ngc-union32 (default '()))
+  (preserved-env ngc-preserved-env (default '()))
+  (exposed       ngc-exposed (default '()))
+  (shared        ngc-shared (default '()))
+  (modules       ngc-modules (default '()))
+  (packages      ngc-packages (default '()))
+  (home-page     ngc-home-page (default #f))
+  (synopsis      ngc-synopsis (default #f))
+  (description   ngc-description (default #f))
+  (license       ngc-license (default #f)))
+
 (define glibc-for-fhs
   (package
     (inherit glibc)
-    (name "glibc-for-fhs") ;; Maybe rename this to "glibc-with-ldconfig-for-fhs"
+    (name "glibc-for-fhs")
     (source (origin
               (inherit (package-source glibc))
-              (snippet #f))))) ;; Re-enable ldconfig
+              (snippet #f)))))          ; Re-enable ldconfig.
 
-(define glibc-for-fhs-32
-  (package
-    (inherit glibc-for-fhs)
-    (arguments (append (package-arguments glibc)
-                       `(#:system "i686-linux")))))
-
-(define (packages->ld.so.conf packages)
-  "Takes a list of package objects and returns a file-like object for ld.so.conf
-in the Guix store"
-  (computed-file
-   "ld.so.conf"
-   (with-imported-modules
-       `((guix build union)
-         (guix build utils))
-     #~(begin
-         (use-modules (guix build union)
-                      (guix build utils))
-         (let* ((packages '#$packages) ;; Need to quote "#$packages" as #$packages tries to "apply" the first item to the rest, like a procedure.
-                (find-lib-directories-in-single-package
-                 (lambda (package)
-                   (find-files (string-append package "/lib")
-                               (lambda (file stat)
-                                 ;; Setting keyword "stat" to "stat" means it will follow
-                                 ;; symlinks, unlike what it's set to by default ("lstat").
-                                 (eq? 'directory (stat:type stat)))
-                               #:stat stat
-                               #:directories? #t)))
-                (find-lib-directories-in-all-packages
-                 (lambda (packages)
-                   (apply append ;; Concatenate the directory lists from "map" into one list
-                          (map (lambda (package)
-                                 (find-lib-directories-in-single-package package))
-                               packages))))
-                (fhs-lib-dirs
-                 (find-lib-directories-in-all-packages packages)))
-           (with-output-to-file
-               #$output
-             (lambda _
-               (display (string-join '("/lib"
-                                       "/lib/dri"
-                                       "/lib/vdpau"
-                                       "/lib/nss"
-                                       "/lib/alsa-lib"
-                                       "/lib64"
-                                       "/lib64/dri"
-                                       "/lib64/vdpau"
-                                       "/lib64/nss"
-                                       "/lib64/alsa-lib")
-                                     "\n"))
-               #$output)))))))
-
-(define (ld.so.conf->ld.so.cache ld-conf)
-  (computed-file
-   "ld.so.cache"
-   (with-imported-modules
-       `((guix build utils))
-     #~(begin
-         (use-modules (guix build utils))
-         (let* ((ldconfig (string-append #$glibc-for-fhs "/sbin/ldconfig")))
-           (invoke ldconfig
-                   "-X" ;; Don't update symbolic links
-                   "-f" #$ld-conf ;; Use #$configuration as configuration file
-                   "-C" #$output)))))) ;; Use #$output as cache file
-
-(define libgcrypt-1.5.4 ; Half-Life needs libgcrypt.so.11.
+(define libgcrypt-1.5.4                 ; Half-Life needs libgcrypt.so.11.
   (package
     (inherit libgcrypt)
     (version "1.5.4")
@@ -170,14 +131,62 @@ in the Guix store"
                (base32
                 "1vylvsrbzrpqk298i4g1p82jxqkxhl2qf941sf0j775fyvxq09kb"))))))
 
+(define steam-client
+  (package
+    (name "steam-client")
+    (version "1.0.0.61")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "http://repo.steampowered.com/steam/archive/precise/steam_"
+                           version ".tar.gz"))
+       (sha256
+        (base32
+         "0c5xy57gwr14vp3wy3jpqi5dl6y7n01p2dy4jlgl9bf9x7616r6n"))
+       (file-name (string-append name "-" version ".tar.gz"))))
+    (build-system gnu-build-system)
+    (arguments
+     `(#:tests? #f
+       #:make-flags
+       (list "PREFIX=" (string-append "DESTDIR=" (assoc-ref %outputs "out")))
+       #:phases
+       (modify-phases %standard-phases
+         (delete 'configure)
+         (add-after 'unpack 'patch-startscript
+           (lambda _
+             (substitute* "steam"
+               (("/usr") (assoc-ref %outputs "out")))
+             #t))
+         (add-after 'unpack 'patch-desktop-file
+           (lambda _
+             (substitute* "steam.desktop"
+               (("Exec=/usr/bin/steam") "Exec=steam"))
+             #t))
+         ;; Steamdeps installs missing packages, which doesn't work with Guix.
+         (add-after 'install-binaries 'remove-unneccessary-file
+           (lambda _
+             (delete-file (string-append (assoc-ref %outputs "out")
+                                         "/bin/steamdeps"))
+             #t)))))
+    (home-page "https://store.steampowered.com")
+    (synopsis "Digital distribution platform for managing and playing games")
+    (description "Steam is a digital software distribution platform created by Valve.")
+    (license (license:nonfree "file:///share/doc/steam/steam_subscriber_agreement.txt"))))
+
+(define fhs-min-libs
+  `(("glibc-for-fhs" ,glibc-for-fhs)
+    ("glibc-locales" ,glibc-locales)))
+
 (define steam-client-libs
   `(("alsa-lib" ,alsa-lib)
     ("alsa-plugins:pulseaudio" ,alsa-plugins "pulseaudio")
     ("at-spi2-atk" ,at-spi2-atk)        ; Required by steam client beta.
     ("at-spi2-core" ,at-spi2-core)      ; Required by steam client beta.
     ("atk" ,atk)
+    ("bash" ,bash)
     ("bzip2" ,bzip2)
     ("cairo" ,cairo)
+    ("coreutils" ,coreutils)
     ("cups" ,cups)
     ("curl" ,curl)
     ("dbus" ,dbus)
@@ -190,8 +199,6 @@ in the Guix store"
     ("gconf" ,gconf)
     ("gdk-pixbuf" ,gdk-pixbuf)
     ("glib" ,glib)
-    ("glibc" ,glibc-for-fhs)
-    ("glibc-32" ,glibc-for-fhs-32)
     ("gtk+" ,gtk+-2)
     ("libappindicator" ,libappindicator)
     ("libcap" ,libcap)
@@ -228,6 +235,8 @@ in the Guix store"
 (define steam-gameruntime-libs
   `(("ffmpeg" ,ffmpeg)
     ("flac" ,flac)
+    ("font-dejavu" ,font-dejavu)
+    ("font-liberation" ,font-liberation)
     ("freeglut" ,freeglut)
     ("glew" ,glew)
     ("glu" ,glu)
@@ -272,14 +281,47 @@ in the Guix store"
     ("util-linux" ,util-linux)
     ("xkeyboard-config" ,xkeyboard-config)))
 
-(define steam-libs-32
+;;; Building ld.so.conf using find-files from package union results in error
+;;; "Argument list too long" when launching Steam.
+(define (fhs-ld.so.conf)
+  "Return a file-like object for ld.so.conf"
+  (plain-file
+   "ld.so.conf"
+   (let ((dirs '("/lib"
+                 "/lib/alsa-lib"
+                 "/lib/dri"
+                 "/lib/nss"
+                 "/lib/vdpau"
+                 "/lib64"
+                 "/lib64/alsa-lib"
+                 "/lib64/dri"
+                 "/lib64/nss"
+                 "/lib64/vdpau")))
+     (string-join dirs "\n"))))
+
+(define (ld.so.conf->ld.so.cache ld-conf)
+  (computed-file
+   "ld.so.cache"
+   (with-imported-modules
+       `((guix build utils))
+     #~(begin
+         (use-modules (guix build utils))
+         (let ((ldconfig (string-append #$glibc-for-fhs "/sbin/ldconfig")))
+           (invoke ldconfig
+                   "-X"                 ; Don't update symbolic links.
+                   "-f" #$ld-conf       ; Use #$configuration as configuration file.
+                   "-C" #$output))))))  ; Use #$output as cache file.
+
+(define* (fhs-union inputs #:key (name "fhs-union") (version "0.0") (system "x86_64-linux"))
+  "Create a package housing the union of inputs."
   (package
-    (name "steam-libs-32")
-    (version "0.0")
+    (name name)
+    (version version)
     (source #f)
+    (inputs inputs)
     (build-system trivial-build-system)
     (arguments
-     '(#:system "i686-linux"
+     `(#:system ,system
        #:modules ((guix build union))
        #:builder
        (begin
@@ -290,226 +332,251 @@ in the Guix store"
             (union-build (assoc-ref %outputs "out")
                          directories)
             #t)))))
-    (inputs (append steam-client-libs steam-gameruntime-libs))
     (home-page #f)
-    (synopsis "32-bit libraries used for Steam")
-    (description "32-bit libraries needed to build the Steam sandbox FHS.")
+    (synopsis "Libraries used for FHS")
+    (description "Libraries needed to build a guix container FHS.")
     (license #f)))
 
-(define steam-libs-64
+(define (nonguix-container->package container)
+  "Returns a package housing the script launcher-name which executes file at
+relative path pkg-run from pkg inside a guix container with an FHS environment."
+  (let* ((fhs-internal (make-container-internal container))
+         (fhs-manifest (make-container-manifest container fhs-internal))
+         (fhs-wrapper (make-container-wrapper container fhs-manifest fhs-internal))
+         (container-name (ngc-name container))
+         (union64 (ngc-union64 container))
+         (union32 (ngc-union32 container))
+         (pkg (ngc-wrap-package container)))
+    (package
+      (name container-name)
+      (version (or (ngc-version container)
+                   (package-version pkg)))
+      (source #f)
+      (inputs `(,@(if (null? union64)
+                      '() `(("fhs-union-64" ,union64)))
+                ,@(if (null? union32)
+                      '() `(("fhs-union-32" ,union32)))
+                ("fhs-wrapper" ,fhs-wrapper)))
+      (build-system trivial-build-system)
+      (arguments
+       `(#:modules ((guix build utils))
+         #:builder
+         (begin
+           (use-modules (guix build utils))
+           (let* ((bin (string-append (assoc-ref %outputs "out") "/bin"))
+                  (wrapper-target (assoc-ref %build-inputs "fhs-wrapper"))
+                  (wrapper-dest (string-append bin "/" ,container-name)))
+             (mkdir-p bin)
+             (symlink wrapper-target wrapper-dest)))))
+      (home-page (or (ngc-home-page container)
+                     (package-home-page pkg)))
+      (synopsis (or (ngc-synopsis container)
+                    (package-synopsis pkg)))
+      (description (or (ngc-description container)
+                       (package-description pkg)))
+      (license (or (ngc-license container)
+                   (package-license pkg))))))
+
+(define (make-container-wrapper container fhs-manifest fhs-internal)
+  "Return a script file-like object that launches a guix container for pkg."
+  (program-file
+   (ngc-wrapper-name container)
+   (with-imported-modules
+       `((guix build utils))
+     #~(begin
+         (use-modules (guix build utils))
+         (define (preserve-var var)
+           (string-append "--preserve=" var))
+         (define* (add-path path #:key writable?)
+           (let ((opt (if writable?
+                          "--share="
+                          "--expose=")))
+             (if (pair? path)
+                 (string-append opt (car path) "=" (cdr path))
+                 (string-append opt path))))
+         (define (exists-> file)
+           (if (and file (file-exists? file))
+               `(,file) '()))
+         (let* ((UID (number->string (passwd:uid (getpwnam (getenv "USER")))))
+                (run #$(file-append fhs-internal "/bin/" (ngc-internal-name container)))
+                (manifest-file #$(file-append fhs-manifest))
+                (home (getenv "HOME"))
+                (sandbox-home (string-append home "/" #$(ngc-sandbox-home container)))
+                (preserved-env '("DISPLAY"
+                                 "SDL_AUDIODRIVER"
+                                 "XAUTHORITY"
+                                 "XDG_DATA_HOME"
+                                 "XDG_RUNTIME_DIR"))
+                (expose `("/dev/dri"
+                          "/dev/input"  ; Needed for controller input.
+                          ,@(exists-> "/etc/machine-id")
+                          "/sys/class/input" ; Needed for controller input.
+                          "/sys/dev"
+                          "/sys/devices"
+                          "/var/run/dbus"))
+                (share `("/dev/shm"
+                         ,(string-append sandbox-home "=" home)
+                         ,@(exists-> (string-append home "/.config/pulse"))
+                         ,@(exists-> (string-append "/run/user/" UID "/pulse"))
+                         ,@(exists-> (string-append "/run/user/" UID "/bus"))
+                         ,@(exists-> (getenv "XAUTHORITY"))))
+                (DEBUG (equal? (getenv "DEBUG") "1"))
+                (command (if DEBUG '()
+                             `("--" ,run "\"$@\""))))
+           (format #t "\n* Launching ~a in sandbox: ~a.\n\n"
+                   #$(package-name (ngc-wrap-package container)) sandbox-home)
+           (when DEBUG
+             (format #t "* DEBUG set to 1: Starting shell. Launch application manually with: ~a.\n\n"
+                     #$(ngc-internal-name container)))
+           (mkdir-p sandbox-home)
+           (system "pulseaudio -D > /dev/null 2>&1")
+           (apply system*
+                  `("guix" "environment"
+                    "--ad-hoc" "--container" "--no-cwd" "--network"
+                    ,@(map preserve-var preserved-env)
+                    ,@(map add-path expose)
+                    ,@(map (lambda (item)
+                             (add-path item #:writable? #t))
+                           share)
+                    "-m" ,manifest-file
+                    ,@command)))))))
+
+(define (make-container-manifest container fhs-internal)
+  "Return a scheme file-like object containing a container manifest."
+  (scheme-file
+   (ngc-manifest-name container)
+   #~(begin
+       (use-package-modules
+        #$@(ngc-modules container))
+       (use-modules (guix gexp)
+                    (guix utils)
+                    (guix profiles)
+                    (guix store)
+                    (guix scripts package)
+                    (srfi srfi-11))
+
+       ;; Copied from guix/scripts/package.scm.
+       (define (store-item->manifest-entry item)
+         "Return a manifest entry for ITEM, a \"/gnu/store/...\" file name."
+         (let-values (((name version)
+                       (package-name->name+version (store-path-package-name item)
+                                                   #\-)))
+           (manifest-entry
+             (name name)
+             (version version)
+             (output "out")             ;XXX: wild guess
+             (item item))))
+
+       (manifest-add
+        (packages->manifest (list #$@(ngc-packages container)))
+        (map store-item->manifest-entry
+             '(#$(file-append (ngc-wrap-package container))
+               #$(file-append (ngc-union64 container))
+               #$(file-append (ngc-union32 container))
+               #$(file-append fhs-internal)))))))
+
+(define (make-container-internal container)
+  "Return a package housing the fhs-internal-script."
   (package
-    (inherit steam-libs-32)
-    (name "steam-libs-64")
+    (name (ngc-internal-name container))
+    (version (ngc-version container))
+    (source #f)
+    (inputs `(("fhs-internal-script" ,(make-internal-script container))))
+    (build-system trivial-build-system)
     (arguments
-     (substitute-keyword-arguments (package-arguments steam-libs-32)
-       ((#:system _)
-        "x86_64-linux")))
-    (synopsis "64-bit libraries used for Steam")
-    (description "64-bit libraries needed to build the Steam sandbox FHS.")))
+     `(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((bin (string-append (assoc-ref %outputs "out") "/bin"))
+                (internal-target (assoc-ref %build-inputs "fhs-internal-script"))
+                (internal-dest (string-append bin "/" ,(ngc-internal-name container))))
+           (mkdir-p bin)
+           (symlink internal-target internal-dest)))))
+    (home-page #f)
+    (synopsis "Script used ot set up sandbox")
+    (description "Script used inside the FHS guix container to setup the
+environment.")
+    (license #f)))
 
-(define steam-ld.so.conf
-  (packages->ld.so.conf `(,steam-libs-64 ,steam-libs-32)))
-
-(define steam-ld.so.cache
-  (ld.so.conf->ld.so.cache steam-ld.so.conf))
+(define (make-internal-script container)
+  "Return a script file-like object that performas additional setup in the FHS
+container before launching pkg-run."
+  (let* ((ld.so.conf (fhs-ld.so.conf))
+         (ld.so.cache (ld.so.conf->ld.so.cache ld.so.conf))
+         (pkg (ngc-wrap-package container))
+         (run (ngc-run container)))
+    (program-file
+     (ngc-internal-name container)
+     (with-imported-modules
+         `((guix build utils))
+       #~(begin
+           (use-modules (guix build utils))
+           (define (new-symlink target dest)
+             (unless (file-exists? dest)
+               (symlink target dest)))
+           (for-each mkdir-p '("/sbin" "/usr/bin" "/usr/share"
+                               "/run/current-system/profile/etc"
+                               "/run/current-system/profile/share"))
+           (let ((guix-env (getenv "GUIX_ENVIRONMENT"))
+                 (union64 #$(file-append (ngc-union64 container)))
+                 (union32 #$(file-append (ngc-union32 container)))
+                 (ld.so.conf #$(file-append ld.so.conf))
+                 (ld.so.cache #$(file-append ld.so.cache))
+                 (args (cdr (command-line))))
+             (new-symlink (string-append union64 "/lib/locale") "/run/current-system/locale")
+             (new-symlink (string-append union64 "/share/fonts") "/run/current-system/profile/share/fonts")
+             (new-symlink (string-append guix-env "/etc/ssl") "/run/current-system/profile/etc/ssl")
+             (new-symlink (string-append guix-env "/etc/ssl") "/etc/ssl")
+             (new-symlink (string-append union64 "/bin/env") "/usr/bin/env")
+             (new-symlink (string-append union64 "/bin/bash") "/bin/bash")
+             (new-symlink (string-append union64 "/bin/pulseaudio") "/bin/pulseaudio")
+             (new-symlink (string-append union32 "/lib") "/run/current-system/profile/lib")
+             (new-symlink (string-append union64 "/lib") "/run/current-system/profile/lib64")
+             (new-symlink (string-append union32 "/lib") "/lib")
+             (new-symlink (string-append union64 "/lib") "/lib64")
+             (new-symlink ld.so.conf "/etc/ld.so.conf")
+             (new-symlink ld.so.cache "/etc/ld.so.cache")
+             (new-symlink (string-append union64 "/sbin/ldconfig") "/sbin/ldconfig")
+             (new-symlink (string-append union64 "/share/vulkan") "/usr/share/vulkan")
+             (apply system* `(#$(file-append pkg run) ,@args))))))))
 
 (define-public steam
-  (package
+  (nonguix-container->package
+   (nonguix-container
     (name "steam")
-    (version "1.0.0.61")
-    (source
-     (origin
-       (method url-fetch)
-       (uri (string-append
-             "http://repo.steampowered.com/steam/archive/precise/steam_"
-             version ".tar.gz"))
-       (sha256
-        (base32
-         "0c5xy57gwr14vp3wy3jpqi5dl6y7n01p2dy4jlgl9bf9x7616r6n"))
-       (file-name (string-append name "-" version ".tar.gz"))))
-    (inputs `(("coreutils" ,coreutils)
-              ("pulseaudio" ,pulseaudio)
-              ("python" ,python-3)
-              ("steam-libs-32" ,steam-libs-32)
-              ("steam-libs-64" ,steam-libs-64)
-              ("steam-ld.so.conf" ,steam-ld.so.conf)
-              ("steam-ld.so.cache" ,steam-ld.so.cache)))
-    (build-system gnu-build-system)
-    (arguments
-     `(#:tests? #f
-       #:make-flags (list "PREFIX=" (string-append "DESTDIR=" (assoc-ref %outputs "out")))
-       #:phases
-       (modify-phases %standard-phases
-         (delete 'configure)
-         (add-after 'unpack 'patch-startscript
-           ;; The script uses its own name to determine the package, wrap-program interferes with this however.
-           (lambda _
-             (substitute* "steam"
-               (("STEAMPACKAGE=.*") "STEAMPACKAGE=steam\n"))
-             ;; Change references of /usr to the store path.
-             (substitute* "steam"
-               (("/usr") (assoc-ref %outputs "out")))
-             #t))
-         (add-after 'unpack 'patch-desktop-file
-           (lambda _
-             (substitute* "steam.desktop"
-               (("Exec=/usr/bin/steam") "Exec=steam"))
-             #t))
-         ;; /bin/steamdeps allows Steam to install missing packages, which doesn't play well with Guix, so remove it.
-         (add-after 'install-binaries 'remove-unneccessary-file
-           (lambda _
-             (delete-file (string-append (assoc-ref %outputs "out") "/bin/steamdeps"))
-             #t))
-         (add-after 'install-binaries 'wrap-startscript
-           (lambda* (#:key outputs inputs #:allow-other-keys)
-             (define (move-file old new)
-               (rename-file old new)
-               new)
-             (define (write-file path data)
-               (let ((str (if (list? data)
-                              (format #f "~{~y~}" data)
-                              data)))
-                 (with-output-to-file path
-                   (lambda ()
-                     (let loop ((ls1 (string->list str)))
-                       (unless (null? ls1)
-                         (begin
-                           (write-char (car ls1))
-                           (loop (cdr ls1)))))))))
-             (let* ((out (assoc-ref outputs "out"))
-                    (shebang (string-append "#!" (which "bash")))
-                    (steam-real (move-file (string-append out "/bin/steam")
-                                           (string-append out "/bin/.steam-real")))
-                    (manifest-dir (string-append out "/etc"))
-                    (manifest-path (string-append manifest-dir "/manifest.scm"))
-                    (sandbox (string-append out "/bin/steam"))
-                    (sandbox-helper (string-append out "/bin/.sandbox-helper"))
-                    (steam-libs-32 (assoc-ref inputs "steam-libs-32"))
-                    (steam-libs-64 (assoc-ref inputs "steam-libs-64"))
-                    (steam-ld.so.conf (assoc-ref inputs "steam-ld.so.conf"))
-                    (steam-ld.so.cache (assoc-ref inputs "steam-ld.so.cache"))
-                    (bash (assoc-ref inputs "bash"))
-                    (coreutils (assoc-ref inputs "coreutils"))
-                    (pulseaudio (assoc-ref inputs "pulseaudio"))
-                    (python (assoc-ref inputs "python")))
-
-               (mkdir-p manifest-dir)
-               (write-file
-                manifest-path
-                `((use-package-modules
-                   base certs compression file fonts gawk gnome linux)
-                  (use-modules (guix utils)
-                               (guix profiles)
-                               (guix store)
-                               (srfi srfi-11))
-
-                  ;; Copied from guix/scripts/package.scm.
-                  (define (store-item->manifest-entry item)
-                    "Return a manifest entry for ITEM, a \"/gnu/store/...\" file name."
-                    (let-values (((name version)
-                                  (package-name->name+version (store-path-package-name item)
-                                                              #\-)))
-                      (manifest-entry
-                        (name name)
-                        (version version)
-                        (output "out")                              ;XXX: wild guess
-                        (item item))))
-
-                  (manifest-add
-                   (packages->manifest
-                    (list coreutils
-                          diffutils
-                          file
-                          findutils
-                          font-dejavu
-                          font-liberation
-                          gawk
-                          glibc-locales
-                          grep
-                          gzip
-                          nss-certs
-                          sed
-                          strace
-                          tar
-                          util-linux+udev
-                          which
-                          xz
-                          zenity))
-                   `(,(store-item->manifest-entry ,out)))))
-
-               (write-file sandbox
-                           (string-append shebang "
-echo -e \"\\n* Starting Steam in sandbox: $HOME/.local/share/guix-sandbox-home\\n\"
-mkdir -p $HOME/.local/share/guix-sandbox-home
-if [ \"$DEBUG\" == \"1\" ]; then
-    shell_command=()
-else
-    shell_command=(\"--\" \"" sandbox-helper "\" \"$@\")
-fi
-if [ -z ${XAUTHORITY+x} ]; then
-    xauth=()
-else
-    xauth=(\"--preserve=XAUTHORITY\" \"--share=$XAUTHORITY\")
-fi
-# Make sure pulseaudio is running, if it starts first time inside the sandbox it will be broken
-pulseaudio -D > /dev/null 2>&1
-# Start sandbox
-# /dev/input and /sys/class/input added for controller support.
-guix environment --ad-hoc --container --no-cwd --network \\
-     --preserve=DISPLAY \\
-     --preserve=SDL_AUDIODRIVER \\
-     --preserve=XDG_DATA_HOME \\
-     --preserve=XDG_RUNTIME_DIR \\
-     \"${xauth[@]}\" \\
-     --share=$HOME/.local/share/guix-sandbox-home=$HOME \\
-     $(if [ -e \"/run/user/$UID/pulse\" ]; then echo -n \"--share=/run/user/$UID/pulse\"; else echo -n \"\"; fi) \\
-     $(if [ -e \"/etc/machine-id\" ]; then echo -n \"--expose=/etc/machine-id\"; else echo -n ; fi) \\
-     $(if [ -e \"/run/user/$UID/bus\" ]; then echo -n \"--share=/run/user/$UID/bus\"; else echo -n ; fi) \\
-     $(if [ -e \"$HOME/.config/pulse\" ]; then echo -n \"--share=$HOME/.config/pulse\"; else echo -n ""; fi) \\
-     --expose=/dev/dri \\
-     --expose=/dev/input \\
-     --expose=/sys/class/input \\
-     --expose=/sys/dev \\
-     --expose=/sys/devices \\
-     --expose=/var/run/dbus \\
-     --share=/dev/shm \\
-     -m \"" manifest-path "\" \\
-     \"${shell_command[@]}\"\n"))
-               (chmod sandbox #o555)
-
-               ;; Script sandbox-helper is needed to set-up the environment inside the container.
-               (write-file sandbox-helper
-                           (string-append "#!" (which "bash") "
-mkdir -p /sbin
-mkdir -p /usr/{bin,share}
-mkdir -p /run/current-system/profile/{etc,share}
-#FIXME: Setting up the below symlink should not require find.
-find /gnu/store/ -maxdepth 1 -name '*glibc-locales*' -exec ln -s \"{}\"/lib/locale /run/current-system/locale \\;
-ln -s \"$GUIX_ENVIRONMENT\"/share/fonts /run/current-system/profile/share/fonts
-ln -s \"$GUIX_ENVIRONMENT\"/etc/ssl /run/current-system/profile/etc/ssl
-ln -s \"$GUIX_ENVIRONMENT\"/etc/ssl /etc/ssl
-ln -s " coreutils "/bin/env /usr/bin/env
-ln -s " bash "/bin/bash /bin/bash
-ln -s " pulseaudio "/bin/pulseaudio /bin/pulseaudio
-ln -s " steam-libs-32 "/lib /run/current-system/profile/lib
-ln -s " steam-libs-64 "/lib /run/current-system/profile/lib64
-ln -s " steam-libs-32 "/lib /lib
-ln -s " steam-libs-64 "/lib /lib64
-ln -s " steam-ld.so.conf " /etc/ld.so.conf
-ln -s " steam-ld.so.cache " /etc/ld.so.cache
-ln -s " steam-libs-32 "/sbin/ldconfig /sbin/ldconfig
-ln -s " steam-libs-64 "/share/vulkan /usr/share/vulkan
-export PATH=" steam-libs-32 "/bin:" python "/bin:/bin:/sbin:/usr/bin${PATH:+:}$PATH
-export STEAM_RUNTIME=1
-export STEAM_RUNTIME_PREFER_HOST_LIBRARIES=1
-" steam-real " \"$@\"\n"))
-               (chmod sandbox-helper #o555)
-               #t))))))
-
-    (home-page "https://store.steampowered.com")
-    (synopsis "Digital distribution platform for managing and playing games")
+    (wrap-package steam-client)
+    (run "/bin/steam")
+    (union64
+     (fhs-union `(,@steam-client-libs
+                  ,@steam-gameruntime-libs
+                  ,@fhs-min-libs)
+                #:name "fhs-union-64"))
+    (union32
+     (fhs-union `(,@steam-client-libs
+                  ,@steam-gameruntime-libs
+                  ,@fhs-min-libs)
+                #:name "fhs-union-32"
+                #:system "i686-linux"))
+    (modules `(base certs compression file gawk gnome linux python))
+    (packages
+     `(coreutils
+       diffutils
+       file
+       findutils
+       gawk
+       grep
+       gzip
+       nss-certs
+       python
+       sed
+       strace
+       tar
+       util-linux+udev
+       which
+       xz
+       zenity))
     (description "Steam is a digital software distribution platform created by
-Valve.  This package provides the script steam-sandbox for launching Steam in
-a Guix container which will use the directory
-@file{$HOME/.local/share/guix-sandbox-home} where all games will be installed.")
-    (license (license:nonfree "file:///share/doc/steam/steam_subscriber_agreement.txt"))))
+Valve.  This package provides a script for launching Steam in a Guix container
+which will use the directory @file{$HOME/.local/share/guix-sandbox-home} where
+all games will be installed."))))
