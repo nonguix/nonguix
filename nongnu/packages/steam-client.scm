@@ -19,11 +19,31 @@
 ;;; The steam script provided by this package may optionally be started as
 ;;; a shell instead of automatically launching Steam by setting the
 ;;; environment variable DEBUG=1.  If the sandbox is started this way then
-;;; Steam should subsequently be launched via fhs-internal-script.
+;;; Steam should subsequently be launched via fhs-internal.
 
 ;;; The sandbox shell aids in debugging missing container elements.  For
 ;;; example a missing symlink may be created manually before launching Steam
 ;;; to verify that the fix works before filing a bug report.
+
+;;; A container wrapper creates the following store items:
+;;; * Main container package [nonguix-container->package] (basically a dummy
+;;;   package with symlink to wrapper script)
+;;;   - Wrapper script [make-container-wrapper] (runs "guix environment")
+;;;     References:
+;;;     -> manifest.scm [make-container-manifest] (used by wrapper to guarantee
+;;;        exact store items)
+;;;     -> container-internal [make-container-internal] {inside container}
+;;;        (dummy package added to container with symlink to internal-script)
+;;;        - internal-script [make-internal-script] {inside container}
+;;;          (script run in-container which performs additional setup before
+;;;          launching the desired application)
+;;;          References:
+;;;          -> Wrapped package {inside container} (in this case Steam).
+
+;;; Note: The extra container-internal package is necessary because there is no
+;;; way to add the container package's own store path to its own manifest unless
+;;; the manifest is printed inside the build phases. However, the (guix gexp)
+;;; module is apparently disallowed inside build phases.
 
 (define-module (nongnu packages steam-client)
   #:use-module ((nonguix licenses) #:prefix license:)
@@ -329,7 +349,7 @@
          (use-modules (ice-9 match)
                       (guix build union))
          (match %build-inputs
-           (((names . directories) ...)
+           (((_ . directories) ...)
             (union-build (assoc-ref %outputs "out")
                          directories)
             #t)))))
@@ -344,31 +364,41 @@ in a sandboxed FHS environment."
   (let* ((fhs-internal (make-container-internal container))
          (fhs-manifest (make-container-manifest container fhs-internal))
          (fhs-wrapper (make-container-wrapper container fhs-manifest fhs-internal))
-         (container-name (ngc-name container))
-         (union64 (ngc-union64 container))
-         (union32 (ngc-union32 container))
          (pkg (ngc-wrap-package container)))
     (package
-      (name container-name)
+      (name (ngc-name container))
       (version (or (ngc-version container)
                    (package-version pkg)))
       (source #f)
-      (inputs `(,@(if (null? union64)
-                      '() `(("fhs-union-64" ,union64)))
-                ,@(if (null? union32)
-                      '() `(("fhs-union-32" ,union32)))
-                ("fhs-wrapper" ,fhs-wrapper)))
+      (inputs `(,@(if (null? (ngc-union64 container))
+                      '()
+                      `(("fhs-union-64" ,(ngc-union64 container))))
+                ,@(if (null? (ngc-union32 container))
+                      '()
+                      `(("fhs-union-32" ,(ngc-union32 container))))
+                ("fhs-internal" ,fhs-internal)
+                ("fhs-wrapper" ,fhs-wrapper)
+                ("fhs-manifest" ,fhs-manifest)))
       (build-system trivial-build-system)
       (arguments
        `(#:modules ((guix build utils))
          #:builder
          (begin
            (use-modules (guix build utils))
-           (let* ((bin (string-append (assoc-ref %outputs "out") "/bin"))
+           (let* ((out (assoc-ref %outputs "out"))
+                  (internal-target (string-append (assoc-ref %build-inputs "fhs-internal")
+                                                  "/bin/" ,(ngc-internal-name container)))
+                  (internal-dest (string-append out "/sbin/" ,(ngc-internal-name container)))
+                  (manifest-target (assoc-ref %build-inputs "fhs-manifest"))
+                  (manifest-dest (string-append out "/etc/" ,(ngc-manifest-name container)))
                   (wrapper-target (assoc-ref %build-inputs "fhs-wrapper"))
-                  (wrapper-dest (string-append bin "/" ,container-name)))
-             (mkdir-p bin)
-             (symlink wrapper-target wrapper-dest)))))
+                  (wrapper-dest (string-append out "/bin/" ,(ngc-name container))))
+             (mkdir-p (string-append out "/sbin"))
+             (mkdir-p (string-append out "/etc"))
+             (mkdir-p (string-append out "/bin"))
+             (symlink internal-target internal-dest)
+             (symlink wrapper-target wrapper-dest)
+             (symlink manifest-target manifest-dest)))))
       (home-page (or (ngc-home-page container)
                      (package-home-page pkg)))
       (synopsis (or (ngc-synopsis container)
@@ -426,8 +456,9 @@ in a sandboxed FHS environment."
                          ,@(exists-> (string-append "/run/user/" UID "/bus"))
                          ,@(exists-> (getenv "XAUTHORITY"))))
                 (DEBUG (equal? (getenv "DEBUG") "1"))
+                (args (cdr (command-line)))
                 (command (if DEBUG '()
-                             `("--" ,run "\"$@\""))))
+                             `("--" ,run ,@args))))
            (format #t "\n* Launching ~a in sandbox: ~a.\n\n"
                    #$(package-name (ngc-wrap-package container)) sandbox-home)
            (when DEBUG
@@ -448,9 +479,10 @@ in a sandboxed FHS environment."
 
 (define (make-container-manifest container fhs-internal)
   "Return a scheme file-like object to be used as package manifest for FHS
-containers. This manifest will use the modules and packages specified in the
-container, and will also include the exact store paths of the containers wrapped
-package and unions, and the fhs-inernal package."
+containers.  This manifest will use the 'modules' and 'packages' fields
+specified in the container object, and will also include the exact store paths
+of the containers 'wrap-package', 'union32', and 'union64' fields, as well as
+the exact path for the fhs-internal package."
   (scheme-file
    (ngc-manifest-name container)
    #~(begin
@@ -503,8 +535,8 @@ package and unions, and the fhs-inernal package."
            (mkdir-p bin)
            (symlink internal-target internal-dest)))))
     (home-page #f)
-    (synopsis "Script used ot set up sandbox")
-    (description "Script used inside the FHS guix container to setup the
+    (synopsis "Script used to set up sandbox")
+    (description "Script used inside the FHS Guix container to set up the
 environment.")
     (license #f)))
 
