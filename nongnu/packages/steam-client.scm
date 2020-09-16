@@ -56,12 +56,17 @@
   #:use-module (gnu packages audio)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
+  #:use-module (gnu packages certs)
+  #:use-module (gnu packages compression)
+  #:use-module (gnu packages file)
   #:use-module (gnu packages fonts)
   #:use-module (gnu packages fontutils)
+  #:use-module (gnu packages gawk)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages gl)
   #:use-module (gnu packages glib)
-  #:use-module (gnu packages linux))
+  #:use-module (gnu packages linux)
+  #:use-module (gnu packages python))
 
 (define-record-type* <nonguix-container>
   nonguix-container make-nonguix-container
@@ -81,6 +86,7 @@
   (shared        ngc-shared (default '()))
   (modules       ngc-modules (default '()))
   (packages      ngc-packages (default '()))
+  (link-files    ngc-link-files (default '()))
   (home-page     ngc-home-page (default #f))
   (synopsis      ngc-synopsis (default #f))
   (description   ngc-description (default #f))
@@ -142,20 +148,29 @@
 
 (define steam-client-libs
   `(("bash" ,bash)                      ; Required for steam startup.
-    ("coreutils" ,coreutils)            ; Required for steam startup.
+    ("coreutils" ,coreutils)
+    ("diffutils" ,diffutils)
     ("dbus-glib" ,dbus-glib)            ; Required for steam browser.
     ("fontconfig" ,fontconfig)          ; Required for steam client.
+    ("file" ,file)                      ; Used for steam installation.
     ("freetype" ,freetype)              ; Required for steam login.
+    ("gawk" ,gawk)
     ("gcc:lib" ,gcc "lib")              ; Required for steam startup.
+    ("grep" ,grep)
     ("mesa" ,mesa)                      ; Required for steam startup.
-    ("util-linux" ,util-linux)))        ; Required for steam login.
+    ("nss-certs" ,nss-certs)            ; Required for steam login.
+    ("sed" ,sed)
+    ("tar" ,tar)
+    ("util-linux" ,util-linux)          ; Required for steam login.
+    ("xz" ,xz)))
 
 (define steam-gameruntime-libs
   `(("alsa-lib" ,alsa-lib)              ; Required for audio in most games.
     ("alsa-plugins:pulseaudio" ,alsa-plugins "pulseaudio") ; Required for audio in most games.
     ("font-dejavu" ,font-dejavu)
     ("font-liberation" ,font-liberation)
-    ("openal" ,openal)))                ; Required for Crypt of the Necrodancer.
+    ("openal" ,openal)                  ; Required for Crypt of the Necrodancer.
+    ("python" ,python)))                ; Required for KillingFloor2 and Wreckfest.
 
 ;;; Building ld.so.conf using find-files from package union results in error
 ;;; "Argument list too long" when launching Steam.
@@ -226,7 +241,8 @@ in a sandboxed FHS environment."
       (version (or (ngc-version container)
                    (package-version pkg)))
       (source #f)
-      (inputs `(,@(if (null? (ngc-union64 container))
+      (inputs `(("wrap-package" ,(ngc-wrap-package container))
+                ,@(if (null? (ngc-union64 container))
                       '()
                       `(("fhs-union-64" ,(ngc-union64 container))))
                 ,@(if (null? (ngc-union32 container))
@@ -248,13 +264,21 @@ in a sandboxed FHS environment."
                   (manifest-target (assoc-ref %build-inputs "fhs-manifest"))
                   (manifest-dest (string-append out "/etc/" ,(ngc-manifest-name container)))
                   (wrapper-target (assoc-ref %build-inputs "fhs-wrapper"))
-                  (wrapper-dest (string-append out "/bin/" ,(ngc-name container))))
+                  (wrapper-dest (string-append out "/bin/" ,(ngc-name container)))
+                  (link-files ',(ngc-link-files container)))
              (mkdir-p (string-append out "/sbin"))
              (mkdir-p (string-append out "/etc"))
              (mkdir-p (string-append out "/bin"))
              (symlink internal-target internal-dest)
              (symlink wrapper-target wrapper-dest)
-             (symlink manifest-target manifest-dest)))))
+             (symlink manifest-target manifest-dest)
+             (for-each
+              (lambda (link)
+                (mkdir-p (dirname (string-append out "/" link)))
+                (symlink (string-append (assoc-ref %build-inputs "wrap-package")
+                                        "/" link)
+                         (string-append out "/" link)))
+              link-files)))))
       (home-page (or (ngc-home-page container)
                      (package-home-page pkg)))
       (synopsis (or (ngc-synopsis container)
@@ -416,6 +440,8 @@ application."
            (for-each mkdir-p '("/sbin" "/usr/bin" "/usr/share"
                                "/run/current-system/profile/etc"
                                "/run/current-system/profile/share"))
+           (delete-file "/bin/sh")
+           (rmdir "/bin")
            (let ((guix-env (getenv "GUIX_ENVIRONMENT"))
                  (union64 #$(file-append (ngc-union64 container)))
                  (union32 #$(file-append (ngc-union32 container)))
@@ -426,8 +452,8 @@ application."
              (new-symlink (string-append union64 "/share/fonts") "/run/current-system/profile/share/fonts")
              (new-symlink (string-append guix-env "/etc/ssl") "/run/current-system/profile/etc/ssl")
              (new-symlink (string-append guix-env "/etc/ssl") "/etc/ssl")
-             (new-symlink (string-append union64 "/bin/env") "/usr/bin/env")
-             (new-symlink (string-append union64 "/bin/bash") "/bin/bash")
+             (new-symlink (string-append union64 "/bin") "/bin")
+             (new-symlink "/bin/env" "/usr/bin/env")
              (new-symlink (string-append union32 "/lib") "/run/current-system/profile/lib")
              (new-symlink (string-append union64 "/lib") "/run/current-system/profile/lib64")
              (new-symlink (string-append union32 "/lib") "/lib")
@@ -436,6 +462,7 @@ application."
              (new-symlink ld.so.cache "/etc/ld.so.cache")
              (new-symlink (string-append union64 "/sbin/ldconfig") "/sbin/ldconfig")
              (new-symlink (string-append union64 "/share/vulkan") "/usr/share/vulkan")
+             (new-symlink (string-append union64 "/share/drirc.d") "/usr/share/drirc.d")
              (apply system* `(#$(file-append pkg run) ,@args))))))))
 
 (define-public steam
@@ -455,8 +482,7 @@ application."
                   ,@fhs-min-libs)
                 #:name "fhs-union-32"
                 #:system "i686-linux"))
-    (modules `(base certs compression file gawk gnome linux python))
-    (packages `(coreutils diffutils gawk grep nss-certs sed tar xz))
+    (link-files '("share/applications/steam.desktop"))
     (description "Steam is a digital software distribution platform created by
 Valve.  This package provides a script for launching Steam in a Guix container
 which will use the directory @file{$HOME/.local/share/guix-sandbox-home} where
