@@ -47,53 +47,21 @@
 
 (define-module (nongnu packages steam-client)
   #:use-module ((nonguix licenses) #:prefix license:)
-  #:use-module (gnu packages)
   #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module (guix records)
-  #:use-module (guix utils)
   #:use-module (guix download)
-  #:use-module (guix build utils)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system trivial)
   #:use-module (gnu packages audio)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
-  #:use-module (gnu packages compression)
-  #:use-module (gnu packages cups)
-  #:use-module (gnu packages curl)
   #:use-module (gnu packages fonts)
   #:use-module (gnu packages fontutils)
-  #:use-module (gnu packages freedesktop)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages gl)
   #:use-module (gnu packages glib)
-  #:use-module (gnu packages gnome)
-  #:use-module (gnu packages gnupg)
-  #:use-module (gnu packages gstreamer)
-  #:use-module (gnu packages gtk)
-  #:use-module (gnu packages image)
-  #:use-module (gnu packages libcanberra)
-  #:use-module (gnu packages libffi)
-  #:use-module (gnu packages libidn)
-  #:use-module (gnu packages libusb)
-  #:use-module (gnu packages linux)
-  #:use-module (gnu packages nss)
-  #:use-module (gnu packages pcre)
-  #:use-module (gnu packages pulseaudio)
-  #:use-module (gnu packages python)
-  #:use-module (gnu packages sdl)
-  #:use-module (gnu packages selinux)
-  #:use-module (gnu packages sqlite)
-  #:use-module (gnu packages tbb)
-  #:use-module (gnu packages tls)
-  #:use-module (gnu packages video)
-  #:use-module (gnu packages vulkan)
-  #:use-module (gnu packages xdisorg)
-  #:use-module (gnu packages xiph)
-  #:use-module (gnu packages xml)
-  #:use-module (gnu packages xorg)
-  #:use-module (srfi srfi-1))
+  #:use-module (gnu packages linux))
 
 (define-record-type* <nonguix-container>
   nonguix-container make-nonguix-container
@@ -125,31 +93,6 @@
     (source (origin
               (inherit (package-source glibc))
               (snippet #f)))))          ; Re-enable ldconfig.
-
-(define libgcrypt-1.5.4                 ; Half-Life needs libgcrypt.so.11.
-  (package
-    (inherit libgcrypt)
-    (version "1.5.4")
-    (source (origin
-              (method url-fetch)
-              (uri (string-append "mirror://gnupg/libgcrypt/libgcrypt-"
-                                  version ".tar.bz2"))
-              (sha256
-               (base32
-                "0czvqxkzd5y872ipy6s010ifwdwv29sqbnqc4pf56sd486gqvy6m"))))))
-
-(define libffi-3.2
-  (package
-    (inherit libffi)
-    (version "3.2")
-    (source (origin
-              (method url-fetch)
-              (uri
-               (string-append "ftp://sourceware.org/pub/libffi/"
-                              (package-name libffi) "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "1vylvsrbzrpqk298i4g1p82jxqkxhl2qf941sf0j775fyvxq09kb"))))))
 
 (define steam-client
   (package
@@ -198,108 +141,21 @@
     ("glibc-locales" ,glibc-locales)))
 
 (define steam-client-libs
-  `(("alsa-lib" ,alsa-lib)
-    ("alsa-plugins:pulseaudio" ,alsa-plugins "pulseaudio")
-    ("at-spi2-atk" ,at-spi2-atk)        ; Required by steam client beta.
-    ("at-spi2-core" ,at-spi2-core)      ; Required by steam client beta.
-    ("atk" ,atk)
-    ("bash" ,bash)
-    ("bzip2" ,bzip2)
-    ("cairo" ,cairo)
-    ("coreutils" ,coreutils)
-    ("cups" ,cups)
-    ("curl" ,curl)
-    ("dbus" ,dbus)
-    ("dbus-glib" ,dbus-glib)
-    ("eudev" ,eudev)
-    ("expat" ,expat)
-    ("fontconfig" ,fontconfig)
-    ("freetype" ,freetype)
-    ("gcc:lib" ,gcc "lib")
-    ("gconf" ,gconf)
-    ("gdk-pixbuf" ,gdk-pixbuf)
-    ("glib" ,glib)
-    ("gtk+" ,gtk+-2)
-    ("libappindicator" ,libappindicator)
-    ("libcap" ,libcap)
-    ("libffi-3.2" ,libffi-3.2)
-    ("libice" ,libice)
-    ("libselinux" ,libselinux)
-    ("libsm" ,libsm)
-    ("libusb" ,libusb)
-    ("libva" ,libva)
-    ("libx11" ,libx11)
-    ("libxcomposite" ,libxcomposite)
-    ("libxcursor" ,libxcursor)
-    ("libxdamage" ,libxdamage)
-    ("libxext" ,libxext)
-    ("libxfixes" ,libxfixes)
-    ("libxi" ,libxi)
-    ("libxinerama" ,libxinerama)
-    ("libxrandr" ,libxrandr)
-    ("libxrender" ,libxrender)
-    ("libxscrnsaver" ,libxscrnsaver)
-    ("libxtst" ,libxtst)
-    ("libxxf86vm" ,libxxf86vm)
-    ("mesa" ,mesa)
-    ("network-manager" ,network-manager)
-    ("nspr" ,nspr)
-    ("nss" ,nss)
-    ("openal" ,openal)
-    ("pango" ,pango)
-    ("pulseaudio" ,pulseaudio)
-    ("sdl2" ,sdl2)
-    ("vulkan-loader" ,vulkan-loader)
-    ("zlib" ,zlib)))
+  `(("bash" ,bash)                      ; Required for steam startup.
+    ("coreutils" ,coreutils)            ; Required for steam startup.
+    ("dbus-glib" ,dbus-glib)            ; Required for steam browser.
+    ("fontconfig" ,fontconfig)          ; Required for steam client.
+    ("freetype" ,freetype)              ; Required for steam login.
+    ("gcc:lib" ,gcc "lib")              ; Required for steam startup.
+    ("mesa" ,mesa)                      ; Required for steam startup.
+    ("util-linux" ,util-linux)))        ; Required for steam login.
 
 (define steam-gameruntime-libs
-  `(("ffmpeg" ,ffmpeg)
-    ("flac" ,flac)
+  `(("alsa-lib" ,alsa-lib)              ; Required for audio in most games.
+    ("alsa-plugins:pulseaudio" ,alsa-plugins "pulseaudio") ; Required for audio in most games.
     ("font-dejavu" ,font-dejavu)
     ("font-liberation" ,font-liberation)
-    ("freeglut" ,freeglut)
-    ("glew" ,glew)
-    ("glu" ,glu)
-    ("gst-plugins-base" ,gst-plugins-base)
-    ("gst-plugins-ugly" ,gst-plugins-ugly)
-    ("gstreamer" ,gstreamer)
-    ("libcaca" ,libcaca)
-    ("libcanberra" ,libcanberra)
-    ("libdrm" ,libdrm)
-    ("libgcrypt-1.5.4" ,libgcrypt-1.5.4)
-    ("libgpg-error" ,libgpg-error)
-    ("libidn" ,libidn)
-    ("libjpeg-turbo" ,libjpeg-turbo)
-    ("libmikmod" ,libmikmod)
-    ("libogg" ,libogg)
-    ("libpciaccess" ,libpciaccess)
-    ("libpng" ,libpng)
-    ("libpng-1.2" ,libpng-1.2)
-    ("librsvg" ,librsvg)
-    ("libsamplerate" ,libsamplerate)
-    ("libtheora" ,libtheora)
-    ("libtiff" ,libtiff)
-    ("libvdpau" ,libvdpau)
-    ("libvorbis" ,libvorbis)
-    ("libvpx" ,libvpx)
-    ("libxcb" ,libxcb)
-    ("libxft" ,libxft)
-    ("libxml2" ,libxml2)
-    ("libxmu" ,libxmu)
-    ("openssl" ,openssl)
-    ("pixman" ,pixman)
-    ("sdl" ,sdl)
-    ("sdl-image" ,sdl-image)
-    ("sdl-mixer" ,sdl-mixer)
-    ("sdl-ttf" ,sdl-ttf)
-    ("sdl2-image" ,sdl2-image)
-    ("sdl2-mixer" ,sdl2-mixer)
-    ("sdl2-ttf" ,sdl2-ttf)
-    ("speex" ,speex)
-    ("sqlite" ,sqlite)
-    ("tbb" ,tbb)
-    ("util-linux" ,util-linux)
-    ("xkeyboard-config" ,xkeyboard-config)))
+    ("openal" ,openal)))                ; Required for Crypt of the Necrodancer.
 
 ;;; Building ld.so.conf using find-files from package union results in error
 ;;; "Argument list too long" when launching Steam.
@@ -572,7 +428,6 @@ application."
              (new-symlink (string-append guix-env "/etc/ssl") "/etc/ssl")
              (new-symlink (string-append union64 "/bin/env") "/usr/bin/env")
              (new-symlink (string-append union64 "/bin/bash") "/bin/bash")
-             (new-symlink (string-append union64 "/bin/pulseaudio") "/bin/pulseaudio")
              (new-symlink (string-append union32 "/lib") "/run/current-system/profile/lib")
              (new-symlink (string-append union64 "/lib") "/run/current-system/profile/lib64")
              (new-symlink (string-append union32 "/lib") "/lib")
@@ -601,23 +456,7 @@ application."
                 #:name "fhs-union-32"
                 #:system "i686-linux"))
     (modules `(base certs compression file gawk gnome linux python))
-    (packages
-     `(coreutils
-       diffutils
-       file
-       findutils
-       gawk
-       grep
-       gzip
-       nss-certs
-       python
-       sed
-       strace
-       tar
-       util-linux+udev
-       which
-       xz
-       zenity))
+    (packages `(coreutils diffutils gawk grep nss-certs sed tar xz))
     (description "Steam is a digital software distribution platform created by
 Valve.  This package provides a script for launching Steam in a Guix container
 which will use the directory @file{$HOME/.local/share/guix-sandbox-home} where
