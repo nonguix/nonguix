@@ -66,7 +66,9 @@
   #:use-module (gnu packages gl)
   #:use-module (gnu packages glib)
   #:use-module (gnu packages linux)
-  #:use-module (gnu packages python))
+  #:use-module (gnu packages pulseaudio)
+  #:use-module (gnu packages python)
+  #:use-module (nonguix utils))
 
 (define-record-type* <nonguix-container>
   nonguix-container make-nonguix-container
@@ -169,7 +171,8 @@
     ("alsa-plugins:pulseaudio" ,alsa-plugins "pulseaudio") ; Required for audio in most games.
     ("font-dejavu" ,font-dejavu)
     ("font-liberation" ,font-liberation)
-    ("openal" ,openal)                  ; Required for Crypt of the Necrodancer.
+    ("openal" ,openal)                  ; Prevents corrupt audio in Crypt of the Necrodancer.
+    ("pulseaudio" ,pulseaudio)          ; Prevents corrupt audio in Sven Coop.
     ("python" ,python)))                ; Required for KillingFloor2 and Wreckfest.
 
 ;;; Building ld.so.conf using find-files from package union results in error
@@ -232,7 +235,10 @@
 (define (nonguix-container->package container)
   "Return a package with wrapper script to launch the supplied container object
 in a sandboxed FHS environment."
-  (let* ((fhs-internal (make-container-internal container))
+  (let* ((alsa-config ((@@ (gnu services sound) alsa-config-file)
+                       ((@ (gnu services sound) alsa-configuration)
+                        (alsa-plugins (to32 alsa-plugins)))))
+         (fhs-internal (make-container-internal container alsa-config))
          (fhs-manifest (make-container-manifest container fhs-internal))
          (fhs-wrapper (make-container-wrapper container fhs-manifest fhs-internal))
          (pkg (ngc-wrap-package container)))
@@ -241,7 +247,8 @@ in a sandboxed FHS environment."
       (version (or (ngc-version container)
                    (package-version pkg)))
       (source #f)
-      (inputs `(("wrap-package" ,(ngc-wrap-package container))
+      (inputs `(("alsa-config" ,alsa-config)
+                ("wrap-package" ,(ngc-wrap-package container))
                 ,@(if (null? (ngc-union64 container))
                       '()
                       `(("fhs-union-64" ,(ngc-union64 container))))
@@ -258,6 +265,8 @@ in a sandboxed FHS environment."
          (begin
            (use-modules (guix build utils))
            (let* ((out (assoc-ref %outputs "out"))
+                  (alsa-target (assoc-ref %build-inputs "alsa-config"))
+                  (alsa-dest (string-append out "/etc/asound.conf"))
                   (internal-target (string-append (assoc-ref %build-inputs "fhs-internal")
                                                   "/bin/" ,(ngc-internal-name container)))
                   (internal-dest (string-append out "/sbin/" ,(ngc-internal-name container)))
@@ -269,6 +278,7 @@ in a sandboxed FHS environment."
              (mkdir-p (string-append out "/sbin"))
              (mkdir-p (string-append out "/etc"))
              (mkdir-p (string-append out "/bin"))
+             (symlink alsa-target alsa-dest)
              (symlink internal-target internal-dest)
              (symlink wrapper-target wrapper-dest)
              (symlink manifest-target manifest-dest)
@@ -395,14 +405,15 @@ the exact path for the fhs-internal package."
                #$(file-append (ngc-union32 container))
                #$(file-append fhs-internal)))))))
 
-(define (make-container-internal container)
+(define (make-container-internal container alsa-config)
   "Return a dummy package housing the fhs-internal script."
   (package
     (name (ngc-internal-name container))
     (version (or (ngc-version container)
                  (package-version (ngc-wrap-package container))))
     (source #f)
-    (inputs `(("fhs-internal-script" ,(make-internal-script container))))
+    (inputs `(("alsa-config" ,alsa-config)
+              ("fhs-internal-script" ,(make-internal-script container alsa-config))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
@@ -420,7 +431,7 @@ the exact path for the fhs-internal package."
 environment.")
     (license #f)))
 
-(define (make-internal-script container)
+(define (make-internal-script container alsa-config)
   "Return an fhs-internal script which is used to perform additional steps to
 set up the environment inside an FHS container before launching the desired
 application."
@@ -434,35 +445,59 @@ application."
          `((guix build utils))
        #~(begin
            (use-modules (guix build utils))
-           (define (new-symlink target dest)
-             (unless (file-exists? dest)
-               (symlink target dest)))
-           (for-each mkdir-p '("/sbin" "/usr/bin" "/usr/share"
-                               "/run/current-system/profile/etc"
-                               "/run/current-system/profile/share"))
-           (delete-file "/bin/sh")
-           (rmdir "/bin")
+           (define (path->str path)
+             (if (list? path)
+                 (string-join path "/")
+                 path))
+           (define (new-symlink pair)
+             (let ((target (path->str (car pair)))
+                   (dest (path->str (cdr pair))))
+               (unless (file-exists? dest)
+                 (symlink target dest))))
+           (define (icd-symlink file)
+             (new-symlink
+              `(,file . ("/usr/share/vulkan/icd.d" ,(basename file)))))
            (let ((guix-env (getenv "GUIX_ENVIRONMENT"))
+                 (alsa-config #$(file-append alsa-config))
                  (union64 #$(file-append (ngc-union64 container)))
                  (union32 #$(file-append (ngc-union32 container)))
                  (ld.so.conf #$(file-append ld.so.conf))
                  (ld.so.cache #$(file-append ld.so.cache))
                  (args (cdr (command-line))))
-             (new-symlink (string-append union64 "/lib/locale") "/run/current-system/locale")
-             (new-symlink (string-append union64 "/share/fonts") "/run/current-system/profile/share/fonts")
-             (new-symlink (string-append guix-env "/etc/ssl") "/run/current-system/profile/etc/ssl")
-             (new-symlink (string-append guix-env "/etc/ssl") "/etc/ssl")
-             (new-symlink (string-append union64 "/bin") "/bin")
-             (new-symlink "/bin/env" "/usr/bin/env")
-             (new-symlink (string-append union32 "/lib") "/run/current-system/profile/lib")
-             (new-symlink (string-append union64 "/lib") "/run/current-system/profile/lib64")
-             (new-symlink (string-append union32 "/lib") "/lib")
-             (new-symlink (string-append union64 "/lib") "/lib64")
-             (new-symlink ld.so.conf "/etc/ld.so.conf")
-             (new-symlink ld.so.cache "/etc/ld.so.cache")
-             (new-symlink (string-append union64 "/sbin/ldconfig") "/sbin/ldconfig")
-             (new-symlink (string-append union64 "/share/vulkan") "/usr/share/vulkan")
-             (new-symlink (string-append union64 "/share/drirc.d") "/usr/share/drirc.d")
+             (delete-file "/bin/sh")
+             (rmdir "/bin")
+             (for-each
+              mkdir-p
+              '("/run/current-system/profile/etc"
+                "/run/current-system/profile/share"
+                "/sbin"
+                "/usr/bin"
+                "/usr/share/vulkan/icd.d"))
+             (for-each
+              new-symlink
+              `((,alsa-config . "/etc/asound.conf")
+                (,ld.so.cache . "/etc/ld.so.cache")
+                (,ld.so.conf . "/etc/ld.so.conf")
+                ((,guix-env "etc/ssl") . "/etc/ssl")
+                ((,guix-env "etc/ssl") . "/run/current-system/profile/etc/ssl")
+                ((,union32 "lib") . "/lib")
+                ((,union32 "lib") . "/run/current-system/profile/lib")
+                ((,union64 "bin") . "/bin")
+                ((,union64 "bin/env") . "/usr/bin/env")
+                ((,union64 "lib") . "/lib64")
+                ((,union64 "lib") . "/run/current-system/profile/lib64")
+                ((,union64 "lib/locale") . "/run/current-system/locale")
+                ((,union64 "sbin/ldconfig") . "/sbin/ldconfig")
+                ((,union64 "share/drirc.d") . "/usr/share/drirc.d")
+                ((,union64 "share/fonts") . "/run/current-system/profile/share/fonts")
+                ((,union64 "share/vulkan/explicit_layer.d") .
+                 "/usr/share/vulkan/explicit_layer.d")))
+             (for-each
+              icd-symlink
+              `(,@(find-files (string-append union32 "/share/vulkan/icd.d")
+                              #:directories? #t)
+                ,@(find-files (string-append union64 "/share/vulkan/icd.d")
+                              #:directories? #t)))
              (apply system* `(#$(file-append pkg run) ,@args))))))))
 
 (define-public steam
