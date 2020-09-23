@@ -97,19 +97,21 @@
                `(("rust-heck" ,rust-heck-0.3)
                  ,@cargo-inputs)))))))
 
-(define %firefox-build-id "20200908000000")
+;; Update this id with every firefox update to it's release date.
+;; It's used for cache validation and therefor can lead to strange bugs.
+(define %firefox-build-id "20201001000000")
 
 (define-public firefox
   (package
     (name "firefox")
-    (version "80.0.1")
+    (version "81.0.1")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "089ck6pq73nlw1bgjjvdaw7zjwb2bjk1w5hfjsx87mm269g0hssr"))))
+        (base32 "1zwg1rrqnn4cl1pn2dr7zajslf1iiiwrvmwv1vry107mm8z8vb3y"))))
     (build-system gnu-build-system)
     (arguments
      `(#:configure-flags
@@ -236,6 +238,7 @@
              (setenv "CONFIG_SHELL" (which "bash"))
              (setenv "PYTHON" (string-append (assoc-ref inputs "python2")
                                              "/bin/python"))
+             (setenv "MACH_USE_SYSTEM_PYTHON" "1")
 
              ;; Use Clang, Clang is 2x faster than GCC
              (setenv "AR" "llvm-ar") (setenv "NM" "llvm-nm")
