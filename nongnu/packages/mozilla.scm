@@ -324,7 +324,8 @@
                     (applications (string-append out "/share/applications")))
                (substitute* desktop-file
                  (("^Exec=firefox") (string-append "Exec=" out "/bin/firefox"))
-                 (("Icon=.*") "Icon=firefox\n")
+                 (("^Icon=.*") (string-append "Icon=" out
+                   "/lib/firefox/browser/chrome/icons/default/default128.png\n"))
                  (("NewWindow") "new-window")
                  (("NewPrivateWindow") "new-private-window"))
                (install-file desktop-file applications))
