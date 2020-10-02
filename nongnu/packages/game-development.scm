@@ -214,16 +214,6 @@ development should opt for GLSL rather than Cg.")
                                    '("multivoc.cpp" "xmp.cpp")))
                #t))
            (delete 'configure)
-           (add-after 'set-paths 'set-sdl-paths
-             ;; The makefile adds the output of `sdl2-config --cflags` to the
-             ;; compiler flags, but sdl2-config gives us the wrong directory to
-             ;; include. We have to add the SDL2 header directory ourselves.
-             (lambda* (#:key inputs #:allow-other-keys)
-               (pk (assoc-ref inputs "sdl-union"))
-               (setenv "CPLUS_INCLUDE_PATH"
-                       (string-append (assoc-ref inputs "sdl-union")
-                                      "/include/SDL2"))
-               #t))
            (replace 'install
              (lambda* (#:key inputs outputs #:allow-other-keys)
                (let* ((out (assoc-ref outputs "out"))
