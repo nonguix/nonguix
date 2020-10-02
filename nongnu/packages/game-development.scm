@@ -30,6 +30,7 @@
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages gl)
   #:use-module (gnu packages gtk)
+  #:use-module (gnu packages linux)
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages sdl)
   #:use-module (gnu packages video)
@@ -175,8 +176,8 @@ development should opt for GLSL rather than Cg.")
 
 (define-public eduke32
   ;; There are no official releases.
-  (let ((commit "26f683cadb3ca731cb8f19ae011cd6431f276827")
-        (revision "0")
+  (let ((commit "188e14622cfe5c6f63b04b989b350bf2a29a893c")
+        (revision "1")
         (duke-nukem-3d-directory "share/dukenukem3d"))
     (package
       (name "eduke32")
@@ -189,7 +190,7 @@ development should opt for GLSL rather than Cg.")
                (commit commit)))
          (file-name (git-file-name name version))
          (sha256
-          (base32 "15y8p35wbb83k3yh4ydpibf64maqnmbqmw89dinlfhllcdm9154n"))
+          (base32 "0wy4bppiw4q2hn0v38msrjyvj2hzfvigakc23c2wqfnbl7rm0hrz"))
          ;; Unbundle libxmp.
          (modules '((guix build utils)))
          (snippet
@@ -255,6 +256,7 @@ exec -a \"$0\" ~a\
        `(("pkg-config" ,pkg-config)))
       (inputs
        `(("sdl-union" ,(sdl-union (list sdl2 sdl2-mixer)))
+         ("alsa-lib" ,alsa-lib)
          ("glu" ,glu)
          ("libvorbis" ,libvorbis)
          ("libvpx" ,libvpx)
