@@ -324,8 +324,7 @@
                     (applications (string-append out "/share/applications")))
                (substitute* desktop-file
                  (("^Exec=firefox") (string-append "Exec=" out "/bin/firefox"))
-                 (("^Icon=.*") (string-append "Icon=" out
-                   "/lib/firefox/browser/chrome/icons/default/default128.png\n"))
+                 (("Icon=.*") "Icon=firefox\n")
                  (("NewWindow") "new-window")
                  (("NewPrivateWindow") "new-private-window"))
                (install-file desktop-file applications))
@@ -336,16 +335,16 @@
                     (icon-source-dir
                      (string-append
                       out "/lib/firefox/browser/chrome/icons/default")))
-               (with-directory-excursion icon-source-dir
-                 (for-each
-                  (lambda (size)
-                    (let ((dest (string-append out "/share/icons/hicolor/"
-                                               size "x" size "/apps")))
-                      (mkdir-p dest)
-                      (symlink (string-append "default" size ".png")
-                               (string-append dest "/firefox.png"))))
-                  '("16" "32" "48" "64" "128"))
-                 #t)))))
+               (for-each
+                (lambda (size)
+                  (let ((dest (string-append out "/share/icons/hicolor/"
+                                             size "x" size "/apps")))
+                    (mkdir-p dest)
+                    (symlink (string-append icon-source-dir
+                                            "/default" size ".png")
+                             (string-append dest "/firefox.png"))))
+                '("16" "32" "48" "64" "128"))
+               #t))))
 
        ;; Test will significantly increase build time but with little rewards.
        #:tests? #f
