@@ -1,5 +1,6 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2019 Pierre Neidhardt <mail@ambrevar.xyz>
+;;; Copyright © 2020 Zhu Zihao <all_but_last@163.com>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -29,7 +30,7 @@
     (source
      (origin
        (method url-fetch)
-       (uri (string-append "http://beta.quicklisp.org/archive/clhs/2015-04-07/clhs-"
+       (uri (string-append "https://beta.quicklisp.org/archive/clhs/2015-04-07/clhs-"
                            version
                            ".tgz"))
        (sha256
@@ -42,27 +43,25 @@
          (add-after 'unpack 'replace-loader
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (delete-file "clhs-use-local.el")
-             (with-output-to-file "clhs.el"
-               (lambda ()
-                 (display
-                  (string-append
-                   "(defun clhs-setup ()
-  (setq common-lisp-hyperspec-root
-        \"file://"
-                   (string-append (assoc-ref outputs "out")
-                                  "/HyperSpec-7-0/HyperSpec/")
-                   "\"))\n"
-                   "(provide 'clhs)"))))))
+             (let* ((out (assoc-ref outputs "out"))
+                    (hyperspec-dir (string-append out "/share/HyperSpec-7-0/")))
+               (with-output-to-file "clhs.el"
+                 (lambda ()
+                   (format #t ";;;###autoload~%~s~%~%~s"
+                           `(defun clhs-setup ()
+                              (setq common-lisp-hyperspec-root ,hyperspec-dir))
+                           `(provide 'clhs)))))))
          (add-after 'install 'install-doc
            (lambda* (#:key inputs outputs #:allow-other-keys)
-             (copy-recursively "HyperSpec-7-0"
-                               (string-append (assoc-ref outputs "out")
-                                              "/HyperSpec-7-0")))))))
+             (let* ((out (assoc-ref outputs "out"))
+                    (hyperspec-dir (string-append out "/share/HyperSpec-7-0/")))
+               (mkdir-p hyperspec-dir)
+               (copy-recursively "HyperSpec-7-0/HyperSpec" hyperspec-dir)))))))
     (home-page "http://quickdocs.org/clhs/")
     (synopsis "Offline Common Lisp HyperSpec")
     (description
-     "This package bundles the full Common Lisp HyperSpec ready for offline browsing.
-An Emacs package is provided for easy access.  Load it with:
+     "This package bundles the full Common Lisp HyperSpec ready for offline
+browsing. An Emacs package is provided for easy access.  Load it with:
 
 @lisp
 (require 'clhs)
