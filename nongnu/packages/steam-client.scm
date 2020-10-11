@@ -94,6 +94,24 @@
   (description   ngc-description (default #f))
   (license       ngc-license (default #f)))
 
+;;; We must re-enable ldconfig in glibc for Steam to prefer our system libraries
+;;; over Steam's runtime (which has incompatible Mesa and gcc).  This is because
+;;; the Steam script located at
+;;; Steam/ubuntu12_32/steam-runtime/run.sh
+;;; overrides $LD_LIBRARY_PATH with the following order enforced:
+
+;;; * "Pinned" libraries (pinned_libs_{32,64} directories containing symlinks)
+;;; * Output from `/sbin/ldconfig -XNv`
+;;; * steam-runtime paths
+;;; * Existing $LD_LIBRARY_PATH
+
+;;; Without ldconfig Steam's runtime will have priority over system libraries as
+;;; well as any paths supplied to Steam in the initial $LD_LIBRARY_PATH.
+;;; "Pinned" library directories are created after installation, so we can't
+;;; use those either.
+
+;;; Disabling Steam's runtime is another solution, however that will add over
+;;; 80 additional dependencies (see commit: @a12f42e6)
 (define glibc-for-fhs
   (package
     (inherit glibc)
