@@ -343,6 +343,7 @@ in a sandboxed FHS environment."
                 (home (getenv "HOME"))
                 (sandbox-home (string-append home "/" #$(ngc-sandbox-home container)))
                 (preserved-env '("DISPLAY"
+                                 "DRI_PRIME"
                                  "SDL_AUDIODRIVER"
                                  "STEAM_RUNTIME"
                                  "STEAM_RUNTIME_HEAVY"
