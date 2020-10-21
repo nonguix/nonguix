@@ -62,6 +62,7 @@
   #:use-module (gnu packages libffi)
   #:use-module (gnu packages libreoffice) ;for hunspell
   #:use-module (gnu packages llvm)
+  #:use-module (gnu packages m4)
   #:use-module (gnu packages node)
   #:use-module (gnu packages nss)
   #:use-module (gnu packages perl)
@@ -99,19 +100,19 @@
 
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
-(define %firefox-build-id "20201013000000")
+(define %firefox-build-id "20201020000000")
 
 (define-public firefox
   (package
     (name "firefox")
-    (version "81.0.2")
+    (version "82.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "0i4vkx7phhgynyxrg4j291m680d02n8bka6r3yfv34xix4nlidli"))))
+        (base32 "1hk4sk2qjbxfjfc9c3s3g04dqvjmcgjdpjhv5n79fd5xyl3qgich"))))
     (build-system gnu-build-system)
     (arguments
      `(#:configure-flags
@@ -165,7 +166,6 @@
            (lambda _
              (delete-file "configure")
              (delete-file "js/src/configure")
-             (delete-file-recursively "obj-x86_64-pc-linux-gnu")
              #t))
          (add-after 'unpack 'fix-preferences
            (lambda* (#:key inputs #:allow-other-keys)
@@ -398,6 +398,7 @@
        ("cargo" ,rust-1.43 "cargo")
        ("clang" ,clang)
        ("llvm" ,llvm)
+       ("m4" ,m4)
        ("nasm" ,nasm)
        ("node" ,node-10.22)
        ("perl" ,perl)
