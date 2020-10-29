@@ -222,7 +222,7 @@
          (let ((ldconfig (string-append #$glibc-for-fhs "/sbin/ldconfig")))
            (invoke ldconfig
                    "-X"                 ; Don't update symbolic links.
-                   "-f" #$ld-conf       ; Use #$configuration as configuration file.
+                   "-f" #$ld-conf       ; Use #$ld-conf as configuration file.
                    "-C" #$output))))))  ; Use #$output as cache file.
 
 (define* (fhs-union inputs #:key (name "fhs-union") (version "0.0") (system "x86_64-linux"))
