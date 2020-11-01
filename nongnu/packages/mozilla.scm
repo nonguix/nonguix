@@ -415,3 +415,32 @@
      "Full-featured browser client built from Firefox source tree, without
 the official icon and the name \"firefox\".")
     (license license:mpl2.0)))
+
+(define-public firefox/wayland
+  (package/inherit firefox
+    (name "firefox-wayland")
+    (arguments
+     (substitute-keyword-arguments (package-arguments firefox)
+       ((#:configure-flags flags)
+        `(append (list "--enable-default-toolkit=cairo-gtk3-wayland")
+                 (delete "--enable-default-toolkit=cairo-gtk3" ,flags)))
+       ;; We need to set the MOZ_ENABLE_WAYLAND env variable.
+       ((#:phases phases)
+        `(modify-phases ,phases
+          (replace 'wrap-program
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let* ((out (assoc-ref outputs "out"))
+                    (lib (string-append out "/lib"))
+                    (ld-libs (map (lambda (x)
+                                    (string-append (assoc-ref inputs x)
+                                                   "/lib"))
+                                  '("pulseaudio" "mesa")))
+                    (gtk-share (string-append (assoc-ref inputs "gtk+")
+                                              "/share")))
+               (wrap-program (car (find-files lib "^firefox$"))
+                 `("LD_LIBRARY_PATH" prefix ,ld-libs)
+                 `("XDG_DATA_DIRS" prefix (,gtk-share))
+                 `("MOZ_ENABLE_WAYLAND" = ("1"))
+                 `("MOZ_LEGACY_PROFILES" = ("1"))
+                 `("MOZ_ALLOW_DOWNGRADE" = ("1")))
+               #t)))))))))
