@@ -44,7 +44,8 @@
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (delete-file "clhs-use-local.el")
              (let* ((out (assoc-ref outputs "out"))
-                    (hyperspec-dir (string-append out "/share/HyperSpec-7-0/")))
+                    (hyperspec-dir (string-append "file://" out
+                                                  "/share/HyperSpec-7-0/")))
                (with-output-to-file "clhs.el"
                  (lambda ()
                    (format #t ";;;###autoload~%~s~%~%~s"
