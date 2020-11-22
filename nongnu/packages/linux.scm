@@ -716,7 +716,7 @@ chipsets from Broadcom:
 (define-public intel-microcode
   (package
     (name "intel-microcode")
-    (version "20200616")
+    (version "20201118")
     (source
      (origin
        (method git-fetch)
@@ -727,13 +727,13 @@ chipsets from Broadcom:
              (commit (string-append "microcode-" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "13jrs8hwh7dhjjb9kncb8lk199afaxglkh1cfisl6zca1h36g563"))))
+        (base32 "1xs3f2rbfqnpz9qs7a1kl363qdyb8fybmmyd37v573clqf7l4lgg"))))
     (build-system copy-build-system)
     (arguments
      `(#:install-plan
        (let ((doc (string-append "share/doc/" ,name "-" ,version "/")))
          `(("intel-ucode" "lib/firmware/")
-           ("releasenote" ,doc)
+           ("releasenote.md" ,doc)
            ("security.md" ,doc)))))
     (home-page
      "https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files")
