@@ -733,6 +733,7 @@ chipsets from Broadcom:
      `(#:install-plan
        (let ((doc (string-append "share/doc/" ,name "-" ,version "/")))
          `(("intel-ucode" "lib/firmware/")
+           ("README.md" ,doc)
            ("releasenote.md" ,doc)
            ("security.md" ,doc)))))
     (home-page
