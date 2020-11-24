@@ -146,10 +146,11 @@
              (substitute* "steam"
                (("/usr") (assoc-ref %outputs "out")))
              #t))
-         (add-after 'unpack 'patch-desktop-file
+         (add-after 'patch-dot-desktop-files 'patch-desktop-file
            (lambda _
-             (substitute* "steam.desktop"
-               (("Exec=/usr/bin/steam") "Exec=steam"))
+             (substitute* (string-append (assoc-ref %outputs "out")
+                                         "/share/applications/steam.desktop")
+               (("Exec=.*/steam") "Exec=steam"))
              #t))
          ;; Steamdeps installs missing packages, which doesn't work with Guix.
          (add-after 'install-binaries 'remove-unneccessary-file
