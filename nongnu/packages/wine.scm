@@ -82,7 +82,7 @@ tweaking of various Wine settings.")
 (define-public dxvk-1.7 ; Upstream Guix dxvk does not build anymore because of missing mingw compiler.
   (package
     (name "dxvk")
-    (version "1.7.2")
+    (version "1.7.3")
     (home-page "https://github.com/doitsujin/dxvk/")
     (source (origin
               (method url-fetch)
@@ -91,7 +91,7 @@ tweaking of various Wine settings.")
                     version "/dxvk-" version ".tar.gz") )
               (sha256
                (base32
-                "0nz1jzmnskc7pqa42ybbvn4mi4h8kdvmdmjpidn4zbrzm6yzcqhn"))))
+                "185b80h7l62nv8k9rp32fkn00aglwcw9ccm6bx2n7bdpar149hp4"))))
     (build-system copy-build-system)
     (arguments
      `(#:install-plan
