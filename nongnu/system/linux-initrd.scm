@@ -46,7 +46,7 @@ MICROCODE-PACKAGES, in the format expected by the kernel."
                             '((gnu build linux-initrd)
                               (guix build utils)
                               (nonguix build utils))
-                            #:select? nonguix-module-name?)
+                            #:select? import-nonguix-module?)
       #~(begin
           (use-modules (gnu build linux-initrd)
                        (guix build utils)
@@ -84,7 +84,7 @@ MICROCODE-PACKAGES, in the format expected by the kernel."
     (with-imported-modules (source-module-closure
                             '((guix build utils)
                               (nonguix build utils))
-                            #:select? nonguix-module-name?)
+                            #:select? import-nonguix-module?)
       #~(begin
           (use-modules (guix build utils)
                        (nonguix build utils))
