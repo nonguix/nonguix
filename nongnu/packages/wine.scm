@@ -35,7 +35,7 @@
 (define-public winetricks
   (package
     (name "winetricks")
-    (version "20181203")
+    (version "20201206")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -44,7 +44,7 @@
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1as5h5xibpplm619b1i73g974p96q2jnd7fqm28xj3zkqy7qjdm3"))))
+                "1xs09v1zr98yvwvdsmzgryc2hbk92mwn54yxx8162l461465razc"))))
     (build-system gnu-build-system)
     (inputs
      `(("wget" ,wget)
