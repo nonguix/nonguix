@@ -82,7 +82,7 @@ System on hardware which requires nonfree software to function.")))
   (corrupt-linux linux-libre-4.4 "4.4.248"
                  "1z1xbkm0z0v6k3scszii5hi24pn391332g0li93p3n1rnv74jap5"))
 
-(define-public linux linux-5.9)
+(define-public linux linux-5.10)
 
 (define-public linux-firmware
   (package
