@@ -3,6 +3,7 @@
 ;;; Copyright © 2019 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2019 Timotej Lazar <timotej.lazar@araneo.si>
 ;;; Copyright © 2020 James Smith <jsubuntuxp@disroot.org>
+;;; Copyright © 2020 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -57,10 +58,6 @@ System on hardware which requires nonfree software to function.")))
 (define-public linux-5.10
   (corrupt-linux linux-libre-5.10 "5.10.3"
                  "09cml495fnf52lhlkjxjznw34q5s8arvq7shkb6wjq6fwlrk65gr"))
-
-(define-public linux-5.9
-  (corrupt-linux linux-libre-5.9 "5.9.16"
-                 "11mbnjvb5d5gwbrwlkqvzpg1ij4m19l5wr3wca9iiyg5i2papmxh"))
 
 (define-public linux-5.4
   (corrupt-linux linux-libre-5.4 "5.4.85"
