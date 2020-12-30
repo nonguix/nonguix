@@ -141,7 +141,7 @@
                            clang "/lib")
 
            ;; Distribution
-           "--with-distribution-id=org.gnu"
+           "--with-distribution-id=org.nonguix"
            "--disable-official-branding"
 
            ;; Features
