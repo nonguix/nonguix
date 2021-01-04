@@ -76,30 +76,6 @@
   #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xorg))
 
-;; Keep it private as we need it only for firefox. Upstream uses an older
-;; version for ESR based Icecat and Icedove. So we don't wanna mix them.
-(define rust-cbindgen-firefox
-  (package
-    (inherit rust-cbindgen-0.14)
-    (name "rust-cbindgen")
-    (version "0.15.0")
-    (source
-     (origin
-       (method url-fetch)
-       (uri (crate-uri "cbindgen" version))
-       (file-name
-        (string-append name "-" version ".tar.gz"))
-       (sha256
-        (base32
-         "0dgf49zij9rxnf0lv4k5gcmx1mxcz16czkk6q63anz0xp8ds3xhx"))))
-    (arguments
-     ;; Cannot build with rust-1.39
-     (cons* #:rust rust-1.43
-            (substitute-keyword-arguments (package-arguments rust-cbindgen-0.14)
-              ((#:cargo-inputs cargo-inputs)
-               `(("rust-heck" ,rust-heck-0.3)
-                 ,@cargo-inputs)))))))
-
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
 (define %firefox-build-id "20201222000000")
@@ -392,7 +368,7 @@
        ("zlib" ,zlib)))
     (native-inputs
      `(("autoconf" ,autoconf-2.13)
-       ("cargo" ,rust-1.43 "cargo")
+       ("cargo" ,rust "cargo")
        ("clang" ,clang)
        ("llvm" ,llvm)
        ("m4" ,m4)
@@ -402,8 +378,8 @@
        ("pkg-config" ,pkg-config)
        ("python" ,python)
        ("python2" ,python-2.7)
-       ("rust" ,rust-1.43)
-       ("rust-cbindgen" ,rust-cbindgen-firefox)
+       ("rust" ,rust)
+       ("rust-cbindgen" ,rust-cbindgen-0.15)
        ("which" ,which)
        ("yasm" ,yasm)))
     (home-page "https://mozilla.org/firefox/")
