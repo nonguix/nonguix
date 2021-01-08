@@ -1,5 +1,6 @@
 ;;; GNU Guix --- Functional package management for GNU
-;;; Copyright © 2020 pkill-9, ison <ison@airmail.cc>
+;;; Copyright © 2020 pkill-9
+;;; Copyright © 2020, 2021 ison <ison@airmail.cc>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -94,32 +95,6 @@
   (description   ngc-description (default #f))
   (license       ngc-license (default #f)))
 
-;;; We must re-enable ldconfig in glibc for Steam to prefer our system libraries
-;;; over Steam's runtime (which has incompatible Mesa and gcc).  This is because
-;;; the Steam script located at
-;;; Steam/ubuntu12_32/steam-runtime/run.sh
-;;; overrides $LD_LIBRARY_PATH with the following order enforced:
-
-;;; * "Pinned" libraries (pinned_libs_{32,64} directories containing symlinks)
-;;; * Output from `/sbin/ldconfig -XNv`
-;;; * steam-runtime paths
-;;; * Existing $LD_LIBRARY_PATH
-
-;;; Without ldconfig Steam's runtime will have priority over system libraries as
-;;; well as any paths supplied to Steam in the initial $LD_LIBRARY_PATH.
-;;; "Pinned" library directories are created after installation, so we can't
-;;; use those either.
-
-;;; Disabling Steam's runtime is another solution, however that will add over
-;;; 80 additional dependencies (see commit: @a12f42e6)
-(define glibc-for-fhs
-  (package
-    (inherit glibc)
-    (name "glibc-for-fhs")
-    (source (origin
-              (inherit (package-source glibc))
-              (snippet #f)))))          ; Re-enable ldconfig.
-
 (define steam-client
   (package
     (name "steam-client")
@@ -144,27 +119,44 @@
          (add-after 'unpack 'patch-startscript
            (lambda _
              (substitute* "steam"
-               (("/usr") (assoc-ref %outputs "out")))
-             #t))
+               (("/usr") (assoc-ref %outputs "out")))))
          (add-after 'patch-dot-desktop-files 'patch-desktop-file
            (lambda _
              (substitute* (string-append (assoc-ref %outputs "out")
                                          "/share/applications/steam.desktop")
-               (("Exec=.*/steam") "Exec=steam"))
-             #t))
+               (("Exec=.*/steam") "Exec=steam"))))
          ;; Steamdeps installs missing packages, which doesn't work with Guix.
-         (add-after 'install-binaries 'remove-unneccessary-file
-           (lambda _
-             (delete-file (string-append (assoc-ref %outputs "out")
-                                         "/bin/steamdeps"))
-             #t)))))
+         (add-after 'install-binaries 'post-install
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let ((out (assoc-ref %outputs "out")))
+               ;; Steamdeps installs missing packages, which doesn't work with Guix.
+               (delete-file (string-append out "/bin/steamdeps"))
+               (wrap-program (string-append out "/bin/steam")
+                 '("LD_LIBRARY_PATH" prefix
+                   ("/lib"
+                    "/lib/alsa-lib"
+                    "/lib/dri"
+                    "/lib/nss"
+                    "/lib/vdpau"
+                    "/lib64"
+                    "/lib64/alsa-lib"
+                    "/lib64/dri"
+                    "/lib64/nss"
+                    "/lib64/vdpau")))
+               ;; .steam-real will fail unless it is renamed to exactly "steam".
+               (rename-file (string-append out "/bin/steam")
+                            (string-append out "/bin/steam-wrapper"))
+               (rename-file (string-append out "/bin/.steam-real")
+                            (string-append out "/bin/steam"))
+               (substitute* (string-append out "/bin/steam-wrapper")
+                 (("\\.steam-real") "steam"))))))))
     (home-page "https://store.steampowered.com")
     (synopsis "Digital distribution platform for managing and playing games")
     (description "Steam is a digital software distribution platform created by Valve.")
     (license (license:nonfree "file:///share/doc/steam/steam_subscriber_agreement.txt"))))
 
 (define fhs-min-libs
-  `(("glibc-for-fhs" ,glibc-for-fhs)
+  `(("glibc" ,glibc)
     ("glibc-locales" ,glibc-locales)))
 
 (define steam-client-libs
@@ -193,38 +185,6 @@
     ("openal" ,openal)                  ; Prevents corrupt audio in Crypt of the Necrodancer.
     ("pulseaudio" ,pulseaudio)          ; Prevents corrupt audio in Sven Coop.
     ("python" ,python)))                ; Required for KillingFloor2 and Wreckfest.
-
-;;; Building ld.so.conf using find-files from package union results in error
-;;; "Argument list too long" when launching Steam.
-(define (fhs-ld.so.conf)
-  "Return a file-like object for ld.so.conf."
-  (plain-file
-   "ld.so.conf"
-   (let ((dirs '("/lib"
-                 "/lib/alsa-lib"
-                 "/lib/dri"
-                 "/lib/nss"
-                 "/lib/vdpau"
-                 "/lib64"
-                 "/lib64/alsa-lib"
-                 "/lib64/dri"
-                 "/lib64/nss"
-                 "/lib64/vdpau")))
-     (string-join dirs "\n"))))
-
-(define (ld.so.conf->ld.so.cache ld-conf)
-  "Create a ld.so.cache file-like object from an ld.so.conf file."
-  (computed-file
-   "ld.so.cache"
-   (with-imported-modules
-       `((guix build utils))
-     #~(begin
-         (use-modules (guix build utils))
-         (let ((ldconfig (string-append #$glibc-for-fhs "/sbin/ldconfig")))
-           (invoke ldconfig
-                   "-X"                 ; Don't update symbolic links.
-                   "-f" #$ld-conf       ; Use #$ld-conf as configuration file.
-                   "-C" #$output))))))  ; Use #$output as cache file.
 
 (define* (fhs-union inputs #:key (name "fhs-union") (version "0.0") (system "x86_64-linux"))
   "Create a package housing the union of inputs."
@@ -455,9 +415,7 @@ environment.")
   "Return an fhs-internal script which is used to perform additional steps to
 set up the environment inside an FHS container before launching the desired
 application."
-  (let* ((ld.so.conf (fhs-ld.so.conf))
-         (ld.so.cache (ld.so.conf->ld.so.cache ld.so.conf))
-         (pkg (ngc-wrap-package container))
+  (let* ((pkg (ngc-wrap-package container))
          (run (ngc-run container)))
     (program-file
      (ngc-internal-name container)
@@ -481,8 +439,6 @@ application."
                  (alsa-config #$(file-append alsa-config))
                  (union64 #$(file-append (ngc-union64 container)))
                  (union32 #$(file-append (ngc-union32 container)))
-                 (ld.so.conf #$(file-append ld.so.conf))
-                 (ld.so.cache #$(file-append ld.so.cache))
                  (args (cdr (command-line))))
              (delete-file "/bin/sh")
              (rmdir "/bin")
@@ -496,8 +452,6 @@ application."
              (for-each
               new-symlink
               `((,alsa-config . "/etc/asound.conf")
-                (,ld.so.cache . "/etc/ld.so.cache")
-                (,ld.so.conf . "/etc/ld.so.conf")
                 ((,guix-env "etc/ssl") . "/etc/ssl")
                 ((,guix-env "etc/ssl") . "/run/current-system/profile/etc/ssl")
                 ((,union32 "lib") . "/lib")
@@ -525,7 +479,7 @@ application."
    (nonguix-container
     (name "steam")
     (wrap-package steam-client)
-    (run "/bin/steam")
+    (run "/bin/steam-wrapper")
     (union64
      (fhs-union `(,@steam-client-libs
                   ,@steam-gameruntime-libs
