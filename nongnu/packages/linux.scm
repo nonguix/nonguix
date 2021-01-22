@@ -37,7 +37,7 @@
 
 (define (linux-urls version)
   "Return a list of URLS for Linux VERSION."
-  (list (string-append "https://www.kernel.org/pub/linux/kernel/v"
+  (list (string-append "mirror://kernel.org/linux/kernel/v"
                        (version-major version) ".x/linux-" version ".tar.xz")))
 
 (define (corrupt-linux freedo version hash)
