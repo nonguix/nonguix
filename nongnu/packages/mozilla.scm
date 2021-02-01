@@ -373,7 +373,7 @@
        ("llvm" ,llvm)
        ("m4" ,m4)
        ("nasm" ,nasm)
-       ("node" ,node-10.22)
+       ("node" ,node)
        ("perl" ,perl)
        ("pkg-config" ,pkg-config)
        ("python" ,python)
