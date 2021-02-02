@@ -20,7 +20,7 @@
   #:use-module (ice-9 match)
   #:use-module (guix packages)
   #:use-module (guix build-system gnu)
-  #:use-module (guix download)
+  #:use-module (guix git-download)
   #:use-module (gnu packages coq)
   #:use-module (gnu packages ocaml)
   #:use-module (nonguix licenses))
@@ -28,14 +28,16 @@
 (define-public compcert
   (package
     (name "compcert")
-    (version "3.7")
+    (version "3.8")
     (source (origin
-              (method url-fetch)
-              (uri (string-append "http://compcert.inria.fr/release/compcert-"
-                                  version ".tgz"))
+              (method git-fetch)
+              (uri (git-reference
+                     (url "https://github.com/AbsInt/compcert")
+                     (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
               (sha256
                (base32
-                "1c3yp3ns830vg3q8b0y61xffd1fgkmkg585pdsv6qmy2sqp1pvnf"))))
+                "1gzlyxvw64ca12qql3wnq3bidcx9ygsklv9grjma3ib4hvg7vnr7"))))
     (build-system gnu-build-system)
     (arguments
      `(#:phases
