@@ -3,7 +3,7 @@
 ;;; Copyright © 2019 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2019 Timotej Lazar <timotej.lazar@araneo.si>
 ;;; Copyright © 2020 James Smith <jsubuntuxp@disroot.org>
-;;; Copyright © 2020 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2020,2021 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
