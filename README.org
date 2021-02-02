@@ -162,7 +162,8 @@ is exactly equivalent to:
 
 Some Broadcom wireless hardware requires a proprietary kernel module in
 addition to firmware. To use such hardware you will also need to add a service
-to load that module on boot, and blacklist conflicting kernel modules:
+to load that module on boot, blacklist conflicting kernel modules, and while not
+required, it is recommended to stay with Linux LTS releases:
 
 #+BEGIN_SRC scheme
   (use-modules (nongnu packages linux))

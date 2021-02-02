@@ -618,7 +618,10 @@ Linux device driver for the following chipsets:
 @item BCM4331
 @item BCM4352
 @item BCM4360
-@end itemize")
+@end itemize
+
+It is recommended that anyone who uses this package stays with Linux LTS
+releases.")
     (license (nonfree "https://www.broadcom.com/support/802.11"))))
 
 (define-public broadcom-bt-firmware
