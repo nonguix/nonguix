@@ -90,6 +90,7 @@
                      "CC=gcc")
              #t))
          (delete 'check)
+         (delete 'strip)
          (add-after 'install 'install-copy
            (lambda* (#:key inputs native-inputs outputs #:allow-other-keys)
              (chdir "..")
@@ -170,6 +171,11 @@
                  (chmod file #o555))
 
                ;; ------------------------------
+               ;;  nvidia-smi
+
+               (install-file "nvidia-smi" bindir)
+
+               ;; ------------------------------
                ;; patchelf
                (let* ((libc (assoc-ref inputs "libc"))
                       (ld.so (string-append libc ,(glibc-dynamic-linker)))
@@ -199,7 +205,8 @@
                  (for-each (lambda (file)
                              (when (elf-file? file)
                                (patch-elf file)))
-                           (find-files out  ".*\\.so")))
+                           (find-files out  ".*\\.so"))
+                 (patch-elf (string-append bindir "/" "nvidia-smi")))
 
                ;; ------------------------------
                ;; Create short name symbolic links
