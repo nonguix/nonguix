@@ -2,6 +2,7 @@
 ;;; Copyright © 2020 pkill-9
 ;;; Copyright © 2020, 2021 ison <ison@airmail.cc>
 ;;; Copyright © 2021 pineapples
+;;; Copyright © 2021 Jean-Baptiste Volatier <jbv@pm.me>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -334,6 +335,9 @@ in a sandboxed FHS environment."
                           ,@(exists-> "/etc/machine-id")
                           "/sys/class/input" ; Needed for controller input.
                           "/sys/dev"
+                          ,@(exists-> "/dev/nvidia0") ; needed for nvidia proprietary driver
+                          ,@(exists-> "/dev/nvidiactl")
+                          ,@(exists-> "/dev/nvidia-modeset")
                           "/sys/devices"
                           "/var/run/dbus"))
                 (share `("/dev/shm"
