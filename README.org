@@ -169,7 +169,7 @@ required, it is recommended to stay with Linux LTS releases:
   (use-modules (nongnu packages linux))
 
   (operating-system
-    (kernel linux)
+    (kernel linux-lts)
     ;; Blacklist conflicting kernel modules.
     (kernel-arguments '("modprobe.blacklist=b43,b43legacy,ssb,bcm43xx,brcm80211,brcmfmac,brcmsmac,bcma"))
     (kernel-loadable-modules (list broadcom-sta))
