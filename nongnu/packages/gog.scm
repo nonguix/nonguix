@@ -1,4 +1,5 @@
 ;;; Copyright © 2019, 2020 Alex Griffin <a@ajgrf.com>
+;;; Copyright © 2021 Timotej Lazar <timotej.lazar@araneo.si>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -20,6 +21,7 @@
   #:use-module (gnu packages curl)
   #:use-module (gnu packages man)
   #:use-module (gnu packages pkg-config)
+  #:use-module (gnu packages qt)
   #:use-module (gnu packages serialization)
   #:use-module (gnu packages web)
   #:use-module (gnu packages xml)
@@ -43,13 +45,18 @@
         (base32 "02zn4zc9hqym81vbs88x5ayk2xb808jlvfyvn96ksx1ai4b6a4fz"))))
     (build-system cmake-build-system)
     (arguments
-     `(#:tests? #f))                    ; no tests
+     `(#:configure-flags '("-DUSE_QT_GUI=ON")
+       #:tests? #f))                    ; no tests
     (inputs
      `(("boost" ,boost)
        ("curl" ,curl)
        ("htmlcxx" ,htmlcxx)
        ("jsoncpp" ,jsoncpp)
        ("liboauth" ,liboauth)
+       ("qtbase" ,qtbase)
+       ("qtdeclarative" ,qtdeclarative)
+       ("qtwebchannel" ,qtwebchannel)
+       ("qtwebengine" ,qtwebengine)
        ("rhash" ,rhash)
        ("tinyxml2" ,tinyxml2)
        ("zlib" ,zlib)))
