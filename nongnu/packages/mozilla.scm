@@ -347,6 +347,7 @@
        ("libffi" ,libffi)
        ("libgnome" ,libgnome)
        ("libjpeg-turbo" ,libjpeg-turbo)
+       ("libnotify" ,libnotify)
        ;; ("libpng-apng" ,libpng-apng)
        ("libvpx" ,libvpx)
        ("libxcomposite" ,libxcomposite)
