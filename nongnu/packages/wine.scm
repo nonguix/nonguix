@@ -138,7 +138,7 @@ Use @command{setup_dxvk} to install the required libraries to a Wine prefix.")
     (supported-systems '("i686-linux" "x86_64-linux"))
     (license license:zlib)))
 
-(define-public dxvk
+(define-public dxvk-next
   (package
     (name "dxvk")
     (version "1.8")
