@@ -115,7 +115,20 @@
        (list "PREFIX=" (string-append "DESTDIR=" (assoc-ref %outputs "out")))
        #:phases
        (modify-phases %standard-phases
-         (delete 'configure)
+         (replace 'configure
+           (lambda _
+             (mkdir-p "bootstrap-temp")
+             (invoke "tar" "xfa" "bootstraplinux_ubuntu12_32.tar.xz"
+                     "-C" "bootstrap-temp")
+             (substitute* "bootstrap-temp/steam.sh"
+               (("export LD_LIBRARY_PATH=\"")
+                "export LD_LIBRARY_PATH=\"${LD_LIBRARY_PATH-}:"))
+             (substitute* "bootstrap-temp/ubuntu12_32/steam-runtime/run.sh"
+               (("^export LD_LIBRARY_PATH=.*")
+                "export LD_LIBRARY_PATH=\"${LD_LIBRARY_PATH-}:$steam_runtime_library_paths\""))
+             (invoke "tar" "cfJ" "bootstraplinux_ubuntu12_32.tar.xz" "-C" "bootstrap-temp"
+                     "linux32" "ubuntu12_32" "steam.sh" "steamdeps.txt")
+             (delete-file-recursively "bootstrap-temp")))
          (add-after 'unpack 'patch-startscript
            (lambda _
              (substitute* "steam"
