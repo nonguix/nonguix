@@ -1,6 +1,7 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2020 pkill-9
 ;;; Copyright © 2020, 2021 ison <ison@airmail.cc>
+;;; Copyright © 2021 pineapples
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -311,12 +312,13 @@ in a sandboxed FHS environment."
          (define (exists-> file)
            (if (and file (file-exists? file))
                `(,file) '()))
-         (let* ((UID (number->string (passwd:uid (getpwnam (getenv "USER")))))
-                (run #$(file-append fhs-internal "/bin/" (ngc-internal-name container)))
+         (let* ((run #$(file-append fhs-internal "/bin/" (ngc-internal-name container)))
                 (manifest-file #$(file-append fhs-manifest))
+                (xdg-runtime (getenv "XDG_RUNTIME_DIR"))
                 (home (getenv "HOME"))
                 (sandbox-home (string-append home "/" #$(ngc-sandbox-home container)))
-                (preserved-env '("DISPLAY"
+                (preserved-env '("DBUS_SESSION_BUS_ADDRESS"
+                                 "DISPLAY"
                                  "DRI_PRIME"
                                  "SDL_AUDIODRIVER"
                                  "STEAM_RUNTIME"
@@ -335,8 +337,8 @@ in a sandboxed FHS environment."
                 (share `("/dev/shm"
                          ,(string-append sandbox-home "=" home)
                          ,@(exists-> (string-append home "/.config/pulse"))
-                         ,@(exists-> (string-append "/run/user/" UID "/pulse"))
-                         ,@(exists-> (string-append "/run/user/" UID "/bus"))
+                         ,@(exists-> (string-append xdg-runtime "/pulse"))
+                         ,@(exists-> (string-append xdg-runtime "/bus"))
                          ,@(exists-> (getenv "XAUTHORITY"))))
                 (DEBUG (equal? (getenv "DEBUG") "1"))
                 (args (cdr (command-line)))
