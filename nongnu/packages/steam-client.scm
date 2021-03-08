@@ -350,8 +350,10 @@ in a sandboxed FHS environment."
              (format #t "* DEBUG set to 1: Starting shell. Launch application manually with: ~a.\n\n"
                      #$(ngc-internal-name container)))
            (mkdir-p sandbox-home)
-           (system "pulseaudio -D > /dev/null 2>&1")
-           (apply system*
+           (invoke #$(file-append pulseaudio "/bin/pulseaudio")
+                   "--start"
+                   "--exit-idle-time=60")
+           (apply invoke
                   `("guix" "environment"
                     "--ad-hoc" "--container" "--no-cwd" "--network"
                     ,@(map preserve-var preserved-env)
