@@ -85,7 +85,7 @@ System on hardware which requires nonfree software to function.")))
 
 (define-public linux linux-5.11)
 ;; linux-lts points to the *newest* released long-term support version.
-(define-public linux-lts linux-5.4)
+(define-public linux-lts linux-5.10)
 
 (define-public linux-firmware
   (package
