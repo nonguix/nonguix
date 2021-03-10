@@ -325,7 +325,10 @@ in a sandboxed FHS environment."
                                  "^SDL_"
                                  "^STEAM_"
                                  "^XAUTHORITY$"
-                                 "^XDG_"))
+                                 ;; Matching all ^XDG_ vars causes issues
+                                 ;; discussed in 80decf05.
+                                 "^XDG_DATA_HOME$"
+                                 "^XDG_RUNTIME_DIR$"))
                 (expose `("/dev/dri"
                           "/dev/input"  ; Needed for controller input.
                           ,@(exists-> "/etc/machine-id")
