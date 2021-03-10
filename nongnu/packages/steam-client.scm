@@ -317,16 +317,15 @@ in a sandboxed FHS environment."
                 (xdg-runtime (getenv "XDG_RUNTIME_DIR"))
                 (home (getenv "HOME"))
                 (sandbox-home (string-append home "/" #$(ngc-sandbox-home container)))
-                (preserved-env '("DBUS_SESSION_BUS_ADDRESS"
-                                 "DISPLAY"
-                                 "DRI_PRIME"
-                                 "SDL_AUDIODRIVER"
-                                 "STEAM_RUNTIME"
-                                 "STEAM_RUNTIME_HEAVY"
-                                 "STEAM_RUNTIME_PREFER_HOST_LIBRARIES"
-                                 "XAUTHORITY"
-                                 "XDG_DATA_HOME"
-                                 "XDG_RUNTIME_DIR"))
+                (preserved-env '("^DBUS_"
+                                 "^DISPLAY$"
+                                 "^DRI_PRIME$"
+                                 "_PROXY$"
+                                 "_proxy$"
+                                 "^SDL_"
+                                 "^STEAM_"
+                                 "^XAUTHORITY$"
+                                 "^XDG_"))
                 (expose `("/dev/dri"
                           "/dev/input"  ; Needed for controller input.
                           ,@(exists-> "/etc/machine-id")
