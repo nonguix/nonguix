@@ -278,10 +278,13 @@
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let* ((out (assoc-ref outputs "out"))
                     (lib (string-append out "/lib"))
-                    (ld-libs (map (lambda (x)
-                                    (string-append (assoc-ref inputs x)
-                                                   "/lib"))
-                                  '("pulseaudio" "mesa")))
+                    (ld-libs
+                     (map (lambda (x)
+                            (string-append (assoc-ref inputs x)
+                                           "/lib"))
+                          '("pulseaudio" "mesa"
+                            ;; For the integration of native notifications
+                            "libnotify")))
                     (gtk-share (string-append (assoc-ref inputs "gtk+")
                                               "/share")))
                (wrap-program (car (find-files lib "^firefox$"))
@@ -347,6 +350,7 @@
        ("libffi" ,libffi)
        ("libgnome" ,libgnome)
        ("libjpeg-turbo" ,libjpeg-turbo)
+       ("libnotify" ,libnotify)
        ;; ("libpng-apng" ,libpng-apng)
        ("libvpx" ,libvpx)
        ("libxcomposite" ,libxcomposite)
@@ -407,7 +411,9 @@ the official icon and the name \"firefox\".")
                     (ld-libs (map (lambda (x)
                                     (string-append (assoc-ref inputs x)
                                                    "/lib"))
-                                  '("pulseaudio" "mesa")))
+                                  '("pulseaudio" "mesa"
+                                    ;; For the integration of native notifications
+                                   "libnotify")))
                     (gtk-share (string-append (assoc-ref inputs "gtk+")
                                               "/share")))
                (wrap-program (car (find-files lib "^firefox$"))
