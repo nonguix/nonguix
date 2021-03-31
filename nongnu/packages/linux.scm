@@ -4,6 +4,7 @@
 ;;; Copyright © 2019 Timotej Lazar <timotej.lazar@araneo.si>
 ;;; Copyright © 2020, 2021 James Smith <jsubuntuxp@disroot.org>
 ;;; Copyright © 2020, 2021 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2021 Mathieu Othacehe <m.othacehe@gmail.com>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -785,3 +786,50 @@ documented in the respective processor revision guides.")
      (nonfree
       (string-append "https://git.kernel.org/pub/scm/linux/kernel/git/"
                      "firmware/linux-firmware.git/plain/LICENSE.amd-ucode")))))
+
+(define-public sof-firmware
+  (package
+    (name "sof-firmware")
+    (version "1.6.1")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/thesofproject/sof-bin")
+             (commit (string-append "stable-v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1zg5fki8skmmx84p4ws8x2m13bm13fb3kvlhz7zsnmdg6ra06az6"))))
+    (build-system copy-build-system)
+    (arguments
+     `(#:install-plan
+       (let* ((base
+               (string-append "lib/firmware/intel/sof/v" ,version))
+              (dest "lib/firmware/intel/sof")
+              (tplg
+               (string-append "lib/firmware/intel/sof-tplg-v" ,version))
+              (dest-tplg "lib/firmware/intel/sof-tplg")
+              (fw-file (lambda* (file #:optional subdir)
+                         (list (string-append base "/"
+                                              (or subdir "")
+                                              file "-v" ,version ".ri")
+                               (string-append dest "/" file ".ri"))))
+              (unsigned fw-file)
+              (intel-signed (lambda (file)
+                              (fw-file file "intel-signed/"))))
+         (list (unsigned "sof-bdw")
+               (unsigned "sof-byt")
+               (unsigned "sof-cht")
+               (intel-signed "sof-apl")
+               (intel-signed "sof-cnl")
+               (intel-signed "sof-ehl")
+               (intel-signed "sof-icl")
+               (intel-signed "sof-tgl")
+               (list tplg dest-tplg)))))
+    (home-page "https://www.sofproject.org")
+    (synopsis "Sound Open Firmware")
+    (description "This package contains Linux firmwares and topology files for
+audio DSPs that can be found on the Intel Skylake architecture.  Those
+firmware can be built for source but need to be signed by Intel in order to be
+loaded by Linux.")
+    (license bsd-3)))
