@@ -27,6 +27,7 @@
   #:use-module (guix git-download)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
+  #:use-module (gnu packages perl)
   #:use-module (gnu packages wget)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages gnome)
@@ -47,11 +48,12 @@
                 "0x2ykd6krk0fric45yl4gcc8cdv6j206l62rc9klw0rxfv12hz5n"))))
     (build-system gnu-build-system)
     (inputs
-     `(("wget" ,wget)
-       ("cabextract" ,cabextract)
+     `(("cabextract" ,cabextract)
        ("p7zip" ,p7zip)
-       ("unzip" ,unzip)
+       ("perl" ,perl)
        ;; ("unrar" ,unrar) ; TODO: Include unrar?  It is referenced in the source.
+       ("unzip" ,unzip)
+       ("wget" ,wget)
        ("zenity" ,zenity)))
     (arguments
      `(#:tests? #f
@@ -61,16 +63,30 @@
        #:phases
        (modify-phases %standard-phases
          (delete 'configure)
-         (add-after 'unpack 'patch-zenity-path
-           (lambda* (#:key inputs #:allow-other-keys)
-             (let* ((zenity (assoc-ref inputs "zenity"))
-                    (zenity-bin (string-append zenity "/bin/zenity")))
-               (substitute* "src/winetricks"
-                 ;; TODO: There might need more command substitution needed, e.g. wget, 7z, etc.
-                 ;; TODO: Add coreutils to the input?
-                 (("command -v zenity") (string-append "command -v " zenity-bin))
-                 (("WINETRICKS_GUI=zenity") (string-append "WINETRICKS_GUI=" zenity-bin))
-                 (("WINETRICKS_GUI_VERSION=\"\\$\\(zenity") (string-append "WINETRICKS_GUI_VERSION=\"$(" zenity-bin)))))))))
+         (add-after 'install 'wrap-program
+           ;; The script relies on WINETRICKS_GUI being exactly "zenity", so
+           ;; we can't patch the path directly.  Probably same for other dependencies.
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let* ((zenity-bin (string-append (assoc-ref inputs "zenity") "/bin/"))
+                    (perl-bin (string-append (assoc-ref inputs "perl") "/bin/"))
+                    (winetricks (string-append (assoc-ref outputs "out")
+                                               "/bin/winetricks")))
+               (wrap-program winetricks
+                 `("PATH" prefix (,@(map (lambda (in)
+                                           (string-append (assoc-ref inputs in) "/bin/"))
+                                         '("cabextract"
+                                           "p7zip"
+                                           "perl"
+                                           "unzip"
+                                           "wget"
+                                           "zenity"))))))))
+         (add-after 'install 'patch-perl-path
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let* ((perl (string-append (assoc-ref inputs "perl") "/bin/perl"))
+                    (winetricks (string-append (assoc-ref outputs "out")
+                                               "/bin/winetricks")))
+               (substitute* winetricks
+                 (("#!/usr/bin/env perl") (string-append "#!" perl)))))))))
     (home-page "https://github.com/Winetricks/winetricks")
     (synopsis "Easy way to work around problems in Wine")
     (description "Winetricks is an easy way to work around problems in Wine.
