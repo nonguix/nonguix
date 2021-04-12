@@ -56,6 +56,7 @@
   #:use-module (guix download)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system trivial)
+  #:use-module (guix transformations)
   #:use-module (gnu packages audio)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
@@ -69,6 +70,7 @@
   #:use-module (gnu packages gl)
   #:use-module (gnu packages glib)
   #:use-module (gnu packages linux)
+  #:use-module (nongnu packages nvidia)
   #:use-module (gnu packages pulseaudio)
   #:use-module (gnu packages python)
   #:use-module (nonguix utils))
@@ -514,6 +516,31 @@ application."
                   ,@fhs-min-libs)
                 #:name "fhs-union-32"
                 #:system "i686-linux"))
+    (link-files '("share/applications/steam.desktop"))
+    (description "Steam is a digital software distribution platform created by
+Valve.  This package provides a script for launching Steam in a Guix container
+which will use the directory @file{$HOME/.local/share/guix-sandbox-home} where
+all games will be installed."))))
+
+(define-public steam-nvidia
+  (nonguix-container->package
+   (nonguix-container
+    (name "steam-nvidia")
+    (wrap-package steam-client)
+    (run "/bin/steam-wrapper")
+    (union64
+     (replace-mesa
+      (fhs-union `(,@steam-client-libs
+                  ,@steam-gameruntime-libs
+                  ,@fhs-min-libs)
+                #:name "fhs-union-64")))
+    (union32
+     (replace-mesa
+      (fhs-union `(,@steam-client-libs
+                  ,@steam-gameruntime-libs
+                  ,@fhs-min-libs)
+                #:name "fhs-union-32"
+                #:system "i686-linux")))
     (link-files '("share/applications/steam.desktop"))
     (description "Steam is a digital software distribution platform created by
 Valve.  This package provides a script for launching Steam in a Guix container
