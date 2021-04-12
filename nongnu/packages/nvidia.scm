@@ -1,7 +1,7 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2020 Hebi Li <hebi@lihebi.com>
 ;;; Copyright © 2020 Malte Frank Gerdes <malte.f.gerdes@gmail.com>
-;;; Copyright © 2020 Jean-Baptiste Volatier <jbv@pm.me>
+;;; Copyright © 2020, 2021 Jean-Baptiste Volatier <jbv@pm.me>
 ;;; Copyright © 2020 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;;
 ;;; This file is not part of GNU Guix.
@@ -49,18 +49,19 @@
 (define-public nvidia-driver
   (package
     (name "nvidia-driver")
-    (version "455.45.01")
+    (version "455.38")
     (source
      (origin
        (uri (format #f "http://us.download.nvidia.com/XFree86/Linux-x86_64/~a/~a.run"
                     version
                     (format #f "NVIDIA-Linux-x86_64-~a" version)))
-       (sha256 (base32 "0lx10g0wh7bhf9a4jvq6cbz4ddcz63c4k8pnlw7m8r9g11z8rp7a"))
+       (sha256 (base32 "0x6w2kcjm5q9z9l6rkxqabway4qq4h3ynngn36i8ky2dpxc1wzfq"))
        (method url-fetch)
        (file-name (string-append "nvidia-driver-" version "-checkout"))))
     (build-system linux-module-build-system)
     (arguments
-     `(#:phases
+     `(#:linux ,linux-5.4
+       #:phases
        (modify-phases %standard-phases
          (replace 'unpack
            (lambda* (#:key inputs #:allow-other-keys #:rest r)
@@ -104,10 +105,8 @@
                 (scandir "." (lambda (name)
                                (string-contains name ".so"))))
 
-               ;; TODO: What happened with those Xorg files
-               ;(install-file "nvidia_drv.so" (string-append out "/lib/xorg/modules/drivers/"))
-               ;; TODO: Use version variable
-               (install-file "libglxserver_nvidia.so.455.45.01" (string-append out "/lib/xorg/modules/extensions/"))
+               (install-file "nvidia_drv.so" (string-append out "/lib/xorg/modules/drivers/"))
+               (install-file ,(string-append "libglxserver_nvidia.so." version) (string-append out "/lib/xorg/modules/extensions/"))
 
                ;; ICD Loader for OpenCL
                (let ((file (string-append etcdir "/OpenCL/vendors/nvidia.icd")))
@@ -223,8 +222,7 @@
                                (format #t "Linking ~a to ~a ...~%" mid file)
                                (symlink (basename file) mid-file))))
                          (find-files libdir "\\.so\\."))
-               ;; TODO: Use version variable
-               (symlink "libglxserver_nvidia.so.455.45.01"
+               (symlink ,(string-append "libglxserver_nvidia.so." version)
                         (string-append out "/lib/xorg/modules/extensions/" "libglxserver_nvidia.so")))
              #t)))))
     (native-inputs
@@ -248,7 +246,7 @@
        ("libc" ,glibc)
        ("libx11" ,libx11)
        ("libxext" ,libxext)
-       ("linux" ,linux)
+       ("linux" ,linux-5.4)
        ("pango" ,pango)
        ("wayland" ,wayland)))
     (home-page "https://www.nvidia.com")
@@ -259,5 +257,4 @@ nvidia-driver to the udev-rules in your config.scm:
 Further xorg should be configured by adding:
 @code{(modules (cons* nvidia-driver %default-xorg-modules))
 (drivers '(\"nvidia\"))} to @code{xorg-configuration}.")
-    ;; TODO Use version variable
-    (license (license:nonfree "file:///share/doc/nvidia-driver-455.45.01/LICENSE"))))
+    (license (license:nonfree (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
