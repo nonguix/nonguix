@@ -2,7 +2,7 @@
 ;;; Copyright © 2020 Hebi Li <hebi@lihebi.com>
 ;;; Copyright © 2020 Malte Frank Gerdes <malte.f.gerdes@gmail.com>
 ;;; Copyright © 2020, 2021 Jean-Baptiste Volatier <jbv@pm.me>
-;;; Copyright © 2020 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2020, 2021 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -25,7 +25,9 @@
   #:use-module (guix utils)
   #:use-module ((nonguix licenses) #:prefix license:)
   #:use-module (guix build-system linux-module)
+  #:use-module (guix build-system copy)
   #:use-module (guix build-system gnu)
+  #:use-module (guix build-system trivial)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
   #:use-module (gnu packages bootstrap)
@@ -33,6 +35,7 @@
   #:use-module (gnu packages elf)
   #:use-module (gnu packages freedesktop)
   #:use-module (gnu packages gcc)
+  #:use-module (gnu packages gl)
   #:use-module (gnu packages glib)
   #:use-module (gnu packages gtk)
   #:use-module (gnu packages linux)
@@ -44,6 +47,7 @@
   #:use-module (ice-9 regex)
   #:use-module (ice-9 format)
   #:use-module (ice-9 textual-ports)
+  #:use-module (ice-9 match)
   #:use-module (srfi srfi-1))
 
 (define-public nvidia-driver
@@ -258,3 +262,164 @@ Further xorg should be configured by adding:
 @code{(modules (cons* nvidia-driver %default-xorg-modules))
 (drivers '(\"nvidia\"))} to @code{xorg-configuration}.")
     (license (license:nonfree (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
+
+(define-public nvidia-libs
+  (package
+    (name "nvidia-libs")
+    (version "455.38")
+    (source
+     (origin
+       (uri (format #f "http://us.download.nvidia.com/XFree86/Linux-x86_64/~a/~a.run"
+                    version
+                    (format #f "NVIDIA-Linux-x86_64-~a" version)))
+       (sha256 (base32 "0x6w2kcjm5q9z9l6rkxqabway4qq4h3ynngn36i8ky2dpxc1wzfq"))
+       (method url-fetch)
+       (file-name (string-append "nvidia-driver-" version "-checkout"))))
+    (build-system copy-build-system)
+    (arguments
+     `(#:phases
+       (modify-phases %standard-phases
+         (replace 'unpack
+           (lambda* (#:key inputs #:allow-other-keys #:rest r)
+             (let ((source (assoc-ref inputs "source")))
+               (invoke "sh" source "--extract-only")
+               (chdir ,(format #f "NVIDIA-Linux-x86_64-~a" version))
+               #t)))
+         (delete 'build)
+         (delete 'check)
+         (add-after 'install 'patch-symlink
+             (lambda* (#:key inputs native-inputs outputs #:allow-other-keys)
+             (use-modules (ice-9 ftw)
+                          (ice-9 regex)
+                          (ice-9 textual-ports))
+             (let* ((out (assoc-ref outputs "out"))
+                    (libdir (string-append out "/lib"))
+                    (bindir (string-append out "/bin"))
+                    (etcdir (string-append out "/etc")))
+               ;; ------------------------------
+               ;; patchelf
+               (let* ((libc (assoc-ref inputs "libc"))
+                      (ld.so (string-append libc ,(glibc-dynamic-linker)))
+
+                      (out (assoc-ref outputs "out"))
+                      (rpath (string-join
+                              (list "$ORIGIN"
+                                    (string-append out "/lib")
+                                    (string-append libc "/lib")
+                                    (string-append (assoc-ref inputs "atk") "/lib")
+                                    (string-append (assoc-ref inputs "cairo") "/lib")
+                                    (string-append (assoc-ref inputs "gcc:lib") "/lib")
+                                    (string-append (assoc-ref inputs "gdk-pixbuf") "/lib")
+                                    (string-append (assoc-ref inputs "glib") "/lib")
+                                    (string-append (assoc-ref inputs "gtk+") "/lib")
+                                    (string-append (assoc-ref inputs "gtk2") "/lib")
+                                    (string-append (assoc-ref inputs "libx11") "/lib")
+                                    (string-append (assoc-ref inputs "libxext") "/lib")
+                                    (string-append (assoc-ref inputs "pango") "/lib")
+                                    (string-append (assoc-ref inputs "wayland") "/lib"))
+                              ":")))
+                 (define (patch-elf file)
+                   (format #t "Patching ~a ...~%" file)
+                   (unless (string-contains file ".so")
+                     (invoke "patchelf" "--set-interpreter" ld.so file))
+                   (invoke "patchelf" "--set-rpath" rpath file))
+                 (for-each (lambda (file)
+                             (when (elf-file? file)
+                               (patch-elf file)))
+                           (find-files out  ".*\\.so")))
+
+               ;; ------------------------------
+               ;; Create short name symbolic links
+               (for-each (lambda (file)
+                           (let* ((short (regexp-substitute
+                                          #f
+
+                                          (string-match "([^/]*\\.so).*" file)
+                                          1))
+                                  (major (if (or (string=? short "libEGL.so")
+                                                 (string=? short "libEGL_nvidia.so")
+                                                 (string=? short "libGLX.so")
+                                                 (string=? short "libGLX_nvidia.so"))
+                                             "0" "1"))
+                                  (mid (string-append short "." major))
+                                  (short-file (string-append libdir "/" short))
+                                  (mid-file (string-append libdir "/" mid)))
+                             ;; FIXME the same name, print out warning at least
+                             ;; [X] libEGL.so.1.1.0
+                             ;; [ ] libEGL.so.435.21
+                             (when (not (file-exists? short-file))
+                               (format #t "Linking ~a to ~a ...~%" short file)
+                               (symlink (basename file) short-file))
+                             (when (not (file-exists? mid-file))
+                               (format #t "Linking ~a to ~a ...~%" mid file)
+                               (symlink (basename file) mid-file))))
+                         (find-files libdir "\\.so\\."))
+           #t))))
+       #:install-plan
+        ,@(match (%current-system)
+           ("x86_64-linux" '(`(("." "lib" #:include-regexp ("^./[^/]+\\.so")))))
+           ("i686-linux" '(`(("32" "lib" #:include-regexp ("^./[^/]+\\.so"))))))))
+    (native-inputs
+     `(("patchelf" ,patchelf)
+       ("perl" ,perl)
+       ("python" ,python-2)
+       ("which" ,which)
+       ("xz" ,xz)))
+    (inputs
+     `(("atk" ,atk)
+       ("cairo" ,cairo)
+       ("gcc:lib" ,gcc "lib")
+       ("gdk-pixbuf" ,gdk-pixbuf)
+       ("glib" ,glib)
+       ("gtk+" ,gtk+)
+       ("gtk2" ,gtk+-2)
+       ("libc" ,glibc)
+       ("libx11" ,libx11)
+       ("libxext" ,libxext)
+       ("wayland" ,wayland)))
+    (home-page "https://www.nvidia.com")
+    (synopsis "Libraries of the proprietary Nvidia driver")
+    (description "These are the libraries of the evil Nvidia driver compatible
+with the ones usually provided by Mesa.  To use these libraries with
+packages that have been compiled with a mesa output, take a look at the nvda
+package.")
+    (license (license:nonfree (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
+
+;; nvda is used as a name because it has the same length as mesa which is
+;; required for grafting
+(define-public nvda
+  (package
+    (inherit nvidia-libs)
+    (name "nvda")
+    (source #f)
+    (build-system trivial-build-system)
+    (arguments
+     '(#:modules ((guix build union))
+       #:builder (begin
+                   (use-modules (guix build union)
+                                (srfi srfi-1)
+                                (ice-9 regex))
+                      (union-build (assoc-ref %outputs "out")
+                                   (list (assoc-ref %build-inputs "mesa") (assoc-ref %build-inputs "nvidia-libs"))
+                                   #:resolve-collision (lambda (files) (let ((file
+                                                                         (if (string-match "nvidia-libs" (first files))
+                                                                             (first files)
+                                                                             (last files))))
+                                                                         (format #t "chosen ~a ~%" file)
+                                                                         file)))
+                      #t)))
+    (description "These are the libraries of the evil Nvidia driver,
+packaged in such a way that you can use the transformation option
+@code{--with-graft=mesa=nvda} to use the nvidia driver with a package that requires mesa.")
+    (inputs
+     `(("nvidia-libs" ,nvidia-libs)
+       ("mesa" ,mesa)))
+    (outputs '("out"))))
+
+(define mesa/fake
+  (package
+    (inherit mesa)
+    (replacement nvda)))
+
+(define-public replace-mesa
+  (package-input-rewriting `((,mesa . ,mesa/fake))))
