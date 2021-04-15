@@ -3,6 +3,7 @@
 ;;; Copyright © 2020 Malte Frank Gerdes <malte.f.gerdes@gmail.com>
 ;;; Copyright © 2020, 2021 Jean-Baptiste Volatier <jbv@pm.me>
 ;;; Copyright © 2020, 2021 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2021 Pierre Langlois <pierre.langlois@gmx.com>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -365,7 +366,9 @@ Further xorg should be configured by adding:
        #:install-plan
         ,@(match (%current-system)
            ("x86_64-linux" '(`(("." "lib" #:include-regexp ("^./[^/]+\\.so")))))
-           ("i686-linux" '(`(("32" "lib" #:include-regexp ("^./[^/]+\\.so"))))))))
+           ("i686-linux" '(`(("32" "lib" #:include-regexp ("^./[^/]+\\.so")))))
+           (_ '()))))
+    (supported-systems '("i686-linux" "x86_64-linux"))
     (native-inputs
      `(("patchelf" ,patchelf)
        ("perl" ,perl)
