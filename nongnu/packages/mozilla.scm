@@ -17,6 +17,7 @@
 ;;; Copyright (C) 2019, 2020 Adrian Malacoda <malacoda@monarch-pass.net>
 ;;; Copyright © 2020 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2020 Zhu Zihao <all_but_last@163.com>
+;;; Copyright © 2021 pineapples <guixuser6392@protonmail.com>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -36,6 +37,7 @@
 (define-module (nongnu packages mozilla)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system cargo)
+  #:use-module (guix build-system trivial)
   #:use-module (guix download)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (guix packages)
@@ -45,6 +47,7 @@
   #:use-module (gnu packages assembly)
   #:use-module (gnu packages autotools)
   #:use-module (gnu packages base)
+  #:use-module (gnu packages bash)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages crates-io)
   #:use-module (gnu packages cups)
@@ -104,7 +107,6 @@
            "--with-system-icu"
            "--enable-system-ffi"
            "--enable-system-pixman"
-           "--enable-default-toolkit=cairo-gtk3"
            "--enable-jemalloc"
 
            ;; see https://bugs.gnu.org/32833
@@ -393,33 +395,38 @@
 the official icon and the name \"firefox\".")
     (license license:mpl2.0)))
 
-(define-public firefox/wayland
-  (package/inherit firefox
-    (name "firefox-wayland")
-    (arguments
-     (substitute-keyword-arguments (package-arguments firefox)
-       ((#:configure-flags flags)
-        `(append (list "--enable-default-toolkit=cairo-gtk3-wayland")
-                 (delete "--enable-default-toolkit=cairo-gtk3" ,flags)))
-       ;; We need to set the MOZ_ENABLE_WAYLAND env variable.
-       ((#:phases phases)
-        `(modify-phases ,phases
-          (replace 'wrap-program
-           (lambda* (#:key inputs outputs #:allow-other-keys)
-             (let* ((out (assoc-ref outputs "out"))
-                    (lib (string-append out "/lib"))
-                    (ld-libs (map (lambda (x)
-                                    (string-append (assoc-ref inputs x)
-                                                   "/lib"))
-                                  '("pulseaudio" "mesa"
-                                    ;; For the integration of native notifications
-                                   "libnotify")))
-                    (gtk-share (string-append (assoc-ref inputs "gtk+")
-                                              "/share")))
-               (wrap-program (car (find-files lib "^firefox$"))
-                 `("LD_LIBRARY_PATH" prefix ,ld-libs)
-                 `("XDG_DATA_DIRS" prefix (,gtk-share))
-                 `("MOZ_ENABLE_WAYLAND" = ("1"))
-                 `("MOZ_LEGACY_PROFILES" = ("1"))
-                 `("MOZ_ALLOW_DOWNGRADE" = ("1")))
-               #t)))))))))
+ (define-public firefox/wayland
+   (package
+     (inherit firefox)
+     (name "firefox-wayland")
+     (native-inputs '())
+     (inputs
+      `(("bash" ,bash-minimal)
+        ("firefox" ,firefox)))
+     (build-system trivial-build-system)
+     (arguments
+      '(#:modules ((guix build utils))
+        #:builder
+        (begin
+          (use-modules (guix build utils))
+          (let* ((bash    (assoc-ref %build-inputs "bash"))
+                 (firefox (assoc-ref %build-inputs "firefox"))
+                 (out     (assoc-ref %outputs "out"))
+                 (exe     (string-append out "/bin/firefox")))
+            (mkdir-p (dirname exe))
+
+            (call-with-output-file exe
+              (lambda (port)
+                (format port "#!~a
+ MOZ_ENABLE_WAYLAND=1 exec ~a $@"
+                        (string-append bash "/bin/bash")
+                        (string-append firefox "/bin/firefox"))))
+            (chmod exe #o555)
+
+            ;; Provide the manual and .desktop file.
+            (copy-recursively (string-append firefox "/share")
+                              (string-append out "/share"))
+            (substitute* (string-append
+                          out "/share/applications/firefox.desktop")
+              ((firefox) out))
+            #t))))))
