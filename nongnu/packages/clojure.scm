@@ -30,7 +30,7 @@
 (define leiningen-jar
   (package
     (name "leiningen-jar")
-    (version "2.9.5")
+    (version "2.9.6")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://github.com/technomancy/leiningen/releases/download/"
@@ -38,7 +38,7 @@
               (file-name "leiningen-standalone.jar")
               (sha256
                (base32
-                "1shyvg1471sc3bv4h3ax51626xw8a8w05f43bny6gmp8pyc0qjfz"))))
+                "1f3hb57rqp9qkh5n2wf65dvxraf21y15s3g643f2fhzc7vvl7ia1"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
@@ -60,7 +60,7 @@ lets you focus on your code.")
   (package
     (inherit leiningen-jar)
     (name "leiningen")
-    (version "2.9.5")
+    (version "2.9.6")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -69,7 +69,7 @@ lets you focus on your code.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "0w6f1wg6qpa8fa7zmbp3zj5rgvy8jb4mx8885g1cxbn021r4npis"))))
+                "0z1zwx5aq5gvp6396gmq8dl0yh0i8sshsw3vsvfbl96246in5yz8"))))
     (build-system gnu-build-system)
     (arguments
      `(#:tests? #f
