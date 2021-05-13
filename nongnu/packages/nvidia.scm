@@ -54,18 +54,18 @@
 (define-public nvidia-driver
   (package
     (name "nvidia-driver")
-    (version "455.38")
+    (version "465.27")
     (source
      (origin
        (uri (format #f "http://us.download.nvidia.com/XFree86/Linux-x86_64/~a/~a.run"
                     version
                     (format #f "NVIDIA-Linux-x86_64-~a" version)))
-       (sha256 (base32 "0x6w2kcjm5q9z9l6rkxqabway4qq4h3ynngn36i8ky2dpxc1wzfq"))
+       (sha256 (base32 "0w9ivi4z4j4hvhkimr11mgwrj09v53dy39vfdfmamrnybflgysby"))
        (method url-fetch)
        (file-name (string-append "nvidia-driver-" version "-checkout"))))
     (build-system linux-module-build-system)
     (arguments
-     `(#:linux ,linux-5.4
+     `(#:linux ,linux-lts
        #:phases
        (modify-phases %standard-phases
          (replace 'unpack
@@ -258,7 +258,7 @@
        ("libc" ,glibc)
        ("libx11" ,libx11)
        ("libxext" ,libxext)
-       ("linux" ,linux-5.4)
+       ("linux" ,linux-lts)
        ("pango" ,pango)
        ("wayland" ,wayland)))
     (home-page "https://www.nvidia.com")
@@ -274,13 +274,13 @@ Further xorg should be configured by adding:
 (define-public nvidia-libs
   (package
     (name "nvidia-libs")
-    (version "455.38")
+    (version "465.27")
     (source
      (origin
        (uri (format #f "http://us.download.nvidia.com/XFree86/Linux-x86_64/~a/~a.run"
                     version
                     (format #f "NVIDIA-Linux-x86_64-~a" version)))
-       (sha256 (base32 "0x6w2kcjm5q9z9l6rkxqabway4qq4h3ynngn36i8ky2dpxc1wzfq"))
+       (sha256 (base32 "0w9ivi4z4j4hvhkimr11mgwrj09v53dy39vfdfmamrnybflgysby"))
        (method url-fetch)
        (file-name (string-append "nvidia-driver-" version "-checkout"))))
     (build-system copy-build-system)
