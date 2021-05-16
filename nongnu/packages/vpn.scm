@@ -28,7 +28,7 @@
 (define-public zerotier
   (package
     (name "zerotier")
-    (version "1.4.6")
+    (version "1.6.5")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -37,7 +37,7 @@
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1f8hh05wx59dc0fbzdzwq05x0gmrdfl4v103wbcyjmzsbazaw6p3"))))
+                "0dlnrb59vnxa3pjkgfqd5jil9kl6axh23v0bffi4kx8jwzpdwas8"))))
     (build-system gnu-build-system)
     (arguments
      `(#:phases
