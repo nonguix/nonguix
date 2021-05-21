@@ -60,10 +60,6 @@ System on hardware which requires nonfree software to function.")))
   (corrupt-linux linux-libre-5.11 "5.12.5"
                  "1x39sdswww4j8zr54wpjzy9dia52kihs11xwljxcnz8pck0vwja0"))
 
-(define-public linux-5.11
-  (corrupt-linux linux-libre-5.11 "5.11.21"
-                 "0zw7mpq6lfbw2ycv4lvkya93h1h18gvc8c66m82bca5y02xsasrn"))
-
 (define-public linux-5.10
   (corrupt-linux linux-libre-5.10 "5.10.37"
                  "0xz01g017s9kcc9awlg6p9wrm8pzxyk4fizrf3mq9i5gklqf7md8"))
@@ -88,7 +84,7 @@ System on hardware which requires nonfree software to function.")))
   (corrupt-linux linux-libre-4.4 "4.4.268"
                  "1srk08kaxq5jjlqx804cgjffhcsrdkv3idh8ipagl6v2w4kas5v8"))
 
-(define-public linux linux-5.11)
+(define-public linux linux-5.12)
 ;; linux-lts points to the *newest* released long-term support version.
 (define-public linux-lts linux-5.10)
 
