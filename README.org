@@ -253,4 +253,4 @@ people involved to succeed as a community project.
 * Community
 
 If you want to discuss Nonguix-related topics, you can hang out and stay in
-touch on the =#nonguix= IRC channel on Freenode.
+touch on the =#nonguix= IRC channel on [[https://libera.chat/][Libera Chat]].
