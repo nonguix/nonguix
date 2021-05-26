@@ -139,9 +139,15 @@
                (("/usr") (assoc-ref %outputs "out")))))
          (add-after 'patch-dot-desktop-files 'patch-desktop-file
            (lambda _
-             (substitute* (string-append (assoc-ref %outputs "out")
-                                         "/share/applications/steam.desktop")
-               (("Exec=.*/steam") "Exec=steam"))))
+             (let ((path (string-append (assoc-ref %outputs "out")
+                                        "/share/applications/")))
+               (substitute* (string-append path "steam.desktop")
+                 (("Exec=.*/steam") "Exec=steam"))
+               (copy-file (string-append path "steam.desktop")
+                          (string-append path "steam-asound32.desktop"))
+               (substitute* (string-append path "steam-asound32.desktop")
+                 (("Exec=steam %U") "Exec=steam %U -- --asound32")
+                 (("Name=Steam") "Name=Steam (32-bit ALSA)")))))
          ;; Steamdeps installs missing packages, which doesn't work with Guix.
          (add-after 'install-binaries 'post-install
            (lambda* (#:key inputs outputs #:allow-other-keys)
@@ -231,10 +237,7 @@
 (define (nonguix-container->package container)
   "Return a package with wrapper script to launch the supplied container object
 in a sandboxed FHS environment."
-  (let* ((alsa-config ((@@ (gnu services sound) alsa-config-file)
-                       ((@ (gnu services sound) alsa-configuration)
-                        (alsa-plugins (to32 alsa-plugins)))))
-         (fhs-internal (make-container-internal container alsa-config))
+  (let* ((fhs-internal (make-container-internal container))
          (fhs-manifest (make-container-manifest container fhs-internal))
          (fhs-wrapper (make-container-wrapper container fhs-manifest fhs-internal))
          (pkg (ngc-wrap-package container)))
@@ -243,8 +246,7 @@ in a sandboxed FHS environment."
       (version (or (ngc-version container)
                    (package-version pkg)))
       (source #f)
-      (inputs `(("alsa-config" ,alsa-config)
-                ("wrap-package" ,(ngc-wrap-package container))
+      (inputs `(("wrap-package" ,(ngc-wrap-package container))
                 ,@(if (null? (ngc-union64 container))
                       '()
                       `(("fhs-union-64" ,(ngc-union64 container))))
@@ -261,8 +263,6 @@ in a sandboxed FHS environment."
          (begin
            (use-modules (guix build utils))
            (let* ((out (assoc-ref %outputs "out"))
-                  (alsa-target (assoc-ref %build-inputs "alsa-config"))
-                  (alsa-dest (string-append out "/etc/asound.conf"))
                   (internal-target (string-append (assoc-ref %build-inputs "fhs-internal")
                                                   "/bin/" ,(ngc-internal-name container)))
                   (internal-dest (string-append out "/sbin/" ,(ngc-internal-name container)))
@@ -274,7 +274,6 @@ in a sandboxed FHS environment."
              (mkdir-p (string-append out "/sbin"))
              (mkdir-p (string-append out "/etc"))
              (mkdir-p (string-append out "/bin"))
-             (symlink alsa-target alsa-dest)
              (symlink internal-target internal-dest)
              (symlink wrapper-target wrapper-dest)
              (symlink manifest-target manifest-dest)
@@ -410,15 +409,14 @@ the exact path for the fhs-internal package."
                #$(file-append (ngc-union32 container))
                #$(file-append fhs-internal)))))))
 
-(define (make-container-internal container alsa-config)
+(define (make-container-internal container)
   "Return a dummy package housing the fhs-internal script."
   (package
     (name (ngc-internal-name container))
     (version (or (ngc-version container)
                  (package-version (ngc-wrap-package container))))
     (source #f)
-    (inputs `(("alsa-config" ,alsa-config)
-              ("fhs-internal-script" ,(make-internal-script container alsa-config))))
+    (inputs `(("fhs-internal-script" ,(make-internal-script container))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
@@ -436,7 +434,7 @@ the exact path for the fhs-internal package."
 environment.")
     (license #f)))
 
-(define (make-internal-script container alsa-config)
+(define (make-internal-script container)
   "Return an fhs-internal script which is used to perform additional steps to
 set up the environment inside an FHS container before launching the desired
 application."
@@ -445,9 +443,11 @@ application."
     (program-file
      (ngc-internal-name container)
      (with-imported-modules
-         `((guix build utils))
+         `((guix build utils)
+           (ice-9 getopt-long))
        #~(begin
-           (use-modules (guix build utils))
+           (use-modules (guix build utils)
+                        (ice-9 getopt-long))
            (define (path->str path)
              (if (list? path)
                  (string-join path "/")
@@ -460,11 +460,16 @@ application."
            (define (icd-symlink file)
              (new-symlink
               `(,file . ("/usr/share/vulkan/icd.d" ,(basename file)))))
-           (let ((guix-env (getenv "GUIX_ENVIRONMENT"))
-                 (alsa-config #$(file-append alsa-config))
-                 (union64 #$(file-append (ngc-union64 container)))
-                 (union32 #$(file-append (ngc-union32 container)))
-                 (args (cdr (command-line))))
+           (define fhs-option-spec
+             '((asound32 (value #f))))
+           (let* ((guix-env (getenv "GUIX_ENVIRONMENT"))
+                  (union64 #$(file-append (ngc-union64 container)))
+                  (union32 #$(file-append (ngc-union32 container)))
+                  (all-args (cdr (command-line)))
+                  (fhs-args (member "--" all-args))
+                  (steam-args (if fhs-args
+                                  (reverse (cdr (member "--" (reverse all-args))))
+                                  all-args)))
              (delete-file "/bin/sh")
              (rmdir "/bin")
              (for-each
@@ -476,8 +481,7 @@ application."
                 "/usr/share/vulkan/icd.d"))
              (for-each
               new-symlink
-              `((,alsa-config . "/etc/asound.conf")
-                ((,guix-env "etc/ssl") . "/etc/ssl")
+              `(((,guix-env "etc/ssl") . "/etc/ssl")
                 ((,guix-env "etc/ssl") . "/run/current-system/profile/etc/ssl")
                 ((,union32 "lib") . "/lib")
                 ((,union32 "lib") . "/run/current-system/profile/lib")
@@ -497,7 +501,41 @@ application."
                               #:directories? #t)
                 ,@(find-files (string-append union64 "/share/vulkan/icd.d")
                               #:directories? #t)))
-             (apply system* `(#$(file-append pkg run) ,@args))))))))
+
+             ;; Process FHS-specific command line options
+             (let* ((options (getopt-long (or fhs-args '("")) fhs-option-spec))
+                    (asound32-opt (option-ref options 'asound32 #f))
+                    (asound-lib (if asound32-opt "lib" "lib64")))
+               (if asound32-opt
+                   (display "\n\n/etc/asound.conf configured for 32-bit.\n\n\n")
+                   (display "\n\n/etc/asound.conf configured for 64-bit.\nLaunch steam with \"steam -- --asound32\" to use 32-bit instead.\n\n\n"))
+               (with-output-to-file "/etc/asound.conf"
+                 (lambda _ (format (current-output-port) "# Generated by steam-client
+
+# Use PulseAudio by default
+pcm_type.pulse {
+  lib \"/~a/alsa-lib/libasound_module_pcm_pulse.so\"
+}
+
+ctl_type.pulse {
+  lib \"/~a/alsa-lib/libasound_module_ctl_pulse.so\"
+}
+
+pcm.!default {
+  type pulse
+  fallback \"sysdefault\"
+  hint {
+    show on
+    description \"Default ALSA Output (currently PulseAudio Sound Server)\"
+  }
+}
+
+ctl.!default {
+  type pulse
+  fallback \"sysdefault\"
+}\n\n" asound-lib asound-lib))))
+
+             (apply system* `(#$(file-append pkg run) ,@steam-args))))))))
 
 (define-public steam
   (nonguix-container->package
@@ -516,7 +554,8 @@ application."
                   ,@fhs-min-libs)
                 #:name "fhs-union-32"
                 #:system "i686-linux"))
-    (link-files '("share/applications/steam.desktop"))
+    (link-files '("share/applications/steam.desktop"
+                  "share/applications/steam-asound32.desktop"))
     (description "Steam is a digital software distribution platform created by
 Valve.  This package provides a script for launching Steam in a Guix container
 which will use the directory @file{$HOME/.local/share/guix-sandbox-home} where
