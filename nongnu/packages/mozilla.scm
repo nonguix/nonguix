@@ -221,8 +221,10 @@
              (setenv "MACH_USE_SYSTEM_PYTHON" "1")
 
              ;; Use Clang, Clang is 2x faster than GCC
-             (setenv "AR" "llvm-ar") (setenv "NM" "llvm-nm")
-             (setenv "CC" "clang") (setenv "CXX" "clang++")
+             (setenv "AR" "llvm-ar")
+             (setenv "NM" "llvm-nm")
+             (setenv "CC" "clang")
+             (setenv "CXX" "clang++")
 
              (setenv "MOZ_NOSPAM" "1")
              ;; Firefox will write the timestamp to output, which is harmful for
