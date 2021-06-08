@@ -142,11 +142,6 @@
                   ,@%gnu-build-system-modules)
        #:phases
        (modify-phases %standard-phases
-         ;; See https://gitlab.com/nonguix/nonguix/-/issues/116 for details
-         (add-after 'unpack 'fix-swgl-build.rs
-           (lambda _
-             (substitute* "gfx/wr/swgl/build.rs"
-               ((".flag\\(\"-ffast-math\"\\)") ""))))
          (add-after 'unpack 'fix-preferences
            (lambda* (#:key inputs #:allow-other-keys)
              (let ((port (open-file "browser/app/profile/firefox.js" "a")))
@@ -382,8 +377,8 @@
     (native-inputs
      `(("autoconf" ,autoconf-2.13)
        ("cargo" ,rust-1.47 "cargo")
-       ("clang" ,clang)
-       ("llvm" ,llvm)
+       ("clang" ,clang-10)
+       ("llvm" ,llvm-10)
        ("m4" ,m4)
        ("nasm" ,nasm)
        ("node" ,node)
