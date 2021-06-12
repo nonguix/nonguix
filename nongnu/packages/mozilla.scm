@@ -15,9 +15,10 @@
 ;;; Copyright © 2020 Jakub Kądziołka <kuba@kadziolka.net>
 ;;; Copyright © 2019, 2020 Adrian Malacoda <malacoda@monarch-pass.net>
 ;;; Copyright (C) 2019, 2020 Adrian Malacoda <malacoda@monarch-pass.net>
-;;; Copyright © 2020 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2020, 2021 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2020 Zhu Zihao <all_but_last@163.com>
 ;;; Copyright © 2021 pineapples <guixuser6392@protonmail.com>
+;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -64,6 +65,7 @@
   #:use-module (gnu packages libevent)
   #:use-module (gnu packages libffi)
   #:use-module (gnu packages libreoffice) ;for hunspell
+  #:use-module (gnu packages linux)
   #:use-module (gnu packages llvm)
   #:use-module (gnu packages m4)
   #:use-module (gnu packages node)
@@ -287,6 +289,7 @@
                             (string-append (assoc-ref inputs x)
                                            "/lib"))
                           '("pulseaudio" "mesa"
+                            "udev"      ;; For U2F and WebAuthn
                             ;; For the integration of native notifications
                             "libnotify")))
                     (gtk-share (string-append (assoc-ref inputs "gtk+")
@@ -371,6 +374,7 @@
        ("pulseaudio" ,pulseaudio)
        ("startup-notification" ,startup-notification)
        ("sqlite" ,sqlite)
+       ("udev" ,eudev)
        ("unzip" ,unzip)
        ("zip" ,zip)
        ("zlib" ,zlib)))
