@@ -19,12 +19,53 @@
 ;;; along with GNU Guix.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (nongnu packages clojure)
+  #:use-module (gnu packages readline)
   #:use-module (guix packages)
+  #:use-module (guix build-system copy)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system trivial)
   #:use-module (guix download)
   #:use-module (guix git-download)
   #:use-module ((guix licenses) #:prefix license:))
+
+(define-public clojure-tools
+  (package
+    (name "clojure-tools")
+    (version "1.10.3.855")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://download.clojure.org/install/clojure-tools-"
+                           version
+                           ".tar.gz"))
+       (sha256 (base32 "114kn44azhsgzbjhiisdm502j6ss4kfg1mck9rjldrka2hwfwqyb"))))
+    (build-system copy-build-system)
+    (arguments
+     `(#:install-plan
+       '(("deps.edn" "lib/clojure/")
+         ("example-deps.edn" "lib/clojure/")
+         ("exec.jar" "lib/clojure/libexec/")
+         (,(string-append "clojure-tools-" version ".jar") "lib/clojure/libexec/")
+         ("clojure" "bin/")
+         ("clj" "bin/"))
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'fix-paths
+           (lambda* (#:key outputs #:allow-other-keys)
+             (substitute* "clojure"
+               (("PREFIX") (string-append (assoc-ref outputs "out") "/lib/clojure")))
+             (substitute* "clj"
+               (("BINDIR") (string-append (assoc-ref outputs "out") "/bin"))
+               (("rlwrap") (which "rlwrap")))
+             #true)))))
+    (inputs `(("rlwrap" ,rlwrap)))
+    (synopsis "CLI tools for the Clojure programming language")
+    (description "The Clojure command line tools can be used to start
+a Clojure repl, use Clojure and Java libraries, and start Clojure
+programs.")
+    (license license:epl1.0)
+    (home-page "https://clojure.org/releases/tools")))
+
 
 ;; This is a hidden package, as it does not really serve a purpose on its own.
 (define leiningen-jar
