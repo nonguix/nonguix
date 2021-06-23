@@ -424,7 +424,7 @@ the official icon and the name \"firefox\".")
             (call-with-output-file exe
               (lambda (port)
                 (format port "#!~a
- MOZ_ENABLE_WAYLAND=1 exec ~a $@"
+MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
                         (string-append bash "/bin/bash")
                         (string-append firefox "/bin/firefox"))))
             (chmod exe #o555)
