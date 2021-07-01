@@ -340,7 +340,7 @@ in a sandboxed FHS environment."
                           ,@(exists-> "/dev/nvidiactl")
                           ,@(exists-> "/dev/nvidia-modeset")
                           "/sys/devices"
-                          "/var/run/dbus"))
+                          ,@(exists-> "/var/run/dbus")))
                 (share `("/dev/shm"
                          ,(string-append sandbox-home "=" home)
                          ,@(exists-> (string-append home "/.config/pulse"))
