@@ -157,7 +157,7 @@ Use @command{setup_dxvk} to install the required libraries to a Wine prefix.")
 (define-public dxvk-next
   (package
     (name "dxvk")
-    (version "1.8.1")
+    (version "1.9")
     (home-page "https://github.com/doitsujin/dxvk/")
     (source (origin
               (method url-fetch)
@@ -166,7 +166,7 @@ Use @command{setup_dxvk} to install the required libraries to a Wine prefix.")
                     version "/dxvk-" version ".tar.gz") )
               (sha256
                (base32
-                "1s30vq7c34aczbzlqb8aw18klqb4iw1szqsn8klasyc2dz20jskm"))))
+                "1vd64525c6qwvxhdsqp7icbf7zsfdcyj125p0hm1k1rqg3w6hf23"))))
     (build-system copy-build-system)
     (arguments
      `(#:install-plan
