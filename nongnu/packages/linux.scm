@@ -5,6 +5,7 @@
 ;;; Copyright © 2020, 2021 James Smith <jsubuntuxp@disroot.org>
 ;;; Copyright © 2020, 2021 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2021 Mathieu Othacehe <m.othacehe@gmail.com>
+;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -539,6 +540,41 @@ package contains nonfree firmware for the following chips:
 
 (define-public rtl-bt-firmware
   (deprecated-package "rtl-bt-firmware" realtek-firmware))
+
+(define-public rtl8192eu-linux-module
+  (let ((commit "cdf1b06b7bff49042f42d0294610d3f3780ee62b")
+        (revision "1"))
+    (package
+      (name "rtl8192eu-linux-module")
+      (version (git-version "0.0.0" revision commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/clnhub/rtl8192eu-linux")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32
+           "1afscxmjmapvm8hcd0blp1fn5lxg92rhpiqkgj89x53shfsp12d6"))))
+      (build-system linux-module-build-system)
+      (arguments
+       `(#:make-flags
+         (list "CC=gcc"
+               (string-append "KSRC="
+                              (assoc-ref %build-inputs "linux-module-builder")
+                              "/lib/modules/build"))
+         #:phases
+         (modify-phases %standard-phases
+           (replace 'build
+             (lambda* (#:key (make-flags '()) #:allow-other-keys)
+               (apply invoke "make" make-flags))))
+         #:tests? #f))                  ; no test suite
+      (home-page "https://github.com/clnhub/rtl8192eu-linux")
+      (synopsis "Linux driver for Realtek RTL8192EU wireless network adapters")
+      (description "This is Realtek's RTL8192EU Linux driver for wireless
+network adapters.")
+      (license gpl2))))
 
 (define broadcom-sta-version "6.30.223.271")
 
