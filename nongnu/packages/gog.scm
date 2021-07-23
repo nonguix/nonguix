@@ -53,7 +53,7 @@
        ("htmlcxx" ,htmlcxx)
        ("jsoncpp" ,jsoncpp)
        ("liboauth" ,liboauth)
-       ("qtbase" ,qtbase)
+       ("qtbase" ,qtbase-5)
        ("qtdeclarative" ,qtdeclarative)
        ("qtwebchannel" ,qtwebchannel)
        ("qtwebengine" ,qtwebengine)
