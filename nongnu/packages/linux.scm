@@ -178,6 +178,32 @@ graphics cards can be run with the free Mesa, some cards require a nonfree
 kernel module to run properly and support features like hibernation and
 advanced 3D.")))
 
+(define-public raspberrypi-firmware
+(package
+  (name "raspberrypi-firmware")
+  (version "1.20210527")
+  (source (origin
+            (method git-fetch)
+            (uri (git-reference
+                  (url "https://github.com/raspberrypi/firmware")
+                  (commit version)))
+            (file-name (git-file-name name version))
+            (sha256
+             (base32
+              "08lgg90k6lhqm3ccg7db0lrrng0pgf63dvbrxpfpwm1pswrc5vf5"))))
+  (build-system copy-build-system)
+  (synopsis "Firmware for the Raspberry Pi boards")
+  (description "Pre-compiled binaries of the current Raspberry Pi kernel
+and modules, userspace libraries, and bootloader/GPU firmware.")
+  (home-page "https://github.com/raspberrypi/firmware")
+  (supported-systems '("armhf-linux" "aarch64-linux"))
+  (license
+    (list gpl2
+	  (nonfree
+	    (string-append "file://boot/LICENCE.broadcom"))
+	  (nonfree
+	    (string-append "file://opt/vc/LICENCE"))))))
+
 (define-public atheros-firmware
   (package
     (inherit linux-firmware)
