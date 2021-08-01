@@ -44,6 +44,7 @@
      `(#:install-plan
        '(("deps.edn" "lib/clojure/")
          ("example-deps.edn" "lib/clojure/")
+         ("tools.edn" "lib/clojure/")
          ("exec.jar" "lib/clojure/libexec/")
          (,(string-append "clojure-tools-" version ".jar") "lib/clojure/libexec/")
          ("clojure" "bin/")
