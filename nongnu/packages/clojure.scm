@@ -31,14 +31,14 @@
 (define-public clojure-tools
   (package
     (name "clojure-tools")
-    (version "1.10.3.855")
+    (version "1.10.3.933")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://download.clojure.org/install/clojure-tools-"
                            version
                            ".tar.gz"))
-       (sha256 (base32 "114kn44azhsgzbjhiisdm502j6ss4kfg1mck9rjldrka2hwfwqyb"))))
+       (sha256 (base32 "0w359cw3079xdhvl5z7hdd4h0jbdacpm9l12xszwdbsnfgyb9jf6"))))
     (build-system copy-build-system)
     (arguments
      `(#:install-plan
