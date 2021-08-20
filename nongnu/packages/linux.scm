@@ -119,25 +119,25 @@ if your hardware is supported by one of the smaller firmware packages.")
       (string-append "https://git.kernel.org/pub/scm/linux/kernel/git/"
                      "firmware/linux-firmware.git/plain/WHENCE")))))
 
+(define (select-firmware keep)
+  "Modify linux-firmware copy list to retain only files matching KEEP regex."
+  `(lambda _
+     (use-modules (ice-9 regex))
+     (substitute* "WHENCE"
+       (("^(File|Link): *([^ ]*)(.*)" _ type file rest)
+        (string-append (if (string-match ,keep file) type "Skip") ": " file rest)))))
+
 (define-public amdgpu-firmware
   (package
     (inherit linux-firmware)
     (name "amdgpu-firmware")
-    (build-system gnu-build-system)
     (arguments
-     `(#:tests? #f
-       #:license-file-regexp "LICENSE.amdgpu"
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'install
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let* ((out (assoc-ref outputs "out"))
-                    (fw-dir (string-append out "/lib/firmware"))
-                    (bin-dir (string-append fw-dir "/amdgpu")))
-               (mkdir-p bin-dir)
-               (copy-recursively "./amdgpu" bin-dir)
-               #t)))
-         (delete 'validate-runpath))))
+     `(#:license-file-regexp "LICENSE.amdgpu"
+       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
+           ((#:phases phases)
+            `(modify-phases ,phases
+               (add-after 'unpack 'select-firmware
+                 ,(select-firmware "^amdgpu/")))))))
     (home-page "http://support.amd.com/en-us/download/linux")
     (synopsis "Nonfree firmware for AMD graphics chips")
     (description "Nonfree firmware for AMD graphics chips.  While most AMD
@@ -155,19 +155,12 @@ advanced 3D.")
     (inherit amdgpu-firmware)
     (name "radeon-firmware")
     (arguments
-     `(#:tests? #f
-       #:license-file-regexp "LICENSE.radeon"
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'install
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let* ((out (assoc-ref outputs "out"))
-                    (fw-dir (string-append out "/lib/firmware"))
-                    (bin-dir (string-append fw-dir "/radeon")))
-               (mkdir-p bin-dir)
-               (copy-recursively "./radeon" bin-dir)
-               #t)))
-         (delete 'validate-runpath))))
+     `(#:license-file-regexp "LICENSE.radeon"
+       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
+           ((#:phases phases)
+            `(modify-phases ,phases
+               (add-after 'unpack 'select-firmware
+                 ,(select-firmware "^radeon/")))))))
     (synopsis "Nonfree firmware for older AMD graphics chips")
     (description "Nonfree firmware for AMD graphics chips.  While most AMD
 graphics cards can be run with the free Mesa, some cards require a nonfree
@@ -204,30 +197,13 @@ and modules, userspace libraries, and bootloader/GPU firmware.")
   (package
     (inherit linux-firmware)
     (name "atheros-firmware")
-    (build-system gnu-build-system)
     (arguments
-     `(#:tests? #f
-       #:license-file-regexp
-       "LICEN[CS]E.*[Aa]th"
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'install
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let* ((out (assoc-ref outputs "out"))
-                    (fw-dir (string-append out "/lib/firmware"))
-                    (bin-dir (string-append fw-dir "/ar3k")))
-               (for-each (lambda (dir)
-                           (let ((bin-dir (string-append fw-dir "/" dir)))
-                             (mkdir-p bin-dir)
-                             (copy-recursively dir bin-dir)))
-                         '("ar3k" "ath6k" "ath9k_htc" "ath10k" "qca"))
-               (for-each (lambda (file)
-                           (install-file file fw-dir))
-                         (append (find-files "." "^a(r|th).*\\.(bin|fw)$")
-                                 (find-files "." "^htc_.*\\.fw$")
-                                 (find-files "." "^wil.*\\.(brd|fw)$")))
-               #t)))
-         (delete 'validate-runpath))))
+     `(#:license-file-regexp "LICEN[CS]E.*[Aa]th"
+       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
+           ((#:phases phases)
+            `(modify-phases ,phases
+               (add-after 'unpack 'select-firmware
+                 ,(select-firmware "^(ar[3579]|ath[1369]|htc_[79]|qca/|wil6)")))))))
     (synopsis "Nonfree firmware blobs for Atheros wireless cards")
     (description "Nonfree firmware blobs for Atheros wireless cards.  This
 package contains nonfree firmware for the following chips:
@@ -398,19 +374,12 @@ WLAN.TF.2.1-00021-QCARMSWP-1 (ath10k/QCA9377/hw1.0/firmware-6.bin)
     (inherit linux-firmware)
     (name "ibt-hw-firmware")
     (arguments
-     `(#:tests? #f
-       #:license-file-regexp "LICENCE.ibt_firmware"
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'install
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let* ((out (assoc-ref outputs "out"))
-                    (fw-dir (string-append out "/lib/firmware/intel")))
-               (for-each (lambda (file)
-                           (install-file file fw-dir))
-                         (find-files "intel" "ibt-.*\\.(bseq|ddc|sfi)$"))
-               #t)))
-         (delete 'validate-runpath))))
+     `(#:license-file-regexp "LICENCE.ibt_firmware"
+       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
+           ((#:phases phases)
+            `(modify-phases ,phases
+               (add-after 'unpack 'select-firmware
+                 ,(select-firmware "^intel/ibt-")))))))
     (home-page "http://www.intel.com/support/wireless/wlan/sb/CS-016675.htm")
     (synopsis "Non-free firmware for Intel bluetooth chips")
     (description "This firmware is required by the btintel kernel module to
@@ -425,21 +394,13 @@ laptops).")
   (package
     (inherit linux-firmware)
     (name "iwlwifi-firmware")
-    (build-system gnu-build-system)
     (arguments
-     `(#:tests? #f
-       #:license-file-regexp "LICENCE.iwlwifi_firmware"
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'install
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let* ((out (assoc-ref outputs "out"))
-                    (fw-dir (string-append out "/lib/firmware")))
-               (for-each (lambda (file)
-                           (install-file file fw-dir))
-                         (find-files "." "iwlwifi-.*\\.ucode$"))
-               #t)))
-         (delete 'validate-runpath))))
+     `(#:license-file-regexp "LICENCE.iwlwifi_firmware"
+       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
+           ((#:phases phases)
+            `(modify-phases ,phases
+               (add-after 'unpack 'select-firmware
+                 ,(select-firmware "^iwlwifi-")))))))
     (home-page "https://wireless.wiki.kernel.org/en/users/drivers/iwlwifi")
     (synopsis "Nonfree firmware for Intel wifi chips")
     (description "The proprietary iwlwifi kernel module is required by many
@@ -454,23 +415,13 @@ support for 5GHz and 802.11ac, among others.")
   (package
     (inherit linux-firmware)
     (name "realtek-firmware")
-    (build-system gnu-build-system)
     (arguments
-     `(#:tests? #f
-       #:license-file-regexp "LICENCE.rtlwifi_firmware.txt"
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'install
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let* ((out (assoc-ref outputs "out"))
-                    (fw-dir (string-append out "/lib/firmware")))
-               (for-each (lambda (dir)
-                           (let ((bin-dir (string-append fw-dir "/" dir)))
-                             (mkdir-p bin-dir)
-                             (copy-recursively dir bin-dir)))
-                         '("rtlwifi" "rtl_nic" "rtl_bt"))
-               #t)))
-         (delete 'validate-runpath))))
+     `(#:license-file-regexp "LICENCE.rtlwifi_firmware.txt"
+       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
+           ((#:phases phases)
+            `(modify-phases ,phases
+               (add-after 'unpack 'select-firmware
+                 ,(select-firmware "^(rtlwifi|rtl_nic|rtl_bt)/")))))))
     (home-page "https://wireless.wiki.kernel.org/en/users/drivers/rtl819x")
     (synopsis "Nonfree firmware for Realtek ethernet, wifi, and bluetooth chips")
     (description
@@ -820,22 +771,13 @@ your CPU.")
   (package
     (inherit linux-firmware)
     (name "amd-microcode")
-    (build-system gnu-build-system)
     (arguments
-     `(#:tests? #f
-       #:license-file-regexp "LICENSE.amd-ucode"
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'install
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let* ((out (assoc-ref outputs "out"))
-                    (fw-dir (string-append out "/lib/firmware"))
-                    (bin-dir (string-append fw-dir "/amd-ucode")))
-               (for-each (lambda (file)
-                           (install-file file bin-dir))
-                         (find-files "amd-ucode" "^microcode_amd.*\\.bin$"))
-               #t)))
-         (delete 'validate-runpath))))
+     `(#:license-file-regexp "LICENSE.amd-ucode"
+       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
+           ((#:phases phases)
+            `(modify-phases ,phases
+               (add-after 'unpack 'select-firmware
+                 ,(select-firmware "^amd-ucode/")))))))
     (synopsis "Processor microcode firmware for AMD CPUs")
     (description "Updated system processor microcode for AMD x86-64
 processors.  AMD releases microcode updates to correct processor behavior as
