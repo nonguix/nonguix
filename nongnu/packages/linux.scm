@@ -104,13 +104,9 @@ System on hardware which requires nonfree software to function.")))
     (build-system gnu-build-system)
     (arguments
      `(#:tests? #f
+       #:make-flags (list (string-append "DESTDIR=" (assoc-ref %outputs "out")))
        #:phases
        (modify-phases %standard-phases
-         (replace 'install
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let ((out (assoc-ref outputs "out")))
-               (invoke "make" "install"
-                       (string-append "DESTDIR=" out)))))
          (delete 'validate-runpath))))
     (home-page
      "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git")
