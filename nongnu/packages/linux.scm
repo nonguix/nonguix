@@ -35,7 +35,8 @@
   #:use-module (guix build-system linux-module)
   #:use-module (guix build-system trivial)
   #:use-module (ice-9 match)
-  #:use-module (nonguix licenses))
+  #:use-module (nonguix licenses)
+  #:export (corrupt-linux))
 
 (define (linux-urls version)
   "Return a list of URLS for Linux VERSION."
