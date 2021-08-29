@@ -290,6 +290,8 @@
                                            "/lib"))
                           '("pulseaudio" "mesa"
                             "udev"      ;; For U2F and WebAuthn
+                            ;; For hardware video acceleration via VA-API
+                            "libva"
                             ;; For the integration of native notifications
                             "libnotify")))
                     (gtk-share (string-append (assoc-ref inputs "gtk+")
@@ -359,6 +361,7 @@
        ("libjpeg-turbo" ,libjpeg-turbo)
        ("libnotify" ,libnotify)
        ;; ("libpng-apng" ,libpng-apng)
+       ("libva" ,libva)
        ("libvpx" ,libvpx)
        ("libxcomposite" ,libxcomposite)
        ("libxft" ,libxft)
