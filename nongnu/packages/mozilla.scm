@@ -360,7 +360,7 @@
        ("gtk+" ,gtk+)
        ("gtk+-2" ,gtk+-2)
        ("hunspell" ,hunspell)
-       ("icu4c" ,icu4c-69)
+       ("icu4c" ,icu4c)
        ("jemalloc" ,jemalloc)
        ("libcanberra" ,libcanberra)
        ("libevent" ,libevent)
