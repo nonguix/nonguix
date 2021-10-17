@@ -318,7 +318,8 @@ in a sandboxed FHS environment."
                 (manifest-file #$(file-append fhs-manifest))
                 (xdg-runtime (getenv "XDG_RUNTIME_DIR"))
                 (home (getenv "HOME"))
-                (sandbox-home (string-append home "/" #$(ngc-sandbox-home container)))
+                (sandbox-home (or (getenv "GUIX_SANDBOX_HOME")
+                                  (string-append home "/" #$(ngc-sandbox-home container))))
                 (preserved-env '("^DBUS_"
                                  "^DISPLAY$"
                                  "^DRI_PRIME$"
