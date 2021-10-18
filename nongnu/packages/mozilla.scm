@@ -83,19 +83,19 @@
 
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
-(define %firefox-build-id "20210923000000")
+(define %firefox-build-id "20211017000000")
 
 (define-public firefox
   (package
     (name "firefox")
-    (version "92.0.1")
+    (version "93.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "1c9yc3mfihzj00q9xf52xd65j6m74wv8zvsy1l49klic2qpb55lh"))))
+        (base32 "00kiz6hnwmz659cqndpalxhyj4jajd03b7r9hi5jig29b07hi3x7"))))
     (build-system gnu-build-system)
     (arguments
      `(#:configure-flags
@@ -204,7 +204,15 @@
                            "third_party/rust"
                            "toolkit"
                            "xpcom/rust"
-                           "services")))
+                           "services"))
+             #t)))
+         (add-after 'patch-cargo-checksums 'remove-cargo-frozen-flag
+           (lambda _
+             ;; Remove --frozen flag from cargo invokation, otherwise it'll
+             ;; complain that it's not able to change Cargo.lock.
+             ;; https://bugzilla.mozilla.org/show_bug.cgi?id=1726373
+             (substitute* "build/RunCbindgen.py"
+               (("\"--frozen\",") ""))
              #t))
          (delete 'bootstrap)
          (replace 'configure
@@ -213,8 +221,6 @@
                                                "/bin/autoconf"))
              (setenv "SHELL" (which "bash"))
              (setenv "CONFIG_SHELL" (which "bash"))
-             (setenv "PYTHON" (string-append (assoc-ref inputs "python2")
-                                             "/bin/python"))
              (setenv "MACH_USE_SYSTEM_PYTHON" "1")
 
              ;; Use Clang, Clang is 2x faster than GCC
@@ -227,6 +233,8 @@
              ;; Firefox will write the timestamp to output, which is harmful for
              ;; reproducibility, so change it to a fixed date.
              (setenv "MOZ_BUILD_DATE" ,%firefox-build-id)
+
+             (setenv "MOZBUILD_STATE_PATH" (getcwd))
 
              (let* ((mozconfig (string-append (getcwd) "/mozconfig"))
                     (out (assoc-ref outputs "out"))
@@ -392,7 +400,6 @@
        ("perl" ,perl)
        ("pkg-config" ,pkg-config)
        ("python" ,python)
-       ("python2" ,python-2.7)
        ("rust" ,rust-1.51)
        ("rust-cbindgen" ,rust-cbindgen-0.19)
        ("which" ,which)
