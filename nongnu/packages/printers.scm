@@ -160,3 +160,33 @@ version=~A
         (substitute* (string-append out "/etc/hp/hplip.conf")
          (("/usr") out))
         #t)))))))))
+
+(define-public samsung-unified-printer
+  (package
+    (name "samsung-unified-printer")
+    (version "1.00.39_01.17")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://ftp.ext.hp.com/pub/softlib/software13/printers/SS/SL-C4010ND/uld_V"
+                                  version ".tar.gz"))
+              (sha256
+               (base32
+                "03jl2hw7rjcq0cpsq714yaw40v73lsm1qa5z4q2m0i36hhxj2f0c"))))
+    (build-system binary-build-system)
+    (arguments
+     `(#:install-plan
+       `(("noarch/license/eula.txt" "/share/doc/samsung-unified-printer/")
+         ("noarch/share/ppd/" "/share/ppd/samsung/")
+         ("x86_64/rastertospl" "/lib/cups/filter/"))
+       #:patchelf-plan
+       `(("x86_64/rastertospl" ("cups")))
+       #:strip-binaries? #f))
+    (inputs
+     `(("cups" ,cups-minimal)))
+    (synopsis "Propriatary Samsung printer drivers")
+    (description "Samsung Unified Linux Driver provides propriatary printer
+drivers for laser and multifunctional printers.")
+    (supported-systems '("x86_64-linux")) ;; TODO: install i686 files
+    ;; Samsung printers are part of HP since 2016
+    (home-page "https://support.hp.com/us-en/drivers/printers")
+    (license (nonfree "file://eula.txt"))))
