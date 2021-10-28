@@ -31,7 +31,7 @@
 ;;; A container wrapper creates the following store items:
 ;;; * Main container package [nonguix-container->package] (basically a dummy
 ;;;   package with symlink to wrapper script)
-;;;   - Wrapper script [make-container-wrapper] (runs "guix environment")
+;;;   - Wrapper script [make-container-wrapper] (runs "guix shell")
 ;;;     References:
 ;;;     -> manifest.scm [make-container-manifest] (used by wrapper to guarantee
 ;;;        exact store items)
@@ -362,8 +362,8 @@ in a sandboxed FHS environment."
                    "--start"
                    "--exit-idle-time=60")
            (apply invoke
-                  `("guix" "environment"
-                    "--ad-hoc" "--container" "--no-cwd" "--network"
+                  `("guix" "shell"
+                    "--container" "--no-cwd" "--network"
                     ,@(map preserve-var preserved-env)
                     ,@(map add-path expose)
                     ,@(map (lambda (item)
