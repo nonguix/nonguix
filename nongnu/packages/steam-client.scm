@@ -165,7 +165,8 @@
                     "/lib64/alsa-lib"
                     "/lib64/dri"
                     "/lib64/nss"
-                    "/lib64/vdpau")))
+                    "/lib64/vdpau"
+                    "$HOME/.local/share/Steam/ubuntu12_32/steam-runtime/lib/x86_64-linux-gnu")))
                ;; .steam-real will fail unless it is renamed to exactly "steam".
                (rename-file (string-append out "/bin/steam")
                             (string-append out "/bin/steam-wrapper"))
