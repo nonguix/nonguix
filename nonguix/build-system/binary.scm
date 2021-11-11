@@ -1,5 +1,6 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2019 Julien Lepiller <julien@lepiller.eu>
+;;; Copyright © 2021 Josselin Poiret <dev@jpoiret.xyz>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -19,6 +20,8 @@
 (define-module (nonguix build-system binary)
   #:use-module (guix store)
   #:use-module (guix utils)
+  #:use-module (guix gexp)
+  #:use-module (guix monads)
   #:use-module (guix derivations)
   #:use-module (guix search-paths)
   #:use-module (guix build-system)
@@ -90,8 +93,9 @@
          (build binary-build)
          (arguments (strip-keyword-arguments private-keywords arguments)))))
 
-(define* (binary-build store name inputs
-                       #:key (guile #f)
+(define* (binary-build name inputs
+                       #:key
+		       guile source
                        (outputs '("out"))
                        (patchelf-plan ''())
                        (install-plan ''(("." "./")))
@@ -109,49 +113,43 @@
                        (imported-modules %binary-build-system-modules)
                        (modules '((nonguix build binary-build-system)
                                   (guix build utils)
-                                  (nonguix build utils))))
+                                  (nonguix build utils)))
+                       (substitutable? #t)
+                       allowed-references
+                       disallowed-references)
   "Build SOURCE using PATCHELF, and with INPUTS. This assumes that SOURCE
 provides its own binaries."
   (define builder
-    `(begin
-       (use-modules ,@modules)
-       (binary-build #:source ,(match (assoc-ref inputs "source")
-                                 (((? derivation? source))
-                                  (derivation->output-path source))
-                                 ((source)
-                                  source)
-                                 (source
-                                  source))
-                     #:system ,system
-                     #:outputs %outputs
-                     #:inputs %build-inputs
-                     #:patchelf-plan ,patchelf-plan
-                     #:install-plan ,install-plan
-                     #:search-paths ',(map search-path-specification->sexp
-                                           search-paths)
-                     #:phases ,phases
-                     #:out-of-source? ,out-of-source?
-                     #:validate-runpath? ,validate-runpath?
-                     #:patch-shebangs? ,patch-shebangs?
-                     #:strip-binaries? ,strip-binaries?
-                     #:strip-flags ,strip-flags
-                     #:strip-directories ,strip-directories)))
+    (with-imported-modules imported-modules
+      #~(begin
+	  (use-modules #$@modules)
 
-  (define guile-for-build
-    (match guile
-      ((? package?)
-       (package-derivation store guile system #:graft? #f))
-      (#f                                         ; the default
-       (let* ((distro (resolve-interface '(gnu packages commencement)))
-              (guile  (module-ref distro 'guile-final)))
-         (package-derivation store guile system #:graft? #f)))))
+	  #$(with-build-variables inputs outputs
+	      #~(binary-build #:source #+source
+			      #:system #$system
+			      #:outputs %outputs
+			      #:inputs %build-inputs
+			      #:patchelf-plan #$patchelf-plan
+			      #:install-plan #$install-plan
+			      #:search-paths '#$(map search-path-specification->sexp
+						     search-paths)
+			      #:phases #$phases
+			      #:out-of-source? #$out-of-source?
+			      #:validate-runpath? #$validate-runpath?
+			      #:patch-shebangs? #$patch-shebangs?
+			      #:strip-binaries? #$strip-binaries?
+			      #:strip-flags #$strip-flags
+			      #:strip-directories #$strip-directories)))))
 
-  (build-expression->derivation store name builder
-                                #:system system
-                                #:inputs inputs
-                                #:modules imported-modules
-                                #:outputs outputs
-                                #:guile-for-build guile-for-build))
+  (mlet %store-monad ((guile (package->derivation (or guile (default-guile))
+                                                  system #:graft? #f)))
+    (gexp->derivation name builder
+                      #:system system
+                      #:target #f
+                      #:substitutable? substitutable?
+                      #:allowed-references allowed-references
+                      #:disallowed-references disallowed-references
+                      #:guile-for-build guile)))
 
 (define binary-build-system
   (build-system
