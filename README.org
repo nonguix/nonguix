@@ -98,17 +98,25 @@ For some hardware the official Guix installation image won't do
 nonfree Linux kernel and nonfree firmware with the following command:
 
 #+begin_src sh
+guix system image --image-type=iso9660 /path/to/this/channel/nongnu/system/install.scm
+#+end_src
+
+Like the official Guix installation image, this will produce a read-only image
+with any changes made stored in memory.  As indicated below, you will need to
+run ~guix pull~ to download the Nonguix package descriptions, so will need
+enough memory to hold the cached channel code which can be several hundred
+megabytes.  As an alternative, you can create a writable image with the
+following command:
+
+#+begin_src sh
 guix system image --image-size=7.2GiB /path/to/this/channel/nongnu/system/install.scm
 #+end_src
 
-As indicated bellow, you will need to run ~guix pull~ to download the
-Nonguix package descriptions. Some free space on your USB thumbdrive is
-required for this operation to succeed. The ~--image-size~ option allows
-you to specify the size of the image and, as such, to allocate free space
-to it. The given value is purely indicative. It obviously depends on your
-thumbdrive capacity.
+The ~--image-size~ option allows you to specify the size of the image and, as
+such, to allocate free space to it.  The given value is purely indicative. It
+obviously depends on your thumbdrive capacity.
 
-Then you can write the generated disk image to a USB thumbdrive with:
+Either type of image can be written to a USB thumbdrive with:
 
 #+BEGIN_SRC sh
 # NOTE: This example assumes your thumbdrive is recognized by Linux as /dev/sdb.
