@@ -72,7 +72,7 @@ programs.")
 (define leiningen-jar
   (package
     (name "leiningen-jar")
-    (version "2.9.7")
+    (version "2.9.8")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://github.com/technomancy/leiningen/releases/download/"
@@ -80,7 +80,7 @@ programs.")
               (file-name "leiningen-standalone.jar")
               (sha256
                (base32
-                "00m8xbrfbkv84jncssr3jg86y6k7pc2iamvdpl7bppgcmha19w42"))))
+                "13f4n15i0gsk9jq52gxivnsk32qjahmxgrddm54cf8ynw0a923ia"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
