@@ -19,13 +19,16 @@
 ;;; along with GNU Guix.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (nongnu packages clojure)
+  #:use-module (gnu packages compression)
+  #:use-module (gnu packages gcc)
   #:use-module (gnu packages readline)
-  #:use-module (guix packages)
   #:use-module (guix build-system copy)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system trivial)
   #:use-module (guix download)
   #:use-module (guix git-download)
+  #:use-module (guix packages)
+  #:use-module (nonguix build-system binary)
   #:use-module ((guix licenses) #:prefix license:))
 
 (define-public clojure-tools
@@ -134,3 +137,38 @@ lets you focus on your code.")
                         #t))))))
     (inputs
      `(("leiningen-jar" ,leiningen-jar)))))
+
+(define-public clj-kondo
+ (package
+   (name "clj-kondo")
+   (version "2021.10.19")
+   (source (origin
+             (method url-fetch/zipbomb)
+             (uri (string-append
+                   "https://github.com/clj-kondo/clj-kondo/releases/download/v"
+                   version "/clj-kondo-" version "-linux-amd64.zip"))
+             (sha256
+              (base32
+               "1xiv7waaj2lkfxszaklg59gkkfsrqh39i3a8bj9slq6lg80q7lxs"))))
+   (build-system binary-build-system)
+   (arguments
+    `(#:patchelf-plan
+      '(("clj-kondo" ("gcc:lib" "zlib")))
+      #:install-plan
+      '(("clj-kondo" "/bin/"))
+      #:phases
+      (modify-phases %standard-phases
+         (add-after 'unpack 'chmod
+           (lambda _
+             (chmod "clj-kondo" #o755))))))
+   (native-inputs
+    `(("unzip" ,unzip)))
+   (inputs
+    `(("gcc:lib" ,gcc "lib")
+      ("zlib" ,zlib)))
+   (supported-systems '("x86_64-linux"))
+   (home-page "https://github.com/clj-kondo/clj-kondo")
+   (synopsis  "Linter for Clojure code")
+   (description "Clj-kondo performs static analysis on Clojure, ClojureScript
+and EDN, without the need of a running REPL.")
+   (license license:epl1.0)))
