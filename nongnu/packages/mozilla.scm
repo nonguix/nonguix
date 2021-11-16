@@ -391,7 +391,7 @@
        ("zlib" ,zlib)))
     (native-inputs
      `(("autoconf" ,autoconf-2.13)
-       ("cargo" ,rust-1.51 "cargo")
+       ("cargo" ,rust "cargo")
        ("clang" ,clang-10)
        ("llvm" ,llvm-10)
        ("m4" ,m4)
@@ -400,7 +400,7 @@
        ("perl" ,perl)
        ("pkg-config" ,pkg-config)
        ("python" ,python)
-       ("rust" ,rust-1.51)
+       ("rust" ,rust)
        ("rust-cbindgen" ,rust-cbindgen-0.19)
        ("which" ,which)
        ("yasm" ,yasm)))
