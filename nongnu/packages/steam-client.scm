@@ -3,6 +3,7 @@
 ;;; Copyright © 2020, 2021 ison <ison@airmail.cc>
 ;;; Copyright © 2021 pineapples
 ;;; Copyright © 2021 Jean-Baptiste Volatier <jbv@pm.me>
+;;; Copyright © 2021 Kozo <kozodev@runbox.com>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
