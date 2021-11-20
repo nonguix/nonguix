@@ -449,7 +449,8 @@ integrated graphics chipsets, including GuC, HuC and DMC.")
            ((#:phases phases)
             `(modify-phases ,phases
                (add-after 'unpack 'select-firmware
-                 ,(select-firmware "^(rtlwifi|rtl_nic|rtl_bt)/")))))))
+                 ,(select-firmware
+                   "^(rtlwifi|rtl_nic|rtl_bt|rtw88|rtw89)/")))))))
     (home-page "https://wireless.wiki.kernel.org/en/users/drivers/rtl819x")
     (synopsis "Nonfree firmware for Realtek ethernet, wifi, and bluetooth chips")
     (description
