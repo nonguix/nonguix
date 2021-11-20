@@ -19,6 +19,7 @@
 ;;; Copyright © 2020 Zhu Zihao <all_but_last@163.com>
 ;;; Copyright © 2021 pineapples <guixuser6392@protonmail.com>
 ;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
+;;; Copyright © 2021 John Kehayias <john.kehayias@protonmail.com>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -83,19 +84,19 @@
 
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
-(define %firefox-build-id "20211017000000")
+(define %firefox-build-id "20211120000000")
 
 (define-public firefox
   (package
     (name "firefox")
-    (version "93.0")
+    (version "94.0.2")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "00kiz6hnwmz659cqndpalxhyj4jajd03b7r9hi5jig29b07hi3x7"))))
+        (base32 "0xg596bd6lynycag6f03h4y7hpc49hzsb33y7mwk942l0v4a36w9"))))
     (build-system gnu-build-system)
     (arguments
      `(#:configure-flags
