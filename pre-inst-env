@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# GNU Guix --- Functional package management for GNU
+# Copyright © 2012, 2013, 2014, 2015, 2017, 2018, 2019, 2020 Ludovic Courtès <ludo@gnu.org>
+# Copyright © 2017 Eric Bavier <bavier@cray.com>
+# Copyright © 2021 Jelle Licht <jlicht@fsfe.org>
+#
+# This file is not part of GNU Guix.
+#
+# GNU Guix is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or (at
+# your option) any later version.
+#
+# GNU Guix is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Guix.  If not, see <http://www.gnu.org/licenses/>.
+
+# Usage: ./pre-inst-env COMMAND ARG...
+#
+# Run COMMAND in a pre-installation environment.  Typical use is
+# "./pre-inst-env guix build clojure-tools".
+
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
+# We can also modify GUIX_EXTENSIONS_PATH if we ever need to
+
+GUIX_PACKAGE_PATH="$SCRIPTPATH/guix${GUIX_PACKAGE_PATH:+:}$GUIX_PACKAGE_PATH"
+export GUIX_PACKAGE_PATH
+
+exec "$@"
