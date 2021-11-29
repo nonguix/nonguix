@@ -72,7 +72,7 @@
                 #:rest arguments)
   "Return a bag for NAME."
   (define private-keywords
-    '(#:source #:target #:patchelf #:inputs #:native-inputs))
+    '(#:target #:patchelf #:inputs #:native-inputs))
 
   (and (not target)                               ;XXX: no cross-compilation
        (bag
