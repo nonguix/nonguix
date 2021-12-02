@@ -56,3 +56,27 @@
 in the PinePhone.")
       (home-page "https://megous.com/git/linux-firmware")
       (license (nonfree (string-append "unknown"))))))
+
+(define-public rtl8723bt-firmware
+  (let ((commit "6e8e591e17e207644dfe747e51026967bb1edab5")
+        (revision "1"))
+    (package
+      (name "rtl8723bt-firmware")
+      (version (git-version "0.0.0" revision commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url "https://megous.com/git/linux-firmware")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "19xmkdvlkczc6zgigy8jdbgnp37i6pc03m2cm3gilvzg8m7v18ad"))))
+      (build-system copy-build-system)
+      (arguments
+       `(#:install-plan '(("rtl_bt/rtl8723cs_xx_fw.bin" "lib/firmware/"))))
+      (synopsis "Firmware for the RTL8723BS/CS")
+      (description "This package provides binary firmware for the RTL8723BS/CS
+WiFi/Bluetooth chip in the PinePhone.")
+      (home-page "https://megous.com/git/linux-firmware")
+      (license (nonfree (string-append "unknown"))))))
