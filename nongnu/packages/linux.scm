@@ -10,6 +10,7 @@
 ;;; Copyright © 2021 aerique <aerique@xs4all.nl>
 ;;; Copyright © 2022 Josselin Poiret <dev@jpoiret.xyz>
 ;;; Copyright © 2022 John Kehayias <john.kehayias@protonmail.com>
+;;; Copyright © 2022 Petr Hodina <phodina@protonmail.com>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -47,10 +48,10 @@
   (list (string-append "https://www.kernel.org/pub/linux/kernel/v"
                        (version-major version) ".x/linux-" version ".tar.xz")))
 
-(define (corrupt-linux freedo version hash)
+(define* (corrupt-linux freedo version hash #:key (name "linux"))
   (package
     (inherit freedo)
-    (name "linux")
+    (name name)
     (version version)
     (source (origin
               (method url-fetch)
