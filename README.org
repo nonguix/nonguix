@@ -193,9 +193,40 @@ required, it is recommended to stay with Linux LTS releases:
     ...)
 #+END_SRC
 
-** Avoiding kernel recompilation
+** Substitutes for nonguix
 
-Since prebuilt substitutes are not currently available for Nonguix, you may find
+A Nonguix substitute server is available at [[https://substitutes.nonguix.org]].
+On Guix System, you can add and authorize this URL in the following way:
+#+BEGIN_SRC scheme
+(operating-system
+  (services (modify-services %desktop-services
+             (guix-service-type config => (guix-configuration
+               (inherit config)
+               (substitute-urls
+                (append (list "https://substitutes.nonguix.org")
+                  %default-substitute-urls))
+               (authorized-keys
+                (append (list (local-file "./signing-key.pub"))
+                  %default-authorized-guix-keys))))))
+  ...)
+#+END_SRC
+
+Notice that the URL of the server should be specified without a trailing
+slash.  The file ~signing-key.pub~ should be downloaded directly from
+[[https://substitutes.nonguix.org/signing-key.pub]].
+
+Alternatively, you can use replace ~(local-file "./signing-key.pub")~ by:
+#+BEGIN_SRC scheme
+(plain-file "non-guix.pub"
+            "<contents of signing-key.pub>")
+#+END_SRC
+
+Check out the [[https://guix.gnu.org/manual/en/html_node/Substitutes.html][chapter on substitutes]]
+in the Guix manual for more details.
+
+** Pinning package versions
+
+When using substitutes is not an option, you may find
 that ~guix system reconfigure~ recompiles the kernel frequently due to version
 bumps in the kernel package. An inferior can be used to pin the kernel version
 and avoid lengthy rebuilds.
