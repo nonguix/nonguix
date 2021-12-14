@@ -598,25 +598,15 @@ network adapters.")
   (package
     (name "broadcom-sta")
     (version broadcom-sta-version)
-    (source #f)
+    (source
+     (match (or (%current-target-system) (%current-system))
+       ("x86_64-linux" broadcom-sta-x86_64-source)
+       (_ broadcom-sta-i686-source)))
     (build-system linux-module-build-system)
     (arguments
      `(#:linux ,linux
-       #:tests? #f
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'unpack
-           (lambda* (#:key inputs #:allow-other-keys)
-             (let ((source (assoc-ref inputs "broadcom-sta-source")))
-               (invoke "tar" "xf" source)
-               (chdir ((@@ (guix build gnu-build-system) first-subdirectory) "."))
-               #t))))))
+       #:tests? #f))
     (supported-systems '("i686-linux" "x86_64-linux"))
-    (native-inputs
-     `(("broadcom-sta-source"
-        ,(match (or (%current-target-system) (%current-system))
-           ("x86_64-linux" broadcom-sta-x86_64-source)
-           (_ broadcom-sta-i686-source)))))
     (home-page "https://www.broadcom.com/support/802.11")
     (synopsis "Broadcom 802.11 Linux STA wireless driver")
     (description "This package contains Broadcom's IEEE 802.11a/b/g/n/ac hybrid
