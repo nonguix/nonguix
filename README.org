@@ -215,7 +215,7 @@ Notice that the URL of the server should be specified without a trailing
 slash.  The file ~signing-key.pub~ should be downloaded directly from
 [[https://substitutes.nonguix.org/signing-key.pub]].
 
-Alternatively, you can use replace ~(local-file "./signing-key.pub")~ by:
+Alternatively, you can replace ~(local-file "./signing-key.pub")~ by:
 #+BEGIN_SRC scheme
 (plain-file "non-guix.pub"
             "<contents of signing-key.pub>")
