@@ -54,13 +54,13 @@
 (define-public nvidia-driver
   (package
     (name "nvidia-driver")
-    (version "465.27")
+    (version "470.86")
     (source
      (origin
        (uri (format #f "http://us.download.nvidia.com/XFree86/Linux-x86_64/~a/~a.run"
                     version
                     (format #f "NVIDIA-Linux-x86_64-~a" version)))
-       (sha256 (base32 "0w9ivi4z4j4hvhkimr11mgwrj09v53dy39vfdfmamrnybflgysby"))
+       (sha256 (base32 "0krwcxc0j19vjnk8sv6mx1lin2rm8hcfhc2hg266846jvcws1dsg"))
        (method url-fetch)
        (file-name (string-append "nvidia-driver-" version "-checkout"))))
     (build-system linux-module-build-system)
@@ -216,11 +216,12 @@
                                           #f
                                           (string-match "([^/]*\\.so).*" file)
                                           1))
-                                  (major (if (or (string=? short "libEGL.so")
-                                                 (string=? short "libEGL_nvidia.so")
-                                                 (string=? short "libGLX.so")
-                                                 (string=? short "libGLX_nvidia.so"))
-                                             "0" "1"))
+                                  (major (cond
+                                          ((or (string=? short "libGLX.so")
+                                               (string=? short "libGLX_nvidia.so")
+                                               (string=? short "libEGL_nvidia.so")) "0")
+                                          ((string=? short "libGLESv2.so") "2")
+                                          (else "1")))
                                   (mid (string-append short "." major))
                                   (short-file (string-append libdir "/" short))
                                   (mid-file (string-append libdir "/" mid)))
@@ -274,13 +275,13 @@ Further xorg should be configured by adding:
 (define-public nvidia-libs
   (package
     (name "nvidia-libs")
-    (version "465.27")
+    (version "470.86")
     (source
      (origin
        (uri (format #f "http://us.download.nvidia.com/XFree86/Linux-x86_64/~a/~a.run"
                     version
                     (format #f "NVIDIA-Linux-x86_64-~a" version)))
-       (sha256 (base32 "0w9ivi4z4j4hvhkimr11mgwrj09v53dy39vfdfmamrnybflgysby"))
+       (sha256 (base32 "0krwcxc0j19vjnk8sv6mx1lin2rm8hcfhc2hg266846jvcws1dsg"))
        (method url-fetch)
        (file-name (string-append "nvidia-driver-" version "-checkout"))))
     (build-system copy-build-system)
@@ -344,11 +345,12 @@ Further xorg should be configured by adding:
 
                                           (string-match "([^/]*\\.so).*" file)
                                           1))
-                                  (major (if (or (string=? short "libEGL.so")
-                                                 (string=? short "libEGL_nvidia.so")
-                                                 (string=? short "libGLX.so")
-                                                 (string=? short "libGLX_nvidia.so"))
-                                             "0" "1"))
+                                  (major (cond
+                                          ((or (string=? short "libGLX.so")
+                                               (string=? short "libGLX_nvidia.so")
+                                               (string=? short "libEGL_nvidia.so")) "0")
+                                          ((string=? short "libGLESv2.so") "2")
+                                          (else "1")))
                                   (mid (string-append short "." major))
                                   (short-file (string-append libdir "/" short))
                                   (mid-file (string-append libdir "/" mid)))
