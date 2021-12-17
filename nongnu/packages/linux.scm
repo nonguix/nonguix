@@ -544,6 +544,8 @@ package contains nonfree firmware for the following chips:
       (synopsis "Linux driver for Realtek RTL8192EU wireless network adapters")
       (description "This is Realtek's RTL8192EU Linux driver for wireless
 network adapters.")
+      ;; Rejected by Guix beause it contains a binary blob in:
+      ;; hal/rtl8192e/hal8192e_fw.c
       (license gpl2))))
 
 (define broadcom-sta-version "6.30.223.271")
