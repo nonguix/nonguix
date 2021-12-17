@@ -29,7 +29,7 @@
 (define-public compcert
   (package
     (name "compcert")
-    (version "3.9")
+    (version "3.10")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -38,7 +38,7 @@
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1srcz2dqrvmbvv5cl66r34zqkm0hsbryk7gd3i9xx4slahc9zvdb"))))
+                "19rmx8r8v46101ij5myfrz60arqjy7q3ra3fb8mxqqi3c8c4l4j6"))))
     (build-system gnu-build-system)
     (arguments
      `(#:phases
