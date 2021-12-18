@@ -27,7 +27,7 @@
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages icu4c)
   #:use-module (gnu packages kerberos)
-  #:use-module (gnu packages linux)
+  #:use-module (gnu packages instrumentation)
   #:use-module (gnu packages tls))
 
 (define-public omnisharp
