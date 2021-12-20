@@ -4,6 +4,7 @@
 ;;; Copyright © 2021 pineapples
 ;;; Copyright © 2021 Jean-Baptiste Volatier <jbv@pm.me>
 ;;; Copyright © 2021 Kozo <kozodev@runbox.com>
+;;; Copyright © 2021 John Kehayias <john.kehayias@protonmail.com>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -52,26 +53,35 @@
 (define-module (nongnu packages steam-client)
   #:use-module ((nonguix licenses) #:prefix license:)
   #:use-module (guix gexp)
+  #:use-module (guix utils)
   #:use-module (guix packages)
   #:use-module (guix records)
   #:use-module (guix download)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system trivial)
   #:use-module (guix transformations)
+  #:use-module (gnu packages)
   #:use-module (gnu packages audio)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
   #:use-module (gnu packages certs)
   #:use-module (gnu packages compression)
+  #:use-module (gnu packages elf)
   #:use-module (gnu packages file)
   #:use-module (gnu packages fonts)
   #:use-module (gnu packages fontutils)
+  #:use-module (gnu packages freedesktop)
   #:use-module (gnu packages gawk)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages gl)
   #:use-module (gnu packages glib)
+  #:use-module (gnu packages gnome)
+  #:use-module (gnu packages libbsd)
+  #:use-module (gnu packages libusb)
   #:use-module (gnu packages linux)
+  #:use-module (gnu packages llvm)
   #:use-module (nongnu packages nvidia)
+  #:use-module (gnu packages pciutils)
   #:use-module (gnu packages pulseaudio)
   #:use-module (gnu packages python)
   #:use-module (nonguix utils))
@@ -103,7 +113,7 @@
 (define steam-client
   (package
     (name "steam-client")
-    (version "1.0.0.61")
+    (version "1.0.0.74")
     (source
      (origin
        (method url-fetch)
@@ -111,32 +121,27 @@
                            version ".tar.gz"))
        (sha256
         (base32
-         "0c5xy57gwr14vp3wy3jpqi5dl6y7n01p2dy4jlgl9bf9x7616r6n"))
+         "0d52n6ifsc3ix3w1qw02yg6w0vddhnfmi2wdnvdfhhgmg21kpvdh"))
        (file-name (string-append name "-" version ".tar.gz"))))
     (build-system gnu-build-system)
     (arguments
-     `(#:tests? #f
+     `(#:tests? #f ; There are no tests.
+       #:validate-runpath? #f ; Looks for bin/steam which doesn't exist.
        #:make-flags
        (list "PREFIX=" (string-append "DESTDIR=" (assoc-ref %outputs "out")))
        #:phases
        (modify-phases %standard-phases
-         (replace 'configure
+         (delete 'configure)
+         ;; Patch Makefile so it creates links to the store rather than /lib.
+         (add-after 'unpack 'patch-makefile
            (lambda _
-             (mkdir-p "bootstrap-temp")
-             (invoke "tar" "xfa" "bootstraplinux_ubuntu12_32.tar.xz"
-                     "-C" "bootstrap-temp")
-             (substitute* "bootstrap-temp/steam.sh"
-               (("export LD_LIBRARY_PATH=\"")
-                "export LD_LIBRARY_PATH=\"${LD_LIBRARY_PATH-}:"))
-             (substitute* "bootstrap-temp/ubuntu12_32/steam-runtime/run.sh"
-               (("^export LD_LIBRARY_PATH=.*")
-                "export LD_LIBRARY_PATH=\"${LD_LIBRARY_PATH-}:$steam_runtime_library_paths\""))
-             (invoke "tar" "cfJ" "bootstraplinux_ubuntu12_32.tar.xz" "-C" "bootstrap-temp"
-                     "linux32" "ubuntu12_32" "steam.sh" "steamdeps.txt")
-             (delete-file-recursively "bootstrap-temp")))
+             (substitute* "Makefile"
+               (("-fns ")
+                "-fns $(DESTDIR)"))))
+         (delete 'patch-dot-desktop-files)
          (add-after 'unpack 'patch-startscript
            (lambda _
-             (substitute* "steam"
+             (substitute* "bin_steam.sh"
                (("/usr") (assoc-ref %outputs "out")))))
          (add-after 'patch-dot-desktop-files 'patch-desktop-file
            (lambda _
@@ -153,35 +158,26 @@
          (add-after 'install-binaries 'post-install
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((out (assoc-ref %outputs "out")))
-               ;; Steamdeps installs missing packages, which doesn't work with Guix.
-               (delete-file (string-append out "/bin/steamdeps"))
-               (wrap-program (string-append out "/bin/steam")
-                 '("LD_LIBRARY_PATH" prefix
-                   ("/lib"
-                    "/lib/alsa-lib"
-                    "/lib/dri"
-                    "/lib/nss"
-                    "/lib/vdpau"
-                    "/lib64"
-                    "/lib64/alsa-lib"
-                    "/lib64/dri"
-                    "/lib64/nss"
-                    "/lib64/vdpau"
-                    "$HOME/.local/share/Steam/ubuntu12_32/steam-runtime/lib/x86_64-linux-gnu")))
-               ;; .steam-real will fail unless it is renamed to exactly "steam".
-               (rename-file (string-append out "/bin/steam")
-                            (string-append out "/bin/steam-wrapper"))
-               (rename-file (string-append out "/bin/.steam-real")
-                            (string-append out "/bin/steam"))
-               (substitute* (string-append out "/bin/steam-wrapper")
-                 (("\\.steam-real") "steam"))))))))
+               (delete-file (string-append out "/lib/steam/bin_steamdeps.py"))
+               (delete-file (string-append out "/bin/steamdeps"))))))))
     (home-page "https://store.steampowered.com")
     (synopsis "Digital distribution platform for managing and playing games")
     (description "Steam is a digital software distribution platform created by Valve.")
     (license (license:nonfree "file:///share/doc/steam/steam_subscriber_agreement.txt"))))
 
+(define glibc-for-fhs
+  (package
+    (inherit glibc)
+    (name "glibc-for-fhs")
+    (source (origin (inherit (package-source glibc))
+                    ;; Remove Guix's patch to read ld.so.cache from /gnu/store
+                    ;; directories, re-enabling the default /etc/ld.so.cache
+                    ;; behavior.
+                    (patches (delete (car (search-patches "glibc-dl-cache.patch"))
+                                     (origin-patches (package-source glibc))))))))
+
 (define fhs-min-libs
-  `(("glibc" ,glibc)
+  `(("glibc" ,glibc-for-fhs)
     ("glibc-locales" ,glibc-locales)))
 
 (define steam-client-libs
@@ -189,18 +185,31 @@
     ("coreutils" ,coreutils)
     ("diffutils" ,diffutils)
     ("dbus-glib" ,dbus-glib)            ; Required for steam browser.
+    ("elfutils" ,elfutils)              ; Required for capturing library dependencies in pv.
+    ("eudev" ,eudev)                    ; Required for steamwebhelper/heavy runtime.
     ("fontconfig" ,fontconfig)          ; Required for steam client.
     ("file" ,file)                      ; Used for steam installation.
+    ("find" ,findutils)                 ; Required at least for some logging.
     ("freetype" ,freetype)              ; Required for steam login.
     ("gawk" ,gawk)
     ("gcc:lib" ,gcc "lib")              ; Required for steam startup.
     ("grep" ,grep)
+    ("libbsd" ,libbsd)
+    ("libcap" ,libcap)                  ; Required for SteamVR, but needs pkexec too.
+    ("libusb" ,libusb)                  ; Required for SteamVR.
+    ("llvm" ,llvm-11)                   ; Required for mesa.
     ("mesa" ,mesa)                      ; Required for steam startup.
     ("nss-certs" ,nss-certs)            ; Required for steam login.
+    ("pciutils" ,pciutils)              ; Tries to run lspci at steam startup.
+    ("procps" ,procps)
     ("sed" ,sed)
     ("tar" ,tar)
+    ("usbutils" ,usbutils)              ; Required for SteamVR.
     ("util-linux" ,util-linux)          ; Required for steam login.
-    ("xz" ,xz)))
+    ("wayland" ,wayland)                ; Required for mesa vulkan (e.g. libvulkan_radeon).
+    ("xdg-utils" ,xdg-utils)
+    ("xz" ,xz)
+    ("zenity" ,zenity)))                ; Required for progress dialogs.
 
 (define steam-gameruntime-libs
   `(("alsa-lib" ,alsa-lib)              ; Required for audio in most games.
@@ -235,6 +244,65 @@
     (synopsis "Libraries used for FHS")
     (description "Libraries needed to build a guix container FHS.")
     (license #f)))
+
+(define (ld.so.conf->ld.so.cache ld-conf)
+  "Create a ld.so.cache file-like object from an ld.so.conf file."
+  (computed-file
+   "ld.so.cache"
+   (with-imported-modules
+       `((guix build utils))
+     #~(begin
+         (use-modules (guix build utils))
+         (let ((ldconfig (string-append #$glibc "/sbin/ldconfig")))
+           (invoke ldconfig
+                   "-X"                 ; Don't update symbolic links.
+                   "-f" #$ld-conf       ; Use #$ld-conf as configuration file.
+                   "-C" #$output))))))  ; Use #$output as cache file.
+
+(define (packages->ld.so.conf packages)
+  "Takes a list of package objects and returns a file-like object for ld.so.conf
+in the Guix store"
+  (computed-file
+   "ld.so.conf"
+   (with-imported-modules
+       `((guix build union)
+         (guix build utils))
+     #~(begin
+         (use-modules (guix build union)
+                      (guix build utils))
+         ;; Need to quote "#$packages" as #$packages tries to "apply" the first item to the rest, like a procedure.
+         (let* ((packages '#$packages)
+                ;; Add "/lib" to each package.
+                ;; TODO Make this more general for other needed directories.
+                (dirs-lib
+                 (lambda (packages)
+                   (map (lambda (package)
+                          (string-append package "/lib"))
+                        packages)))
+                (fhs-lib-dirs
+                 (dirs-lib packages)))
+           (call-with-output-file #$output
+               (lambda (port)
+                 (for-each (lambda (directory)
+                             (display directory port)
+                             (newline port))
+                           fhs-lib-dirs)))
+           #$output)))))
+
+(define steam-ld.so.conf
+  (packages->ld.so.conf
+   (list (fhs-union `(,@steam-client-libs
+                      ,@steam-gameruntime-libs
+                      ,@fhs-min-libs)
+                    #:name "fhs-union-64")
+         (fhs-union `(,@steam-client-libs
+                      ,@steam-gameruntime-libs
+                      ,@fhs-min-libs)
+                    #:name "fhs-union-32"
+                    #:system "i686-linux"))))
+
+(define steam-ld.so.cache
+  (ld.so.conf->ld.so.cache steam-ld.so.conf))
 
 (define (nonguix-container->package container)
   "Return a package with wrapper script to launch the supplied container object
@@ -325,6 +393,7 @@ in a sandboxed FHS environment."
                 (preserved-env '("^DBUS_"
                                  "^DISPLAY$"
                                  "^DRI_PRIME$"
+                                 "^PRESSURE_VESSEL_" ; For pressure vessel options.
                                  "_PROXY$"
                                  "_proxy$"
                                  "^SDL_"
@@ -333,18 +402,33 @@ in a sandboxed FHS environment."
                                  ;; Matching all ^XDG_ vars causes issues
                                  ;; discussed in 80decf05.
                                  "^XDG_DATA_HOME$"
-                                 "^XDG_RUNTIME_DIR$"))
-                (expose `("/dev/dri"
+                                 "^XDG_RUNTIME_DIR$"
+                                 ;; The following are useful for debugging.
+                                 "^CAPSULE_DEBUG$"
+                                 "^G_MESSAGES_DEBUG$"
+                                 "^LD_DEBUG$"
+                                 "^LIBGL_DEBUG$"))
+                (expose `("/dev/bus/usb" ; Needed for libusb.
+                          "/dev/dri"
                           "/dev/input"  ; Needed for controller input.
-                          ,@(exists-> "/etc/machine-id")
-                          "/sys/class/input" ; Needed for controller input.
-                          "/sys/dev"
                           ,@(exists-> "/dev/nvidia0") ; needed for nvidia proprietary driver
                           ,@(exists-> "/dev/nvidiactl")
                           ,@(exists-> "/dev/nvidia-modeset")
+                          ,@(exists-> "/etc/machine-id")
+                          "/sys/class/hidraw" ; Needed for devices like the Valve Index.
+                          "/sys/class/input" ; Needed for controller input.
+                          "/sys/dev"
                           "/sys/devices"
                           ,@(exists-> "/var/run/dbus")))
-                (share `("/dev/shm"
+                ;; /dev/hidraw is needed for SteamVR to access the HMD, although here we
+                ;; share all hidraw devices. Instead we could filter to only share specific
+                ;; device. See, for example, this script:
+                ;; https://arvchristos.github.io/post/matching-dev-hidraw-devices-with-physical-devices/
+                (share `(,@(find-files "/dev" "hidraw")
+                         "/dev/shm"
+                         ;; "/tmp/.X11-unix" is needed for bwrap, and "/tmp" more generally
+                         ;; for writing things like crash dumps and "steam_chrome_shm".
+                         "/tmp"
                          ,(string-append sandbox-home "=" home)
                          ,@(exists-> (string-append home "/.config/pulse"))
                          ,@(exists-> (string-append xdg-runtime "/pulse"))
@@ -354,6 +438,11 @@ in a sandboxed FHS environment."
                 (args (cdr (command-line)))
                 (command (if DEBUG '()
                              `("--" ,run ,@args))))
+           ;; TODO: Remove once upstream change is merged and in stable pressure-vessel
+           ;; (although may want to hold off for anyone using older pressure-vessel versions
+           ;; for whatever reason), see:
+           ;; https://gitlab.steamos.cloud/steamrt/steam-runtime-tools/-/merge_requests/406
+           (setenv "PRESSURE_VESSEL_FILESYSTEMS_RO" "/gnu/store")
            (format #t "\n* Launching ~a in sandbox: ~a.\n\n"
                    #$(package-name (ngc-wrap-package container)) sandbox-home)
            (when DEBUG
@@ -441,7 +530,13 @@ environment.")
   "Return an fhs-internal script which is used to perform additional steps to
 set up the environment inside an FHS container before launching the desired
 application."
-  (let* ((pkg (ngc-wrap-package container))
+  ;; The ld cache is not created inside the container, meaning the paths it
+  ;; contains are directly to /gnu/store/. Instead, it could be generated with
+  ;; a generic ld.so.conf and result in paths more typical in an FHS distro,
+  ;; like /lib within the container. This may be useful for future compatibility.
+  (let* ((ld.so.conf steam-ld.so.conf)
+         (ld.so.cache steam-ld.so.cache)
+         (pkg (ngc-wrap-package container))
          (run (ngc-run container)))
     (program-file
      (ngc-internal-name container)
@@ -468,6 +563,8 @@ application."
            (let* ((guix-env (getenv "GUIX_ENVIRONMENT"))
                   (union64 #$(file-append (ngc-union64 container)))
                   (union32 #$(file-append (ngc-union32 container)))
+                  (ld.so.conf #$(file-append ld.so.conf))
+                  (ld.so.cache #$(file-append ld.so.cache))
                   (all-args (cdr (command-line)))
                   (fhs-args (member "--" all-args))
                   (steam-args (if fhs-args
@@ -480,22 +577,24 @@ application."
               '("/run/current-system/profile/etc"
                 "/run/current-system/profile/share"
                 "/sbin"
-                "/usr/bin"
                 "/usr/share/vulkan/icd.d"))
              (for-each
               new-symlink
-              `(((,guix-env "etc/ssl") . "/etc/ssl")
+              `((,ld.so.cache . "/etc/ld.so.cache")
+                (,ld.so.conf . "/etc/ld.so.conf") ;; needed?
+                ((,guix-env "etc/ssl") . "/etc/ssl")
                 ((,guix-env "etc/ssl") . "/run/current-system/profile/etc/ssl")
                 ((,union32 "lib") . "/lib")
                 ((,union32 "lib") . "/run/current-system/profile/lib")
                 ((,union64 "bin") . "/bin")
-                ((,union64 "bin/env") . "/usr/bin/env")
+                ((,union64 "bin") . "/usr/bin") ; Steam hardcodes some paths like xdg-open.
                 ((,union64 "lib") . "/lib64")
                 ((,union64 "lib") . "/run/current-system/profile/lib64")
                 ((,union64 "lib/locale") . "/run/current-system/locale")
                 ((,union64 "sbin/ldconfig") . "/sbin/ldconfig")
                 ((,union64 "share/drirc.d") . "/usr/share/drirc.d")
                 ((,union64 "share/fonts") . "/run/current-system/profile/share/fonts")
+                ((,union64 "etc/fonts") . "/etc/fonts")
                 ((,union64 "share/vulkan/explicit_layer.d") .
                  "/usr/share/vulkan/explicit_layer.d")))
              (for-each
@@ -504,8 +603,13 @@ application."
                               #:directories? #t)
                 ,@(find-files (string-append union64 "/share/vulkan/icd.d")
                               #:directories? #t)))
+             ;; TODO: Is this the right place for this?
+             ;; Newer versions of Steam won't startup if they can't copy to here
+             ;; (previous would output this error but continue).
+             (if (file-exists? ".steam/root/bootstrap.tar.xz")
+                 (chmod ".steam/root/bootstrap.tar.xz" #o644))
 
-             ;; Process FHS-specific command line options
+             ;; Process FHS-specific command line options.
              (let* ((options (getopt-long (or fhs-args '("")) fhs-option-spec))
                     (asound32-opt (option-ref options 'asound32 #f))
                     (asound-lib (if asound32-opt "lib" "lib64")))
@@ -545,7 +649,7 @@ ctl.!default {
    (nonguix-container
     (name "steam")
     (wrap-package steam-client)
-    (run "/bin/steam-wrapper")
+    (run "/bin/steam")
     (union64
      (fhs-union `(,@steam-client-libs
                   ,@steam-gameruntime-libs
@@ -569,7 +673,7 @@ all games will be installed."))))
    (nonguix-container
     (name "steam-nvidia")
     (wrap-package steam-client)
-    (run "/bin/steam-wrapper")
+    (run "/bin/steam")
     (union64
      (replace-mesa
       (fhs-union `(,@steam-client-libs
