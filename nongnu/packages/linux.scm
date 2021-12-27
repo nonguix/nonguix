@@ -6,6 +6,8 @@
 ;;; Copyright © 2020, 2021 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2021 Mathieu Othacehe <m.othacehe@gmail.com>
 ;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
+;;; Copyright © 2021 Risto Stevcev <me@risto.codes>
+;;; Copyright © 2021 aerique <aerique@xs4all.nl>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -783,42 +785,21 @@ documented in the respective processor revision guides.")
 (define-public sof-firmware
   (package
     (name "sof-firmware")
-    (version "1.6.1")
+    (version "1.7")
     (source
      (origin
        (method git-fetch)
        (uri (git-reference
              (url "https://github.com/thesofproject/sof-bin")
-             (commit (string-append "stable-v" version))))
+             (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1zg5fki8skmmx84p4ws8x2m13bm13fb3kvlhz7zsnmdg6ra06az6"))))
+        (base32 "1fb4rxgg3haxqg2gcm89g7af6v0a0h83c1ar2fyfa8h8pcf7hik7"))))
     (build-system copy-build-system)
     (arguments
      `(#:install-plan
-       (let* ((base
-               (string-append "lib/firmware/intel/sof/v" ,version))
-              (dest "lib/firmware/intel/sof")
-              (tplg
-               (string-append "lib/firmware/intel/sof-tplg-v" ,version))
-              (dest-tplg "lib/firmware/intel/sof-tplg")
-              (fw-file (lambda* (file #:optional subdir)
-                         (list (string-append base "/"
-                                              (or subdir "")
-                                              file "-v" ,version ".ri")
-                               (string-append dest "/" file ".ri"))))
-              (unsigned fw-file)
-              (intel-signed (lambda (file)
-                              (fw-file file "intel-signed/"))))
-         (list (unsigned "sof-bdw")
-               (unsigned "sof-byt")
-               (unsigned "sof-cht")
-               (intel-signed "sof-apl")
-               (intel-signed "sof-cnl")
-               (intel-signed "sof-ehl")
-               (intel-signed "sof-icl")
-               (intel-signed "sof-tgl")
-               (list tplg dest-tplg)))))
+       (list (list (string-append "sof-v" ,version) "lib/firmware/intel/sof")
+             (list (string-append "sof-tplg-v" ,version) "lib/firmware/intel/sof-tplg"))))
     (home-page "https://www.sofproject.org")
     (synopsis "Sound Open Firmware")
     (description "This package contains Linux firmwares and topology files for
