@@ -3,7 +3,7 @@
 ;;; Copyright © 2019 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2019 Timotej Lazar <timotej.lazar@araneo.si>
 ;;; Copyright © 2020, 2021 James Smith <jsubuntuxp@disroot.org>
-;;; Copyright © 2020, 2021 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2020, 2021, 2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2021 Mathieu Othacehe <m.othacehe@gmail.com>
 ;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
 ;;; Copyright © 2021 Risto Stevcev <me@risto.codes>
@@ -65,8 +65,8 @@ System on hardware which requires nonfree software to function.")))
                  "182iwy2288layl2290cxla0k6y436lxlx43yaa8par325dviksbx"))
 
 (define-public linux-5.10
-  (corrupt-linux linux-libre-5.10 "5.10.88"
-                 "1sv8j34k75xpbdgyddhlszlgn74fbj0girgixz7v18l2qfv331kg"))
+  (corrupt-linux linux-libre-5.10 "5.10.89"
+                 "0c5v8fsv9sazdmdw4m1canm54x2p8777yavxq2gcpw8q98d8n8cj"))
 
 (define-public linux-5.4
   (corrupt-linux linux-libre-5.4 "5.4.145"
