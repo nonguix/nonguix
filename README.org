@@ -221,6 +221,17 @@ Alternatively, you can replace ~(local-file "./signing-key.pub")~ by:
             "<contents of signing-key.pub>")
 #+END_SRC
 
+Guix System will only use the substitution server after it has been
+reconfigured.  The substitution server will therefore by default not
+be used the first time you run ~guix system reconfigure~ after adding
+the substitution server.  It is therefore recommended to explicitly
+specify the use of the substitution server the first time
+you reconfigure your system:
+#+BEGIN_SRC sh
+sudo guix archive --authorize < signing-key.pub
+sudo guix system reconfigure /etc/config.scm --substitute-urls='https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org'
+#+END_SRC
+
 Check out the [[https://guix.gnu.org/manual/en/html_node/Substitutes.html][chapter on substitutes]]
 in the Guix manual for more details.
 
