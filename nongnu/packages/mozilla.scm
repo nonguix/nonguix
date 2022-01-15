@@ -14,7 +14,7 @@
 ;;; Copyright © 2020 Oleg Pykhalov <go.wigust@gmail.com>
 ;;; Copyright © 2020 Jakub Kądziołka <kuba@kadziolka.net>
 ;;; Copyright © 2019, 2020 Adrian Malacoda <malacoda@monarch-pass.net>
-;;; Copyright © 2020, 2021 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2020-2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2020 Zhu Zihao <all_but_last@163.com>
 ;;; Copyright © 2021 pineapples <guixuser6392@protonmail.com>
 ;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
@@ -83,19 +83,19 @@
 
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
-(define %firefox-build-id "20211219000000")
+(define %firefox-build-id "20220111000000")
 
 (define-public firefox
   (package
     (name "firefox")
-    (version "95.0.2")
+    (version "96.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "0r2dwymgrv25yz8jlsgdmmxs77880dp9r859val3kgbr37vcny61"))))
+        (base32 "1h30g34mrkx1dlad8iszr7npmym6r2bw89pd9xsf53w3mla35c5l"))))
     (build-system gnu-build-system)
     (arguments
      `(#:configure-flags
@@ -362,7 +362,7 @@
        ("gtk+" ,gtk+)
        ("gtk+-2" ,gtk+-2)
        ("hunspell" ,hunspell)
-       ("icu4c" ,icu4c)
+       ("icu4c" ,icu4c-70)
        ("jemalloc" ,jemalloc)
        ("libcanberra" ,libcanberra)
        ("libevent" ,libevent)
