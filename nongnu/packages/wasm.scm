@@ -22,8 +22,10 @@
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module (guix utils)
   #:use-module (guix git-download)
+  #:use-module (guix build-system cmake)
   #:use-module (guix build-system gnu)
-  #:use-module (gnu packages llvm))
+  #:use-module (gnu packages llvm)
+  #:use-module (gnu packages python))
 
 (define-public wasi-libc
   (let ((commit "ad5133410f66b93a2381db5b542aad5e0964db96")
@@ -132,3 +134,76 @@ other APIs.")
          ((#:phases phases)
           `(modify-phases ,phases
              (delete 'symlink-cfi_ignorelist))))))))
+
+(define-public wasm32-wasi-libcxx
+  (package
+    (name "wasm32-wasi-libcxx")
+    (version "13.0.0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/llvm/llvm-project")
+             (commit (string-append "llvmorg-" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "0cjl0vssi4y2g4nfr710fb6cdhxmn5r0vis15sf088zsc5zydfhw"))))
+    (build-system cmake-build-system)
+    (arguments
+     (list
+      #:configure-flags
+      #~(list (string-append "-S ../source/runtimes")
+
+              "-DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi"
+
+              (string-append
+               "-DCMAKE_SYSROOT=" #$wasi-libc "/wasm32-wasi")
+
+              (string-append
+               "-DCMAKE_INCLUDE_PATH=" #$wasi-libc "/wasm32-wasi/include")
+
+              (string-append
+               "-DCMAKE_STAGING_PREFIX=" #$output "/wasm32-wasi")
+
+              "-DCMAKE_C_COMPILER=clang"
+              "-DCMAKE_C_COMPILER_WORKS=ON"
+              "-DCMAKE_CXX_COMPILER=clang++"
+              "-DCMAKE_CXX_COMPILER_WORKS=ON"
+              "-DCMAKE_C_COMPILER_TARGET=wasm32-wasi"
+              "-DCMAKE_CXX_COMPILER_TARGET=wasm32-wasi"
+
+              "-DLIBCXX_LIBDIR_SUFFIX=/wasm32-wasi"
+
+              "-DLIBCXX_ENABLE_EXCEPTIONS=OFF"
+              "-DLIBCXX_ENABLE_SHARED=OFF"
+              "-DLIBCXX_ENABLE_THREADS=OFF"
+              "-DLIBCXX_ENABLE_FILESYSTEM=OFF"
+
+              "-DLIBCXXABI_LIBDIR_SUFFIX=/wasm32-wasi"
+
+              "-DLIBCXXABI_ENABLE_EXCEPTIONS=OFF"
+              "-DLIBCXXABI_ENABLE_SHARED=OFF"
+              "-DLIBCXXABI_ENABLE_THREADS=OFF"
+              "-DLIBCXXABI_ENABLE_FILESYSTEM=OFF")
+      #:tests? #f
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-after 'set-paths 'adjust-CPLUS_INCLUDE_PATH
+            (lambda _
+              (setenv "CPLUS_INCLUDE_PATH"
+                      (string-append #$wasi-libc "/wasm32-wasi/include:"
+                                     (getenv "CPLUS_INCLUDE_PATH"))))))))
+    (native-inputs
+     (list lld
+           python
+           wasm32-wasi-clang))
+    (inputs
+     (list wasi-libc))
+    (home-page "https://libcxx.llvm.org")
+    (synopsis "C++ standard library for WebAssembly")
+    (description
+     "This package provides an implementation of the C++ standard library for
+use with Clang, targeting C++11, C++14 and above.  This package targets
+WebAssembly with WASI.")
+    (license license:expat)))
