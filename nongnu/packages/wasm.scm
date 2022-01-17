@@ -72,3 +72,35 @@ other APIs.")
                 license:bsd-2
                 ;; For wasi-libc and musl-libc.
                 license:expat)))))
+
+(define-public wasm32-wasi-clang-runtime
+  (package (inherit clang-runtime-13)
+    (native-inputs
+     (list clang-13
+           wasi-libc))
+    (inputs (list llvm-13))
+    (arguments
+     (list
+      #:build-type "Release"
+      #:tests? #f
+      ;; Stripping binaries breaks wasm linking, resulting in the following
+      ;; error: "archive has no index; run ranlib to add one".
+      #:strip-binaries? #f
+      #:configure-flags
+      #~(list "-DCMAKE_C_COMPILER=clang"
+              "-DCMAKE_C_COMPILER_TARGET=wasm32-wasi"
+              (string-append
+               "-DCMAKE_SYSROOT=" #$wasi-libc "/wasm32-wasi")
+              (string-append
+               "-DCMAKE_C_FLAGS=-I " #$wasi-libc "/wasm32-wasi/include")
+
+              "-DCOMPILER_RT_OS_DIR=wasi"
+
+              "-DCOMPILER_RT_BAREMETAL_BUILD=On"
+              "-DCOMPILER_RT_DEFAULT_TARGET_ONLY=On"
+
+              ;; WASM only needs libclang_rt.builtins-wasm32.a from
+              ;; compiler-rt.
+              (string-append "../compiler-rt-"
+                             #$(package-version clang-runtime-13)
+                             ".src/lib/builtins"))))))
