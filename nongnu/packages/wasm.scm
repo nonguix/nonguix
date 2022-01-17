@@ -24,6 +24,8 @@
   #:use-module (guix git-download)
   #:use-module (guix build-system cmake)
   #:use-module (guix build-system gnu)
+  #:use-module (guix build-system trivial)
+  #:use-module (gnu packages bash)
   #:use-module (gnu packages llvm)
   #:use-module (gnu packages python))
 
@@ -207,3 +209,65 @@ other APIs.")
 use with Clang, targeting C++11, C++14 and above.  This package targets
 WebAssembly with WASI.")
     (license license:expat)))
+
+(define-public wasm32-wasi-clang-toolchain
+  (package
+    (name "wasm32-wasi-clang-toolchain")
+    (version (package-version wasm32-wasi-clang))
+    (source #f)
+    (build-system trivial-build-system)
+    (arguments
+     (list
+      #:builder
+      (with-imported-modules '((guix build union)
+                               (guix build utils))
+        #~(begin
+            (use-modules (guix build union)
+                         (guix build utils))
+            (union-build #$output
+                         (list #$wasm32-wasi-clang-runtime
+                               #$wasi-libc
+                               #$wasm32-wasi-libcxx))
+            (mkdir-p (string-append #$output "/bin"))
+
+            ;; We provide clang and clang++ via a wrapped program that sets
+            ;; include paths correctly so that it does not include paths from
+            ;; the host.
+
+            ;; FIXME: Review how we can provide better support for
+            ;; cross-compiling with clang in Guix, maybe adding support for
+            ;; the CROSS_C_INCLUDE_PATH and CROSS_CPLUS_INCLUDE_PATH
+            ;; environment variables like GCC.
+
+            (for-each
+             (lambda (bin)
+               (symlink (string-append #$wasm32-wasi-clang bin)
+                        (string-append #$output bin))
+               (wrap-program (string-append #$output bin)
+                 #:sh (string-append #$bash-minimal "/bin/bash")
+                 `("C_INCLUDE_PATH" ":" =
+                   (,(string-append #$output "/wasm32-wasi/include")))
+                 `("CPLUS_INCLUDE_PATH" ":" =
+                   ;; Make sure inclure/c++/v1 comes first for #include_next
+                   ;; to work.
+                   (,(string-append #$output "/wasm32-wasi/include/c++/v1")
+                    ,(string-append #$output "/wasm32-wasi/include")))))
+             '("/bin/clang" "/bin/clang++"))
+
+            (symlink (string-append #$lld "/bin/wasm-ld")
+                     (string-append #$output "/bin/wasm-ld"))))))
+    (inputs
+     (list bash-minimal
+           lld
+           wasi-libc
+           wasm32-wasi-clang
+           wasm32-wasi-clang-runtime
+           wasm32-wasi-libcxx))
+    (license (cons
+              (package-license wasm32-wasi-clang)
+              (package-license wasi-libc)))
+    (home-page "https://clang.llvm.org")
+    (synopsis "Complete Clang toolchain for C/C++ development, for WebAssembly.")
+    (description "This package provides a complete Clang toolchain for C/C++
+development targeting WebAssembly with WASI.  This includes Clang, as well as
+libc, libc++ and wasm-ld.")))
