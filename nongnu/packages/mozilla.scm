@@ -19,6 +19,7 @@
 ;;; Copyright © 2021 pineapples <guixuser6392@protonmail.com>
 ;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
 ;;; Copyright © 2021 John Kehayias <john.kehayias@protonmail.com>
+;;; Copyright © 2022 Pierre Langlois <pierre.langlois@gmx.com>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -78,6 +79,7 @@
   #:use-module (gnu packages rust-apps)
   #:use-module (gnu packages sqlite)
   #:use-module (gnu packages video)
+  #:use-module (nongnu packages wasm)
   #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xorg))
 
@@ -99,7 +101,9 @@
     (build-system gnu-build-system)
     (arguments
      `(#:configure-flags
-       (let ((clang (assoc-ref %build-inputs "clang")))
+       (let ((clang (assoc-ref %build-inputs "clang"))
+             (wasi-sysroot (assoc-ref %build-inputs
+                                      "wasm32-wasi-clang-toolchain")))
          `("--enable-application=browser"
 
            ;; Configuration
@@ -119,6 +123,7 @@
                            clang "/bin/clang")
            ,(string-append "--with-libclang-path="
                            clang "/lib")
+           ,(string-append "--with-wasi-sysroot=" wasi-sysroot "/wasm32-wasi")
 
            ;; Distribution
            "--with-distribution-id=org.nonguix"
@@ -129,8 +134,6 @@
            "--disable-updater"
            "--enable-pulseaudio"
            "--disable-crashreporter"
-           ;; TODO: requires some work
-           "--without-wasm-sandboxed-libraries"
 
            ;; Build details
            "--disable-debug"
@@ -230,6 +233,14 @@
              (setenv "NM" "llvm-nm")
              (setenv "CC" "clang")
              (setenv "CXX" "clang++")
+             (setenv "WASM_CC"
+                     (string-append
+                      (assoc-ref inputs "wasm32-wasi-clang-toolchain")
+                      "/bin/clang"))
+             (setenv "WASM_CXX"
+                     (string-append
+                      (assoc-ref inputs "wasm32-wasi-clang-toolchain")
+                      "/bin/clang++"))
 
              (setenv "MOZ_NOSPAM" "1")
              ;; Firefox will write the timestamp to output, which is harmful for
@@ -396,6 +407,7 @@
        ("cargo" ,rust "cargo")
        ("clang" ,clang-10)
        ("llvm" ,llvm-10)
+       ("wasm32-wasi-clang-toolchain" ,wasm32-wasi-clang-toolchain)
        ("m4" ,m4)
        ("nasm" ,nasm)
        ("node" ,node)
