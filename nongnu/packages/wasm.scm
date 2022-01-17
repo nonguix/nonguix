@@ -20,6 +20,7 @@
   #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module ((guix licenses) #:prefix license:)
+  #:use-module (guix utils)
   #:use-module (guix git-download)
   #:use-module (guix build-system gnu)
   #:use-module (gnu packages llvm))
@@ -104,3 +105,30 @@ other APIs.")
               (string-append "../compiler-rt-"
                              #$(package-version clang-runtime-13)
                              ".src/lib/builtins"))))))
+
+;; FIXME: Ideally we wouldn't need to build a separate compiler because clang
+;; can support multiple targets at runtime.  However Guix patches the default
+;; clang with a specific clang-runtime package.  It would be good to improve
+;; upstream Guix's support for cross-compiling with clang.
+
+(define clang-from-llvm (@@ (gnu packages llvm) clang-from-llvm))
+
+(define-public wasm32-wasi-clang
+  (let ((base (clang-from-llvm llvm-13 wasm32-wasi-clang-runtime
+                               "0zp1p6syii5iajm8v2c207s80arv00yz5ckfwimn5dng0sxiqqax")))
+    (package (inherit base)
+      (name "wasm32-wasi-clang")
+      (inputs
+       (modify-inputs (package-inputs base)
+         (prepend wasi-libc)))
+      (arguments
+       (substitute-keyword-arguments (package-arguments base)
+         ((#:configure-flags flags)
+          #~(list "-DCLANG_INCLUDE_TESTS=True"
+                  ;; Use a sane default include directory.
+                  (string-append "-DC_INCLUDE_DIRS="
+                                 #$wasi-libc
+                                 "/wasm32-wasi/include")))
+         ((#:phases phases)
+          `(modify-phases ,phases
+             (delete 'symlink-cfi_ignorelist))))))))
