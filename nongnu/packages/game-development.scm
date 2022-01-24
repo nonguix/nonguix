@@ -1,5 +1,6 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2019, 2020 Pierre Neidhardt <mail@ambrevar.xyz>
+;;; Copyright © 2022 Attila Lendvai <attila@lendvai.name>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -147,12 +148,10 @@ development should opt for GLSL rather than Cg.")
     (supported-systems '("i686-linux" "x86_64-linux"))
     (arguments
      `(#:system "i686-linux"
-       #:validate-runpath? #f           ; TODO: Why doesn't it pass?
        #:patchelf-plan
-       `(("libsteam_api.so"
-          ("gcc:lib")))
+       `(("libsteam_api.so" ("gcc" "glibc")))
        #:install-plan
-       `(("." ("steam") "lib/"))
+       `(("libsteam_api.so" "lib/"))
        #:phases
        (modify-phases %standard-phases
          (replace 'unpack
@@ -167,7 +166,7 @@ development should opt for GLSL rather than Cg.")
                         (string-append out "/lib/libsteam_api.so.1")))
              #t)))))
     (inputs
-     `(("gcc:lib" ,gcc "lib")))
+     (list (list gcc "lib") glibc))
     (home-page "https://developer.valvesoftware.com/wiki/SDK2013_GettingStarted")
     (synopsis "Redistribution binary needed by some video games")
     (description "")
