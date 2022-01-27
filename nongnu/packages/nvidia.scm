@@ -4,6 +4,7 @@
 ;;; Copyright © 2020, 2021 Jean-Baptiste Volatier <jbv@pm.me>
 ;;; Copyright © 2020, 2021 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2021 Pierre Langlois <pierre.langlois@gmx.com>
+;;; Copyright © 2022 Petr Hodina <phodina@protonmail.com>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -23,7 +24,9 @@
 (define-module (nongnu packages nvidia)
   #:use-module (guix packages)
   #:use-module (guix download)
+  #:use-module (guix git-download)
   #:use-module (guix utils)
+  #:use-module ((guix licenses) #:prefix license-gnu:)
   #:use-module ((nonguix licenses) #:prefix license:)
   #:use-module (guix build-system linux-module)
   #:use-module (guix build-system copy)
@@ -40,8 +43,11 @@
   #:use-module (gnu packages glib)
   #:use-module (gnu packages gtk)
   #:use-module (gnu packages linux)
+  #:use-module (gnu packages m4)
   #:use-module (gnu packages perl)
+  #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages python)
+  #:use-module (gnu packages video)
   #:use-module (gnu packages xorg)
   #:use-module (nongnu packages linux)
   #:use-module (ice-9 match)
@@ -397,6 +403,56 @@ with the ones usually provided by Mesa.  To use these libraries with
 packages that have been compiled with a mesa output, take a look at the nvda
 package.")
     (license (license:nonfree (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
+
+(define-public nvidia-settings
+  (package
+    (name "nvidia-settings")
+    (version "470.86")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/NVIDIA/nvidia-settings")
+                    (commit version)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "1lnj5hwmfkzs664fxlhljqy323394s1i7qzlpsjyrpm07sa93bky"))))
+    (build-system gnu-build-system)
+    (arguments
+     `(#:tests? #f ;no test suite
+       #:make-flags
+       (list (string-append "PREFIX=" %output)
+             (string-append "CC="
+                            ,(cc-for-target)))
+       #:phases
+       (modify-phases %standard-phases
+         (delete 'configure)
+         ;; nvidia-settings loads the libraries,libnvidia-gkt{2,3}.so at runtime
+         (add-after 'install 'wrap-program
+           (lambda* (#:key outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out")))
+               (wrap-program (string-append out "/bin/nvidia-settings")
+                             `("LD_LIBRARY_PATH" ":" prefix
+                               (,(string-append out "/lib/"))))))))))
+    (native-inputs (list m4
+                         pkg-config))
+    (inputs (list bash-minimal
+                  dbus
+                  glu
+                  gtk+
+                  gtk+-2
+                  libvdpau
+                  libx11
+                  libxext
+                  libxrandr
+                  libxv
+                  libxxf86vm))
+    (synopsis "Nvidia driver control panel")
+    (description
+     "This package provides Nvidia driver control panel for monitor
+configuration, creating application profiles, gpu monitoring and more.")
+    (home-page "https://github.com/NVIDIA/nvidia-settings")
+    (license license-gnu:gpl2)))
 
 ;; nvda is used as a name because it has the same length as mesa which is
 ;; required for grafting
