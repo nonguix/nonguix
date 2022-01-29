@@ -25,6 +25,7 @@
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
   #:use-module (gnu packages bootstrap)
+  #:use-module (gnu packages check)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages elf)
   #:use-module (gnu packages freedesktop)
@@ -39,6 +40,8 @@
   #:use-module (gnu packages perl)
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages python)
+  #:use-module (gnu packages python-xyz)
+  #:use-module (gnu packages terminals)
   #:use-module (gnu packages video)
   #:use-module (gnu packages web)
   #:use-module (gnu packages xdisorg)
@@ -96,6 +99,29 @@
              version "/NVIDIA-Linux-x86_64-" version ".run"))
        (sha256
         (base32 "0i5zyvlsjnfkpfqhw6pklp0ws8nndyiwxrg4pj04jpwnxf6a38n6"))))))
+
+(define-public gpustat
+  (package
+    (name "gpustat")
+    (version "1.0.0")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "gpustat" version))
+              (sha256
+               (base32
+                "1wg3yikkqdrcxp5xscyb9rxifgfwv7qh73xv4airab63b3w8y7jq"))))
+    (build-system python-build-system)
+    (arguments
+     '(#:tests? #f))
+    (propagated-inputs (list python-blessed python-nvidia-ml-py python-psutil
+                             python-six))
+    (native-inputs (list python-mock python-pytest python-pytest-runner))
+    (home-page "https://github.com/wookayin/gpustat")
+    (synopsis "Utility to monitor NVIDIA GPU status and usage")
+    (description
+     "This package provides an utility to monitor NVIDIA GPU status
+and usage.")
+    (license license-gnu:expat)))
 
 (define-public python-nvidia-ml-py
   (package
