@@ -150,6 +150,34 @@ and usage.")
 Management Library")
     (license license-gnu:bsd-3)))
 
+(define-public nvidia-htop
+  (package
+    (name "nvidia-htop")
+    (version "1.0.5")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "nvidia-htop" version))
+              (sha256
+               (base32
+                "0lv9cpccpkbg0d577irm1lp9rx6pacyk2pk9v41k9s9hyl4b7hvx"))))
+    (build-system python-build-system)
+    (arguments
+     (list #:phases #~(modify-phases %standard-phases
+                        (add-after 'unpack 'fix-libnvidia
+                          (lambda _
+                            (substitute* "nvidia-htop.py"
+                              (("nvidia-smi")
+                               (string-append #$(this-package-input
+                                                 "nvidia-driver")
+                                              "/bin/nvidia-smi"))))))))
+    (inputs (list nvidia-driver))
+    (propagated-inputs (list python-termcolor))
+    (home-page "https://github.com/peci1/nvidia-htop")
+    (synopsis "Tool to enrich the output of nvidia-smi")
+    (description "This package provides tool for enriching the output of
+nvidia-smi.")
+    (license license-gnu:bsd-3)))
+
 (define-public nvidia-driver
   (package
     (name "nvidia-driver")
