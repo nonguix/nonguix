@@ -1,0 +1,49 @@
+From 247336c8dd10e59fc1f9aa53415c3ff58f60f3de Mon Sep 17 00:00:00 2001
+From: John Kehayias <john.kehayias@protonmail.com>
+Date: Sun, 23 Jan 2022 14:36:27 -0500
+Subject: [PATCH] nongnu: steam: Work around profile collision.
+
+* nongnu/packages/steam-client.scm (fontconfig-fixed): New variable.
+(steam-client-libs): Use it.
+---
+ nongnu/packages/steam-client.scm | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/nongnu/packages/steam-client.scm b/nongnu/packages/steam-client.scm
+index e25d897..90d626f 100644
+--- a/nongnu/packages/steam-client.scm
++++ b/nongnu/packages/steam-client.scm
+@@ -176,6 +176,20 @@
+                     (patches (delete (car (search-patches "glibc-dl-cache.patch"))
+                                      (origin-patches (package-source glibc))))))))
+ 
++;; After guix commit to add a replacement for expat (security fixes),
++;; https://git.savannah.gnu.org/cgit/guix.git/commit/?id=2045852b096131a714409aa0cc4fe17938f60b15
++;; a profile collision happens with the propagated expat (now grafted) from
++;; fontconfig.  See upstream report https://issues.guix.gnu.org/53406
++;; So we define a fontconfig variation that explicitly does the expat replacement
++;; which works around this bug for now, at the cost of building fontconfig.
++;; TODO: remove once upstream bug is fixed
++(define fontconfig-fixed
++  (package
++    (inherit fontconfig)
++    (propagated-inputs
++     (modify-inputs (package-propagated-inputs fontconfig)
++       (replace "expat" (@@ (gnu packages xml) expat/fixed))))))
++
+ (define fhs-min-libs
+   `(("glibc" ,glibc-for-fhs)
+     ("glibc-locales" ,glibc-locales)))
+@@ -187,7 +201,8 @@
+     ("dbus-glib" ,dbus-glib)            ; Required for steam browser.
+     ("elfutils" ,elfutils)              ; Required for capturing library dependencies in pv.
+     ("eudev" ,eudev)                    ; Required for steamwebhelper/heavy runtime.
+-    ("fontconfig" ,fontconfig)          ; Required for steam client.
++    ;; TODO: set back to ,fontconfig once https://issues.guix.gnu.org/53406 is fixed
++    ("fontconfig" ,fontconfig-fixed)    ; Required for steam client.
+     ("file" ,file)                      ; Used for steam installation.
+     ("find" ,findutils)                 ; Required at least for some logging.
+     ("freetype" ,freetype)              ; Required for steam login.
+-- 
+GitLab
+
