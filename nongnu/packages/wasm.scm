@@ -17,6 +17,7 @@
 ;;; along with GNU Guix.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (nongnu packages wasm)
+  #:use-module (guix base32)
   #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module ((guix licenses) #:prefix license:)
@@ -119,7 +120,9 @@ other APIs.")
 
 (define-public wasm32-wasi-clang
   (let ((base (clang-from-llvm llvm-13 wasm32-wasi-clang-runtime
-                               "0zp1p6syii5iajm8v2c207s80arv00yz5ckfwimn5dng0sxiqqax")))
+                               (bytevector->nix-base32-string
+                                (content-hash-value
+                                 (origin-hash (package-source clang-13)))))))
     (package (inherit base)
       (name "wasm32-wasi-clang")
       (inputs
