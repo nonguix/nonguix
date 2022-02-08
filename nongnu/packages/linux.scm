@@ -8,6 +8,7 @@
 ;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
 ;;; Copyright © 2021 Risto Stevcev <me@risto.codes>
 ;;; Copyright © 2021 aerique <aerique@xs4all.nl>
+;;; Copyright © 2022 Josselin Poiret <dev@jpoiret.xyz>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -417,6 +418,26 @@ support for 5GHz and 802.11ac, among others.")
      (nonfree (string-append
                "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
                "/linux-firmware.git/plain/LICENCE.iwlwifi_firmware")))))
+
+(define-public i915-firmware
+  (package
+    (inherit linux-firmware)
+    (name "i915-firmware")
+    (arguments
+     `(#:license-file-regexp "LICENCE.i915"
+       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
+           ((#:phases phases)
+            `(modify-phases ,phases
+               (add-after 'unpack 'select-firmware
+                 ,(select-firmware "^i915/")))))))
+    (home-page "https://01.org/linuxgraphics/gfx-docs/drm/gpu/i915.html")
+    (synopsis "Nonfree firmware for Intel integrated graphics")
+    (description "This package contains the various firmware for Intel
+integrated graphics chipsets, including GuC, HuC and DMC.")
+    (license
+     (nonfree (string-append
+               "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+               "/linux-firmware.git/plain/LICENCE.i915")))))
 
 (define-public realtek-firmware
   (package
