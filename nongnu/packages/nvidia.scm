@@ -238,6 +238,7 @@
                (symlink ,(string-append "libglxserver_nvidia.so." version)
                         (string-append out "/lib/xorg/modules/extensions/" "libglxserver_nvidia.so")))
              #t)))))
+    (supported-systems '("x86_64-linux"))
     (native-inputs
      `(("patchelf" ,patchelf)
        ("perl" ,perl)
