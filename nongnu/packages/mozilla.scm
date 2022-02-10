@@ -85,19 +85,19 @@
 
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
-(define %firefox-build-id "20220120000000")
+(define %firefox-build-id "20220208000000")
 
 (define-public firefox
   (package
     (name "firefox")
-    (version "96.0.2")
+    (version "97.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "1f0sldnn3rqmvc248qdr5ik0sb1pkvry05byv5p8x9vrj7x2lbfk"))))
+        (base32 "0a6z94kwgycgis4mgl13dh52kw7zmsya2qpxhcrh6b8j8z5pv2kc"))))
     (build-system gnu-build-system)
     (arguments
      `(#:configure-flags
@@ -403,10 +403,11 @@
        ("zip" ,zip)
        ("zlib" ,zlib)))
     (native-inputs
-     `(("autoconf" ,autoconf-2.13)
+     `(("alsa-lib" ,alsa-lib)
+       ("autoconf" ,autoconf-2.13)
        ("cargo" ,rust "cargo")
-       ("clang" ,clang-10)
-       ("llvm" ,llvm-10)
+       ("clang" ,clang-12)
+       ("llvm" ,llvm-12)
        ("wasm32-wasi-clang-toolchain" ,wasm32-wasi-clang-toolchain)
        ("m4" ,m4)
        ("nasm" ,nasm)
