@@ -332,7 +332,9 @@
                  (("^Exec=firefox") (string-append "Exec=" out "/bin/firefox"))
                  (("Icon=.*") "Icon=firefox\n")
                  (("NewWindow") "new-window")
-                 (("NewPrivateWindow") "new-private-window"))
+                 (("NewPrivateWindow") "new-private-window")
+                 (("StartupNotify=true")
+                  "StartupNotify=true\nStartupWMClass=Navigator"))
                (install-file desktop-file applications))
              #t))
          (add-after 'install-desktop-entry 'install-icons
