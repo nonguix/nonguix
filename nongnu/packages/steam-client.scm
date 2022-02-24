@@ -430,6 +430,7 @@ in a sandboxed FHS environment."
                           ,@(exists-> "/dev/nvidiactl")
                           ,@(exists-> "/dev/nvidia-modeset")
                           ,@(exists-> "/etc/machine-id")
+                          "/etc/localtime" ; Needed for correct time zone.
                           "/sys/class/hidraw" ; Needed for devices like the Valve Index.
                           "/sys/class/input" ; Needed for controller input.
                           "/sys/dev"
