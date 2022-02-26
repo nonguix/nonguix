@@ -301,20 +301,23 @@
             (lambda* (#:key inputs outputs #:allow-other-keys)
               (let* ((out (assoc-ref outputs "out"))
                      (lib (string-append out "/lib"))
-                     (ld-libs
-                      (map (lambda (x)
-                             (string-append (assoc-ref inputs x)
-                                            "/lib"))
-                           '("pulseaudio" "mesa"
-                             "udev" ;; For U2F and WebAuthn
-                             ;; For hardware video acceleration via VA-API
-                             "libva"
-                             ;; For the integration of native notifications
-                             "libnotify")))
+                     ;; TODO: make me a loop again
+                     (mesa-lib (string-append (assoc-ref inputs "mesa") "/lib"))
+                     ;; For the integration of native notifications
+                     (libnotify-lib (string-append (assoc-ref inputs "libnotify")
+                                                   "/lib"))
+                     ;; For hardware video acceleration via VA-API
+                     (libva-lib (string-append (assoc-ref inputs "libva")
+                                               "/lib"))
+                     (pulseaudio-lib (string-append (assoc-ref inputs "pulseaudio")
+                                                    "/lib"))
+                     ;; For U2F and WebAuthn
+                     (eudev-lib (string-append (assoc-ref inputs "eudev") "/lib"))
                      (gtk-share (string-append (assoc-ref inputs "gtk+")
                                                "/share")))
                 (wrap-program (car (find-files lib "^firefox$"))
-                  `("LD_LIBRARY_PATH" prefix ,ld-libs)
+                  `("LD_LIBRARY_PATH" prefix (,mesa-lib ,libnotify-lib ,libva-lib
+                                              ,pulseaudio-lib ,eudev-lib))
                   `("XDG_DATA_DIRS" prefix (,gtk-share))
                   `("MOZ_LEGACY_PROFILES" = ("1"))
                   `("MOZ_ALLOW_DOWNGRADE" = ("1"))))))
@@ -355,63 +358,65 @@
       ;; Some dynamic lib was determined at runtime, so rpath check may fail.
       #:validate-runpath? #f))
     (inputs
-     `(("bzip2" ,bzip2)
-       ("cairo" ,cairo)
-       ("cups" ,cups)
-       ("dbus-glib" ,dbus-glib)
-       ("freetype" ,freetype)
-       ("ffmpeg" ,ffmpeg)
-       ("gdk-pixbuf" ,gdk-pixbuf)
-       ("glib" ,glib)
-       ("gtk+" ,gtk+)
-       ("gtk+-2" ,gtk+-2)
-       ("hunspell" ,hunspell)
-       ("icu4c" ,icu4c-70)
-       ("jemalloc" ,jemalloc)
-       ("libcanberra" ,libcanberra)
-       ("libevent" ,libevent)
-       ("libffi" ,libffi)
-       ("libgnome" ,libgnome)
-       ("libjpeg-turbo" ,libjpeg-turbo)
-       ("libnotify" ,libnotify)
-       ;; ("libpng-apng" ,libpng-apng)
-       ("libva" ,libva)
-       ("libvpx" ,libvpx)
-       ("libxcomposite" ,libxcomposite)
-       ("libxft" ,libxft)
-       ("libxinerama" ,libxinerama)
-       ("libxscrnsaver" ,libxscrnsaver)
-       ("libxt" ,libxt)
-       ("mesa" ,mesa)
-       ("mit-krb5" ,mit-krb5)
-       ;; ("nspr" ,nspr)
-       ;; ("nss" ,nss)
-       ("pango" ,pango)
-       ("pixman" ,pixman)
-       ("pulseaudio" ,pulseaudio)
-       ("startup-notification" ,startup-notification)
-       ("sqlite" ,sqlite)
-       ("udev" ,eudev)
-       ("unzip" ,unzip)
-       ("zip" ,zip)
-       ("zlib" ,zlib)))
+      (list
+        bzip2
+        cairo
+        cups
+        dbus-glib
+        freetype
+        ffmpeg
+        gdk-pixbuf
+        glib
+        gtk+
+        gtk+-2
+        hunspell
+        icu4c-70
+        jemalloc
+        libcanberra
+        libevent
+        libffi
+        libgnome
+        libjpeg-turbo
+        libnotify
+        ;; libpng-apng
+        libva
+        libvpx
+        libxcomposite
+        libxft
+        libxinerama
+        libxscrnsaver
+        libxt
+        mesa
+        mit-krb5
+        ;; nspr
+        ;; nss
+        pango
+        pixman
+        pulseaudio
+        startup-notification
+        sqlite
+        eudev
+        unzip
+        zip
+        zlib))
     (native-inputs
-     `(("alsa-lib" ,alsa-lib)
-       ("autoconf" ,autoconf-2.13)
-       ("cargo" ,rust "cargo")
-       ("clang" ,clang-12)
-       ("llvm" ,llvm-12)
-       ("wasm32-wasi-clang-toolchain" ,wasm32-wasi-clang-toolchain)
-       ("m4" ,m4)
-       ("nasm" ,nasm)
-       ("node" ,node)
-       ("perl" ,perl)
-       ("pkg-config" ,pkg-config)
-       ("python" ,python)
-       ("rust" ,rust)
-       ("rust-cbindgen" ,rust-cbindgen-0.19)
-       ("which" ,which)
-       ("yasm" ,yasm)))
+      (list
+        alsa-lib
+        autoconf-2.13
+        `(,rust "cargo")
+        clang-12
+        llvm-12
+        wasm32-wasi-clang-toolchain
+        m4
+        nasm
+        node
+        perl
+        pkg-config
+        python
+        rust
+        rust-cbindgen-0.19
+        which
+        yasm))
     (home-page "https://mozilla.org/firefox/")
     (synopsis "Trademarkless version of Firefox")
     (description
