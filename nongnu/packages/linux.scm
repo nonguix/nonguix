@@ -174,16 +174,30 @@ advanced 3D.")))
 (define-public raspberrypi-firmware
 (package
   (name "raspberrypi-firmware")
-  (version "1.20210527")
+  (version "1.20211118")
   (source (origin
             (method git-fetch)
             (uri (git-reference
                   (url "https://github.com/raspberrypi/firmware")
                   (commit version)))
+            (modules '((guix build utils)
+                       (ice-9 ftw)
+                       (srfi srfi-26)))
+            (snippet
+             '(begin
+                (for-each (lambda (name)
+                            (delete-file-recursively name))
+                          `("documentation" "extra" ".github" "hardfp" "modules" "opt" "README.md"
+                            ,@(map (lambda (name)
+                                     (string-append "boot/" name))
+                                   (scandir "boot" (cut (file-name-predicate "^(kernel.*|COPYING\\.linux)$") <> #f)))))))
             (file-name (git-file-name name version))
             (sha256
              (base32
-              "08lgg90k6lhqm3ccg7db0lrrng0pgf63dvbrxpfpwm1pswrc5vf5"))))
+              "0ahkb50c61vlwlai4mvkf0kzz0afbh23xkx1y6vx6d56iw80ps4b"))))
+    (arguments
+     '(#:install-plan
+       '(("boot/" "."))))
   (build-system copy-build-system)
   (synopsis "Firmware for the Raspberry Pi boards")
   (description "Pre-compiled binaries of the current Raspberry Pi kernel
