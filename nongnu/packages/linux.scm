@@ -174,7 +174,7 @@ advanced 3D.")))
 (define-public raspberrypi-firmware
 (package
   (name "raspberrypi-firmware")
-  (version "1.20211118")
+  (version "1.20220120")
   (source (origin
             (method git-fetch)
             (uri (git-reference
@@ -194,7 +194,7 @@ advanced 3D.")))
             (file-name (git-file-name name version))
             (sha256
              (base32
-              "0ahkb50c61vlwlai4mvkf0kzz0afbh23xkx1y6vx6d56iw80ps4b"))))
+              "0s75fw4n83bkh78xh5rdgpiyp1bkvv1v18pawl4cs9v4gjkn6pi2"))))
     (arguments
      '(#:install-plan
        '(("boot/" "."))))
