@@ -76,14 +76,17 @@
   #:use-module (gnu packages gl)
   #:use-module (gnu packages glib)
   #:use-module (gnu packages gnome)
+  #:use-module (gnu packages graphics)
   #:use-module (gnu packages libbsd)
   #:use-module (gnu packages libusb)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages llvm)
+  #:use-module (gnu packages logging)
   #:use-module (nongnu packages nvidia)
   #:use-module (gnu packages pciutils)
   #:use-module (gnu packages pulseaudio)
   #:use-module (gnu packages python)
+  #:use-module (gnu packages toolkits)
   #:use-module (nonguix utils))
 
 (define-record-type* <nonguix-container>
@@ -231,9 +234,12 @@
     ("alsa-plugins:pulseaudio" ,alsa-plugins "pulseaudio") ; Required for audio in most games.
     ("font-dejavu" ,font-dejavu)
     ("font-liberation" ,font-liberation)
+    ("imgui" ,imgui-1.86)               ; Required for MangoHud.
+    ("mangohud" ,mangohud)
     ("openal" ,openal)                  ; Prevents corrupt audio in Crypt of the Necrodancer.
     ("pulseaudio" ,pulseaudio)          ; Prevents corrupt audio in Sven Coop.
-    ("python" ,python)))                ; Required for KillingFloor2 and Wreckfest.
+    ("python" ,python)                  ; Required for KillingFloor2 and Wreckfest.
+    ("spdlog" ,spdlog)))                ; Required for MangoHud.
 
 (define* (fhs-union inputs #:key (name "fhs-union") (version "0.0") (system "x86_64-linux"))
   "Create a package housing the union of inputs."
@@ -431,8 +437,11 @@ in a sandboxed FHS environment."
                           ,@(exists-> "/dev/nvidia-modeset")
                           ,@(exists-> "/etc/machine-id")
                           "/etc/localtime" ; Needed for correct time zone.
+                          "/sys/class/drm" ; Needed for hw monitoring like MangoHud.
+                          "/sys/class/hwmon" ; Needed for hw monitoring like MangoHud.
                           "/sys/class/hidraw" ; Needed for devices like the Valve Index.
                           "/sys/class/input" ; Needed for controller input.
+                          ,@(exists-> "/sys/class/powercap") ; Needed for power monitoring like MangoHud.
                           "/sys/dev"
                           "/sys/devices"
                           ,@(exists-> "/var/run/dbus")))
@@ -593,7 +602,8 @@ application."
               '("/run/current-system/profile/etc"
                 "/run/current-system/profile/share"
                 "/sbin"
-                "/usr/share/vulkan/icd.d"))
+                "/usr/share/vulkan/icd.d"
+                "/usr/share/vulkan/implicit_layer.d")) ; Implicit layers like MangoHud
              (for-each
               new-symlink
               `((,ld.so.cache . "/etc/ld.so.cache")
@@ -612,13 +622,20 @@ application."
                 ((,union64 "share/fonts") . "/run/current-system/profile/share/fonts")
                 ((,union64 "etc/fonts") . "/etc/fonts")
                 ((,union64 "share/vulkan/explicit_layer.d") .
-                 "/usr/share/vulkan/explicit_layer.d")))
+                 "/usr/share/vulkan/explicit_layer.d")
+                ;; The MangoHud layer has the same file name for 64- and 32-bit,
+                ;; so create links with different names.
+                ((,union64 "share/vulkan/implicit_layer.d/MangoHud.json") .
+                 "/usr/share/vulkan/implicit_layer.d/MangoHud.json")
+                ((,union32 "share/vulkan/implicit_layer.d/MangoHud.json") .
+                 "/usr/share/vulkan/implicit_layer.d/MangoHud.x86.json")))
              (for-each
               icd-symlink
+              ;; Use stat to follow links from packages like MangoHud.
               `(,@(find-files (string-append union32 "/share/vulkan/icd.d")
-                              #:directories? #t)
+                              #:directories? #t #:stat stat)
                 ,@(find-files (string-append union64 "/share/vulkan/icd.d")
-                              #:directories? #t)))
+                              #:directories? #t #:stat stat)))
              ;; TODO: Is this the right place for this?
              ;; Newer versions of Steam won't startup if they can't copy to here
              ;; (previous would output this error but continue).
