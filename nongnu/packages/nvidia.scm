@@ -18,6 +18,7 @@
   #:use-module ((guix licenses) #:prefix license-gnu:)
   #:use-module ((nonguix licenses) #:prefix license:)
   #:use-module (guix build-system linux-module)
+  #:use-module (guix build-system cmake)
   #:use-module (guix build-system copy)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system python)
@@ -41,6 +42,8 @@
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages python)
   #:use-module (gnu packages python-xyz)
+  #:use-module (gnu packages python-web)
+  #:use-module (gnu packages qt)
   #:use-module (gnu packages terminals)
   #:use-module (gnu packages video)
   #:use-module (gnu packages web)
@@ -573,6 +576,48 @@ userspace tools from the corresponding driver release.")
 configuration, creating application profiles, gpu monitoring and more.")
     (home-page "https://github.com/NVIDIA/nvidia-settings")
     (license license-gnu:gpl2)))
+
+(define-public nvidia-system-monitor
+  (package
+    (name "nvidia-system-monitor")
+    (version "1.5")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/congard/nvidia-system-monitor-qt")
+                    (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "0aghdqljvjmc02g9jpc7sb3yhha738ywny51riska56hkxd3jg2l"))))
+    (build-system cmake-build-system)
+    (arguments
+     (list #:tests? #f
+           #:phases #~(modify-phases %standard-phases
+                        (add-after 'unpack 'fix-nvidia-smi
+                          (lambda _
+                            (let ((nvidia-smi (string-append #$(this-package-input
+                                                                "nvidia-driver")
+                                               "/bin/nvidia-smi")))
+                              (substitute* "src/core/InfoProvider.cpp"
+                                (("nvidia-smi")
+                                 nvidia-smi))
+                              (substitute* "src/main.cpp"
+                                (("which nvidia-smi")
+                                 (string-append "which " nvidia-smi))
+                                (("exec..nvidia-smi")
+                                 (string-append "exec(\"" nvidia-smi))))))
+                        (replace 'install
+                          (lambda* (#:key outputs #:allow-other-keys)
+                            (let ((bin (string-append #$output "/bin")))
+                              (mkdir-p bin)
+                              (install-file "qnvsm" bin)))))))
+    (inputs (list qtbase-5 qtdeclarative-5 nvidia-driver))
+    (home-page "https://github.com/congard/nvidia-system-monitor-qt")
+    (synopsis "Task manager for Nvidia graphics cards")
+    (description
+     "This package provides a task manager for Nvidia graphics cards.")
+    (license license-gnu:expat)))
 
 ;; nvda is used as a name because it has the same length as mesa which is
 ;; required for grafting
