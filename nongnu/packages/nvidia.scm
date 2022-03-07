@@ -57,10 +57,12 @@
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1))
 
+(define nvidia-version "470.86")
+
 (define-public nvidia-driver
   (package
     (name "nvidia-driver")
-    (version "470.86")
+    (version nvidia-version)
     (source
      (origin
        (uri (format #f "http://us.download.nvidia.com/XFree86/Linux-x86_64/~a/~a.run"
@@ -282,7 +284,7 @@ Further xorg should be configured by adding:
 (define-public nvidia-libs
   (package
     (name "nvidia-libs")
-    (version "470.86")
+    (version nvidia-version)
     (source
      (origin
        (uri (format #f "http://us.download.nvidia.com/XFree86/Linux-x86_64/~a/~a.run"
@@ -407,7 +409,7 @@ package.")
 (define-public nvidia-settings
   (package
     (name "nvidia-settings")
-    (version "470.86")
+    (version nvidia-version)
     (source (origin
               (method git-fetch)
               (uri (git-reference
