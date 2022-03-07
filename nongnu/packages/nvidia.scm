@@ -205,8 +205,7 @@
                                     (string-append #$cairo "/lib")
                                     (string-append #$gdk-pixbuf "/lib")
                                     (string-append #$wayland "/lib")
-                                    ; TODO: Replace this assoc-ref
-                                    (string-append (assoc-ref inputs "gcc:lib") "/lib"))
+                                    (string-append #$gcc:lib "/lib"))
                               ":")))
                  (define (patch-elf file)
                    (format #t "Patching ~a ...~%" file)
@@ -250,29 +249,31 @@
                         (string-append #$output "/lib/xorg/modules/extensions/" "libglxserver_nvidia.so"))))))))
     (supported-systems '("x86_64-linux"))
     (native-inputs
-     `(("patchelf" ,patchelf)
-       ("perl" ,perl)
-       ("python" ,python-2)
-       ("which" ,which)
-       ("xz" ,xz)))
+     (list
+       patchelf
+       perl
+       python-2
+       which
+       xz))
     (inputs
-     `(("atk" ,atk)
-       ("bash-minimal" ,bash-minimal)
-       ("cairo" ,cairo)
-       ("coreutils" ,coreutils)
-       ("gcc:lib" ,gcc "lib")
-       ("gdk-pixbuf" ,gdk-pixbuf)
-       ("glib" ,glib)
-       ("grep" ,grep)
-       ("gtk+" ,gtk+)
-       ("gtk2" ,gtk+-2)
-       ("kmod" ,kmod)
-       ("libc" ,glibc)
-       ("libx11" ,libx11)
-       ("libxext" ,libxext)
-       ("linux" ,linux-lts)
-       ("pango" ,pango)
-       ("wayland" ,wayland)))
+     (list
+       atk
+       bash-minimal
+       cairo
+       coreutils
+       `(,gcc "lib")
+       gdk-pixbuf
+       glib
+       grep
+       gtk+
+       gtk+-2
+       kmod
+       glibc
+       libx11
+       libxext
+       linux-lts
+       pango
+       wayland))
     (home-page "https://www.nvidia.com")
     (synopsis "Proprietary Nvidia driver")
     (description "This is the evil Nvidia driver.  Don't forget to add
@@ -328,11 +329,11 @@ Further xorg should be configured by adding:
                                     (string-append libc "/lib")
                                     (string-append (assoc-ref inputs "atk") "/lib")
                                     (string-append (assoc-ref inputs "cairo") "/lib")
-                                    (string-append (assoc-ref inputs "gcc:lib") "/lib")
+                                    (string-append (assoc-ref inputs "gcc") "/lib")
                                     (string-append (assoc-ref inputs "gdk-pixbuf") "/lib")
                                     (string-append (assoc-ref inputs "glib") "/lib")
-                                    (string-append (assoc-ref inputs "gtk+") "/lib")
-                                    (string-append (assoc-ref inputs "gtk2") "/lib")
+                                    (string-append (assoc-ref inputs gtk+) "/lib")
+                                    (string-append (assoc-ref inputs gtk2+-) "/lib")
                                     (string-append (assoc-ref inputs "libx11") "/lib")
                                     (string-append (assoc-ref inputs "libxext") "/lib")
                                     (string-append (assoc-ref inputs "pango") "/lib")
