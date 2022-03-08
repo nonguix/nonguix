@@ -86,19 +86,19 @@
 
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
-(define %firefox-build-id "20220208000000")
+(define %firefox-build-id "20220308000000")
 
 (define-public firefox
   (package
     (name "firefox")
-    (version "97.0")
+    (version "98.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "0a6z94kwgycgis4mgl13dh52kw7zmsya2qpxhcrh6b8j8z5pv2kc"))))
+        (base32 "1pglnq657vxz6ywlqhl8a6a24x4vkzwv0zk60rbh9n87s08lq2px"))))
     (build-system gnu-build-system)
     (arguments
      (list
