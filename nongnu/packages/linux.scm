@@ -9,6 +9,7 @@
 ;;; Copyright © 2021 Risto Stevcev <me@risto.codes>
 ;;; Copyright © 2021 aerique <aerique@xs4all.nl>
 ;;; Copyright © 2022 Josselin Poiret <dev@jpoiret.xyz>
+;;; Copyright © 2022 John Kehayias <john.kehayias@protonmail.com>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -60,6 +61,10 @@
     (description
      "The unmodified Linux kernel, including nonfree blobs, for running Guix
 System on hardware which requires nonfree software to function.")))
+
+(define-public linux-5.17
+  (corrupt-linux linux-libre-5.17 "5.17"
+                 "1cdi43x4c3l4chznh57gm55szycj4wjlxl1dss1ilnfvvmhyypsm"))
 
 (define-public linux-5.16
   (corrupt-linux linux-libre-5.16 "5.16.16"
