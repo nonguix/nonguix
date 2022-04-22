@@ -16,7 +16,11 @@
 (define-module (nongnu packages radio)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages linux)
+  #:use-module (gnu packages radio)
+  #:use-module (guix build-system cmake)
   #:use-module (guix download)
+  #:use-module (guix git-download)
+  #:use-module (guix licenses)
   #:use-module (guix packages)
   #:use-module (guix utils)
   #:use-module (ice-9 match)
@@ -92,3 +96,27 @@ package.  E.g.: @code{(udev-rules-service 'sdrplay sdrplay)}")
     (license (nonfree (string-append "file:///share/doc/sdrplay-"
                                      version
                                      "/license.txt")))))
+
+(define-public soapysdrplay3
+  (package
+    (name "soapysdrplay3")
+    (version "0.4.0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/pothosware/SoapySDRPlay3")
+             (commit (string-append "soapy-sdrplay3-" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "0kp5gz03c29kxclaqijpyqknaijlbldrhy04mn98vnli9g1h1isq"))))
+    (build-system cmake-build-system)
+    (inputs
+     (list sdrplay soapysdr))
+    (arguments
+     `(#:tests? #f))  ; No test suite
+    (home-page "https://github.com/pothosware/SoapySDRPlay3/wiki")
+    (synopsis "SoapySDR SDRplay module")
+    (description "This package provides SDRplay devices support to the
+SoapySDR library.")
+    (license expat)))
