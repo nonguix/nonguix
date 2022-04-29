@@ -97,6 +97,19 @@ The PATCHELF-PLAN elements are lists of:
 Both executables and dynamic libraries are accepted.
 The inputs are optional when the file is an executable."
   (define (binary-patch binary interpreter runpath)
+
+    (define* (maybe-make-rpath entries name #:optional (extra-path "/lib"))
+      (let ((entry (assoc-ref entries name)))
+        (if entry
+            (string-append entry extra-path)
+            #f)))
+
+    (define* (make-rpath name #:optional (extra-path "/lib"))
+      (or (maybe-make-rpath outputs name extra-path)
+          (maybe-make-rpath inputs  name extra-path)
+          (error (format #f "`~a' not found among the inputs nor the outputs."
+                         input-or-output))))
+
     (unless (string-contains binary ".so")
       ;; Use `system*' and not `invoke' since this may raise an error if
       ;; library does not end with .so.
@@ -104,13 +117,11 @@ The inputs are optional when the file is an executable."
     (when runpath
       (let ((rpath (string-join
                     (map
-                     (lambda (input-or-output)
-                       (cond
-                        ((assoc-ref outputs input-or-output)
-                         (string-append (assoc-ref outputs input-or-output) "/lib"))
-                        ((assoc-ref inputs input-or-output)
-                         (string-append (assoc-ref inputs input-or-output) "/lib"))
-                        (else (error (format #f "`~a' not found among the inputs nor the outputs." input-or-output)))))
+                     (match-lambda
+                       ((name extra-path)
+                        (make-rpath name extra-path))
+                       (name
+                        (make-rpath name)))
                      runpath)
                     ":")))
         (invoke "patchelf" "--set-rpath" rpath binary)))
