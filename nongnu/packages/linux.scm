@@ -11,6 +11,7 @@
 ;;; Copyright © 2022 Josselin Poiret <dev@jpoiret.xyz>
 ;;; Copyright © 2022 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2022 Petr Hodina <phodina@protonmail.com>
+;;; Copyright © 2022 Remco van 't Veer <remco@remworks.net>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -72,8 +73,8 @@ System on hardware which requires nonfree software to function.")))
                  "1466557034q1fzvpy8vwj8ps3cv2q8s7z76af9y1jz4kgaqmsd1n"))
 
 (define-public linux-5.10
-  (corrupt-linux linux-libre-5.10 "5.10.107"
-                 "1snzzhkzdjlj92gqig3sanxlhv0xc0xk2xwjdjr0yds6g43w6ry4"))
+  (corrupt-linux linux-libre-5.10 "5.10.113"
+                 "1z3dd5hrdbn2axsi2n70n41q1dq2dvg7s8aph1p6yiajpc16llc2"))
 
 (define-public linux-5.4
   (corrupt-linux linux-libre-5.4 "5.4.145"
