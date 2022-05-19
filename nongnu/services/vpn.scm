@@ -64,6 +64,7 @@
 
 (define zerotier-one-service-type
   (service-type (name 'zerotier-one)
+                (description "ZeroTier One daemon."
                 (extensions
                  (list (service-extension shepherd-root-service-type
                                           zerotier-one-shepherd-service)))))
