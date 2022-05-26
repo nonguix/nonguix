@@ -1,6 +1,7 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2020 Julien Lepiller <julien@lepiller.eu>
-;;; Copyright © 2021 Isaac Young <isyoung@pm.me> 
+;;; Copyright © 2021 Isaac Young <isyoung@pm.me>
+;;; Copyright © 2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -43,6 +44,10 @@
     (arguments
      `(#:phases
        (modify-phases %standard-phases
+         (add-before 'configure 'allow-newer-coq-version
+           (lambda _
+             (substitute* "configure"
+               (("8.14.0") "8.15.1"))))
          (replace 'configure
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((system ,(match (or (%current-target-system) (%current-system))
