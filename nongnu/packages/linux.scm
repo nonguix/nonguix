@@ -661,7 +661,7 @@ network adapters.")
        (_ broadcom-sta-i686-source)))
     (build-system linux-module-build-system)
     (arguments
-     `(#:linux ,linux
+     `(#:linux ,linux-lts
        #:tests? #f))
     (supported-systems '("i686-linux" "x86_64-linux"))
     (home-page "https://www.broadcom.com/support/802.11")
