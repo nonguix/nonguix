@@ -73,11 +73,11 @@
     ;; MIPS is not supported.
     (supported-systems (delete "mips64el-linux" %supported-systems))
     (native-inputs
-     `(("ocaml" ,ocaml)
-       ("ocaml-findlib" ,ocaml-findlib); for menhir --suggest-menhirlib
-       ("coq" ,coq)))
+     (list coq
+           ocaml
+           ocaml-findlib)) ; for menhir --suggest-menhirlib
     (inputs
-     `(("menhir" ,ocaml-menhir)))
+     (list ocaml-menhir))
     (home-page "http://compcert.inria.fr")
     (synopsis "Certified C compiler")
     (description "The CompCert project investigates the formal verification of
