@@ -100,18 +100,18 @@
                         (string-append out "/share/playonlinux/lang/locale")))
              #t)))))
     (inputs
-     `(("cabextract" ,cabextract)
-       ("curl" ,curl)
-       ("gnupg" ,gnupg)
-       ("imagemagick" ,imagemagick)
-       ("jq" ,jq)
-       ("libx11" ,libx11)
-       ("mesa" ,mesa)
-       ("netcat" ,netcat)
-       ("python2-wxpython" ,python2-wxpython)
-       ("wget" ,wget)
-       ("wine" ,wine)
-       ("xrdb" ,xrdb)))
+     (list cabextract
+           curl
+           gnupg
+           imagemagick
+           jq
+           libx11
+           mesa
+           netcat
+           python2-wxpython
+           wget
+           wine
+           xrdb))
     (home-page "https://www.playonlinux.com/")
     (synopsis "Easy installer for Windows games")
     (description "PlayOnLinux is a piece of software which allows you to easily
