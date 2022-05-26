@@ -38,7 +38,7 @@
 (define-public playonlinux
   (package
     (name "playonlinux")
-    (version "4.3.4")
+    (version "4.4")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -46,7 +46,7 @@
                      (commit version)))
               (sha256
                (base32
-                "0xzdi6x4ksn4jiqa0z8j4rangn0aj1y7kqykan464mp2l585y76v"))))
+                "0jw43fmc298gb7ga2aldcdyrwlhki5k6hc198pl5x987x4gxfg2h"))))
     (build-system python-build-system)
     (arguments
      `(#:python ,python-2
