@@ -48,21 +48,21 @@
      `(#:configure-flags '("-DUSE_QT_GUI=ON")
        #:tests? #f))                    ; no tests
     (inputs
-     `(("boost" ,boost)
-       ("curl" ,curl)
-       ("htmlcxx" ,htmlcxx)
-       ("jsoncpp" ,jsoncpp)
-       ("liboauth" ,liboauth)
-       ("qtbase" ,qtbase-5)
-       ("qtdeclarative" ,qtdeclarative)
-       ("qtwebchannel" ,qtwebchannel)
-       ("qtwebengine" ,qtwebengine)
-       ("rhash" ,rhash)
-       ("tinyxml2" ,tinyxml2)
-       ("zlib" ,zlib)))
+     (list boost
+           curl
+           htmlcxx
+           jsoncpp
+           liboauth
+           qtbase-5
+           qtdeclarative
+           qtwebchannel
+           qtwebengine
+           rhash
+           tinyxml2
+           zlib))
     (native-inputs
-     `(("help2man" ,help2man)
-       ("pkg-config" ,pkg-config)))
+     (list help2man
+           pkg-config))
     (home-page "https://sites.google.com/site/gogdownloader/")
     (synopsis "Downloader for GOG.com files")
     (description "LGOGDownloader is a client for the GOG.com download API,
