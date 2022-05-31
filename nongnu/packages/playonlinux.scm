@@ -108,7 +108,7 @@
            libx11
            mesa
            netcat
-           python2-wxpython
+           python-wxpython
            wget
            wine
            xrdb))
