@@ -24,6 +24,7 @@
 (define-module (nongnu packages nvidia)
   #:use-module (guix packages)
   #:use-module (guix download)
+  #:use-module (guix gexp)
   #:use-module (guix git-download)
   #:use-module (guix utils)
   #:use-module ((guix licenses) #:prefix license-gnu:)
@@ -57,7 +58,11 @@
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1))
 
+; Used for closed-source packages
 (define nvidia-version "470.86")
+
+; Used for the open-source kernel module package
+(define nversion "515.48.07")
 
 (define-public nvidia-driver
   (package
@@ -405,6 +410,50 @@ with the ones usually provided by Mesa.  To use these libraries with
 packages that have been compiled with a mesa output, take a look at the nvda
 package.")
     (license (license:nonfree (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
+
+(define-public nvidia-module
+  (package
+    (name "nvidia-module")
+    (version nversion)
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/NVIDIA/open-gpu-kernel-modules")
+                    (commit nversion)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "1bpyq1dn14l7g32aalxy20zsxsay2yzibq8m8chy1byglrsjnqhh"))))
+    (build-system linux-module-build-system)
+    (arguments
+     (list #:linux linux
+           #:source-directory "kernel-open"
+           #:tests?  #f
+           #:make-flags
+           #~(list (string-append "CC=" #$(cc-for-target))
+                   (string-append "SYSSRC=" (assoc-ref %build-inputs
+                                             "linux-module-builder")
+                                  "/lib/modules/build"))
+           #:phases
+           #~(modify-phases %standard-phases
+               (add-after 'unpack 'fixpath
+                 (lambda* (#:key inputs outputs #:allow-other-keys)
+                   (substitute* "kernel-open/Kbuild"
+                     (("/bin/sh") (string-append #$bash-minimal "/bin/sh")))))
+               (replace 'build
+                 (lambda* (#:key make-flags outputs #:allow-other-keys)
+                   (apply invoke
+                          `("make" "-j"
+                            ,@make-flags "modules")))))))
+    (inputs (list bash-minimal))
+    (home-page "https://github.com/NVIDIA/open-gpu-kernel-modules")
+    (synopsis "Nvidia kernel module")
+    (description
+     "This package provides Nvidia open-gpu-kernel-modules.  However,
+they are only for the latest GPU architectures Turing and Ampere.  Also they
+still require firmware file @code{gsp.bin} to be loaded as well as closed
+source userspace tools from the corresponding driver release.")
+    (license license-gnu:gpl2)))
 
 (define-public nvidia-settings
   (package
