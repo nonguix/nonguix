@@ -82,10 +82,10 @@ various IDEs and plugins.")
     (license license:expat)))
 
 (define-public dotnet
-  (let ((dotnet-sdk-version "5.0.4"))
+  (let ((dotnet-sdk-version "6.0.5"))
     (package
       (name "dotnet")
-      (version "5.0.201")
+      (version "6.0.300")
       (source
        (origin
          (method url-fetch/tarbomb)
@@ -95,7 +95,7 @@ various IDEs and plugins.")
                          version "-linux-x64.tar.gz"))
          (sha256
           (base32
-           "0hdkwz39ql7madg5dzy50by6q4vyagpwjvjn34ks730yhf3p1xwz"))))
+           "01bhd7amirchcvimbyv07bzvs6i7jydcfwlq9vyfjbf3ln88qk0x"))))
       (build-system binary-build-system)
       (arguments
        `(#:patchelf-plan
