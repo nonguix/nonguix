@@ -2,7 +2,7 @@
 ;;; Copyright © 2020 Hebi Li <hebi@lihebi.com>
 ;;; Copyright © 2020 Malte Frank Gerdes <malte.f.gerdes@gmail.com>
 ;;; Copyright © 2020, 2021 Jean-Baptiste Volatier <jbv@pm.me>
-;;; Copyright © 2020, 2021 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2020-2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2021 Pierre Langlois <pierre.langlois@gmx.com>
 ;;; Copyright © 2022 Petr Hodina <phodina@protonmail.com>
 ;;;
@@ -470,21 +470,19 @@ source userspace tools from the corresponding driver release.")
                 "1lnj5hwmfkzs664fxlhljqy323394s1i7qzlpsjyrpm07sa93bky"))))
     (build-system gnu-build-system)
     (arguments
-     `(#:tests? #f ;no test suite
-       #:make-flags
-       (list (string-append "PREFIX=" %output)
-             (string-append "CC="
-                            ,(cc-for-target)))
-       #:phases
-       (modify-phases %standard-phases
-         (delete 'configure)
-         ;; nvidia-settings loads the libraries,libnvidia-gkt{2,3}.so at runtime
-         (add-after 'install 'wrap-program
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let ((out (assoc-ref outputs "out")))
-               (wrap-program (string-append out "/bin/nvidia-settings")
-                             `("LD_LIBRARY_PATH" ":" prefix
-                               (,(string-append out "/lib/"))))))))))
+     (list #:tests? #f ;no test suite
+           #:make-flags
+           #~(list (string-append "PREFIX=" #$output)
+                   (string-append "CC=" #$(cc-for-target)))
+           #:phases
+           #~(modify-phases %standard-phases
+               (delete 'configure)
+               (add-after 'install 'wrap-program
+                 (lambda* (#:key outputs #:allow-other-keys)
+                   (let ((out (assoc-ref outputs "out")))
+                     (wrap-program (string-append out "/bin/nvidia-settings")
+                                   `("LD_LIBRARY_PATH" ":" prefix
+                                     (,(string-append out "/lib/"))))))))))
     (native-inputs (list m4
                          pkg-config))
     (inputs (list bash-minimal
