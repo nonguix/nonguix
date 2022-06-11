@@ -5,6 +5,7 @@
 ;;; Copyright © 2020-2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2021 Pierre Langlois <pierre.langlois@gmx.com>
 ;;; Copyright © 2022 Petr Hodina <phodina@protonmail.com>
+;;; Copyright © 2022 Alexey Abramov <levenson@mmer.org>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -328,6 +329,44 @@ Further xorg should be configured by adding:
      "This package provides GPU switching without login out for Nvidia Optimus
 laptops.")
     (license license-gnu:gpl3+)))
+
+(define-public nvidia-nvml
+  (package
+    (name "nvidia-nvml")
+    (version "352.79")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://developer.download.nvidia.com/compute/cuda/7.5/Prod/gdk/"
+                           (format #f "gdk_linux_amd64_~a_release.run"
+                                   (string-replace-substring version "." "_"))))
+       (sha256
+        (base32
+         "1r2cwm0j9svaasky3qw46cpg2q6rrazwzrc880nxh6bismyd3a9z"))
+       (file-name (string-append "nvidia-nvml-" version "-checkout"))))
+    (build-system copy-build-system)
+    (arguments
+     (list #:phases
+           #~(modify-phases %standard-phases
+               (replace 'unpack
+                 (lambda _
+                   (invoke "sh" #$source "--tar" "xvf"))))
+           #:install-plan
+           ''(("payload/nvml/lib" "lib")
+              ("payload/nvml/include" "include/nvidia/gdk")
+              ("payload/nvml/example" "src/gdk/nvml/examples")
+              ("payload/nvml/doc/man" "share/man")
+              ("payload/nvml/README.txt" "README.txt")
+              ("payload/nvml/COPYRIGHT.txt" "COPYRIGHT.txt"))))
+    (home-page "https://www.nvidia.com")
+    (synopsis "The NVIDIA Management Library (NVML)")
+    (description "C-based programmatic interface for monitoring and managing various
+states within NVIDIA Tesla GPUs.  It is intended to be a platform for
+building 3rd party applications, and is also the underlying library for the
+NVIDIA-supported nvidia-smi tool.  NVML is thread-safe so it is safe to make
+simultaneous NVML calls from multiple threads.")
+    ;; Doesn't have any specific LICENSE file, but see COPYRIGHT.txt for details.
+    (license (license:nonfree "file://COPYRIGHT.txt"))))
 
 (define-public nvidia-libs
   (package
