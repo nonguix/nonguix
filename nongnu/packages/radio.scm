@@ -19,6 +19,7 @@
   #:use-module (gnu packages radio)
   #:use-module (guix build-system cmake)
   #:use-module (guix download)
+  #:use-module (guix gexp)
   #:use-module (guix git-download)
   #:use-module (guix licenses)
   #:use-module (guix packages)
@@ -44,47 +45,45 @@
      `(("eudev" ,eudev)
        ("gcc:lib" ,gcc "lib")))
     (arguments
-     `(#:patchelf-plan
-       (let ((arch ,(match (or (%current-target-system) (%current-system))
-                      ("i686-linux" "i686")
-                      ("x86_64-linux" "x86_64")
-                      (_ "UNSUPPORTED")))
-             (major-minor ,(version-major+minor version)))
-         `((,(string-append arch "/libsdrplay_api.so." major-minor)
-            ("gcc:lib"))
-           (,(string-append arch "/sdrplay_apiService")
-            ("eudev" "gcc:lib"))))
-       #:install-plan
-       (let ((arch ,(match (or (%current-target-system) (%current-system))
-                      ("i686-linux" "i686")
-                      ("x86_64-linux" "x86_64")
-                      (_ "UNSUPPORTED")))
-             (major-minor ,(version-major+minor version)))
-         `(("66-mirics.rules" "lib/udev/rules.d/66-mirics.rules")
-           ("inc" "include")
-           (,(string-append arch "/libsdrplay_api.so." major-minor)
-            ,(string-append "lib/libsdrplay_api.so." major-minor))
-           (,(string-append arch "/sdrplay_apiService")
-            "bin/sdrplay_apiService")
-           ("sdrplay_license.txt"
-            ,(string-append "share/doc/sdrplay-" ,version  "/license.txt"))))
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'unpack
-           (lambda* (#:key inputs #:allow-other-keys)
-             (let ((source-script (assoc-ref inputs "source")))
-               (invoke "sh" source-script "--noexec" "--target" "source")
-               (chdir "source"))))
-         (add-after 'install 'create-library-links
-           (lambda* (#:key outputs #:allow-other-keys)
-             (let* ((major ,(version-major version))
-                    (major-minor ,(version-major+minor version))
-                    (lib (string-append (assoc-ref outputs "out")
-                                        "/lib/libsdrplay_api.so"))
-                    (lib-major (string-append lib "." major))
-                    (lib-major-minor (string-append lib "." major-minor)))
-               (symlink lib-major-minor lib-major)
-               (symlink lib-major lib)))))))
+     (let ((arch (match (or (%current-target-system)
+                            (%current-system))
+                   ("i686-linux" "i686")
+                   ("x86_64-linux" "x86_64")
+                   (_ "UNSUPPORTED")))
+           (major (version-major version))
+           (major-minor (version-major+minor version)))
+       (list
+        #:patchelf-plan
+        #~(list
+           (list (string-append #$arch "/libsdrplay_api.so." #$major-minor)
+                 '("gcc:lib"))
+           (list (string-append #$arch "/sdrplay_apiService")
+                 '("eudev" "gcc:lib")))
+        #:install-plan
+        #~(list '("66-mirics.rules" "lib/udev/rules.d/66-mirics.rules")
+                '("inc" "include")
+                (list (string-append #$arch "/libsdrplay_api.so." #$major-minor)
+                      (string-append "lib/libsdrplay_api.so." #$major-minor))
+                (list (string-append #$arch "/sdrplay_apiService")
+                      "bin/sdrplay_apiService")
+                (list "sdrplay_license.txt"
+                      (string-append "share/doc/sdrplay-" #$version
+                                     "/license.txt")))
+        #:phases
+        #~(modify-phases %standard-phases
+            (replace 'unpack
+              (lambda* (#:key inputs #:allow-other-keys)
+                (let ((source-script (assoc-ref inputs "source")))
+                  (invoke "sh" source-script
+                          "--noexec" "--target" "source")
+                  (chdir "source"))))
+            (add-after 'install 'create-library-links
+              (lambda _
+                (let* ((lib (string-append #$output "/lib/libsdrplay_api.so"))
+                       (lib-major (string-append lib "." #$major))
+                       (lib-major-minor (string-append lib "." #$major-minor)))
+                  (symlink lib-major-minor lib-major)
+                  (symlink lib-major lib))))))))
     (home-page "https://www.sdrplay.com")
     (synopsis "API for SDRplay RSP devices")
     (description
