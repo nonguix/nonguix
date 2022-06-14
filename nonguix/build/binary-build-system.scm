@@ -109,7 +109,7 @@ The inputs are optional when the file is an executable."
       (or (maybe-make-rpath outputs name extra-path)
           (maybe-make-rpath inputs  name extra-path)
           (error (format #f "`~a' not found among the inputs nor the outputs."
-                         input-or-output))))
+                         name))))
 
     (unless (string-contains binary ".so")
       ;; Use `system*' and not `invoke' since this may raise an error if
