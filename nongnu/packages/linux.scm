@@ -64,9 +64,9 @@
      "The unmodified Linux kernel, including nonfree blobs, for running Guix
 System on hardware which requires nonfree software to function.")))
 
-(define-public linux-5.17
-  (corrupt-linux linux-libre-5.17 "5.17.15"
-                 "0a5n1lb43nhnhwjwclkk3dqp2nxsx5ny7zfl8idvzshf94m9472a"))
+(define-public linux-5.18
+  (corrupt-linux linux-libre-5.18 "5.18.8"
+                 "0dhaj1zcsr5sfg62byzvvkhm9j419px6v9v04ngcy0d0vc2yn8q8"))
 
 (define-public linux-5.15
   (corrupt-linux linux-libre-5.15 "5.15.48"
@@ -92,7 +92,7 @@ System on hardware which requires nonfree software to function.")))
   (corrupt-linux linux-libre-4.9 "4.9.282"
                  "059fin4si93ya13xy831w84q496ksxidpd3kyw38918sfy4p6wk7"))
 
-(define-public linux linux-5.17)
+(define-public linux linux-5.18)
 ;; linux-lts points to the *newest* released long-term support version.
 (define-public linux-lts linux-5.15)
 
