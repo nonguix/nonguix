@@ -566,8 +566,7 @@ application."
     (program-file
      (ngc-internal-name container)
      (with-imported-modules
-         `((guix build utils)
-           (ice-9 getopt-long))
+         `((guix build utils))
        #~(begin
            (use-modules (guix build utils)
                         (ice-9 getopt-long))
