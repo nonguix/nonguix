@@ -706,9 +706,7 @@ releases.")
          "1b1qjwxjk4y91l3iz157kms8601n0mmiik32cs6w9b1q4sl4pxx9"))))
     (build-system trivial-build-system)
     (arguments
-     `(#:modules ((guix build utils)
-                  (ice-9 rdelim)
-                  (ice-9 regex))
+     `(#:modules ((guix build utils))
        #:builder
        (begin
          (use-modules (guix build utils)
