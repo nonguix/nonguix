@@ -117,7 +117,7 @@
             "--enable-jemalloc"
 
             ;; see https://bugs.gnu.org/32833
-            ;; "--with-system-nspr"
+            "--with-system-nspr"
             ;; "--with-system-nss"
 
             ,(string-append "--with-clang-path="
@@ -388,7 +388,7 @@
         libxt
         mesa
         mit-krb5
-        ;; nspr
+        nspr-4.32
         ;; nss
         pango
         pixman
