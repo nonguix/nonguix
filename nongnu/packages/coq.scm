@@ -30,7 +30,7 @@
 (define-public compcert
   (package
     (name "compcert")
-    (version "3.10")
+    (version "3.11")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -39,15 +39,11 @@
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "19rmx8r8v46101ij5myfrz60arqjy7q3ra3fb8mxqqi3c8c4l4j6"))))
+                "183b1fn7vhb9ykxax11x0bb2q6z5jnd874nzlxqnnm89j3ysr134"))))
     (build-system gnu-build-system)
     (arguments
      `(#:phases
        (modify-phases %standard-phases
-         (add-before 'configure 'allow-newer-coq-version
-           (lambda _
-             (substitute* "configure"
-               (("8.14.0") "8.15.1"))))
          (replace 'configure
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((system ,(match (or (%current-target-system) (%current-system))
