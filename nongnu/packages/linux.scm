@@ -854,7 +854,7 @@ documented in the respective processor revision guides.")
     (home-page "https://www.sofproject.org")
     (synopsis "Sound Open Firmware")
     (description "This package contains Linux firmwares and topology files for
-audio DSPs that can be found on the Intel Skylake architecture.  Those
-firmware can be built for source but need to be signed by Intel in order to be
+audio DSPs that can be found on the Intel Skylake architecture.  This
+firmware can be built from source but need to be signed by Intel in order to be
 loaded by Linux.")
     (license bsd-3)))
