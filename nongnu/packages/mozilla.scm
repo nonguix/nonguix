@@ -18,7 +18,7 @@
 ;;; Copyright © 2020 Zhu Zihao <all_but_last@163.com>
 ;;; Copyright © 2021 pineapples <guixuser6392@protonmail.com>
 ;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
-;;; Copyright © 2021 John Kehayias <john.kehayias@protonmail.com>
+;;; Copyright © 2021, 2022 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2022 Pierre Langlois <pierre.langlois@gmx.com>
 ;;;
 ;;; This file is not part of GNU Guix.
@@ -114,6 +114,422 @@
    rust-firefox-1.58 "1.59.0" "1yc5bwcbmbwyvpfq7zvra78l0r8y3lbv60kbr62fzz2vx2pfxj57"))
 
 (define-public rust-firefox rust-firefox-1.59)
+
+;; rust-cbindgen-0.23/0.24 dependencies
+(define-public rust-unicode-ident-1
+  (package
+    (name "rust-unicode-ident")
+    (version "1.0.3")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "unicode-ident" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1bqswc96ws8l6k7xx56dg521a3l5imi3mhlcz7rsi6a92mxb7xf4"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:skip-build? #t))
+    (home-page "https://github.com/dtolnay/unicode-ident")
+    (synopsis
+     "Better optimized implementation of the older unicode-xid crate")
+    (description
+     "Determine whether characters have the XID_Start or XID_Continue properties
+according to Unicode Standard Annex #31")
+    (license (list license:unicode license:expat))))
+
+(define-public rust-proc-macro2-1.0.43
+  (package
+    (inherit rust-proc-macro2-1)
+    (name "rust-proc-macro2")
+    (version "1.0.43")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "proc-macro2" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1avvpf4qki8mg2na60yr3afbsfl5p6vllac6516xgwy93g3a4b0a"))))
+    (arguments
+     `(#:skip-build? #t
+       #:cargo-inputs (("rust-unicode-ident" ,rust-unicode-ident-1))))))
+
+(define-public rust-syn-1.0.99
+  (package
+    (inherit rust-syn-1)
+    (name "rust-syn")
+    (version "1.0.99")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "syn" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "04xba78p559nl737llv7nqcwm723dp6ah5bbp0h5w1amqrpfznsq"))))
+    (arguments
+     `(#:skip-build? #t
+       #:cargo-inputs (("rust-proc-macro2" ,rust-proc-macro2-1.0.43)
+                       ("rust-quote" ,rust-quote-1)
+                       ("rust-unicode-ident" ,rust-unicode-ident-1))))))
+
+(define-public rust-textwrap-0.15
+  (package
+    (inherit rust-textwrap-0.12)
+    (name "rust-textwrap")
+    (version "0.15.0")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "textwrap" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1yw513k61lfiwgqrfvsjw1a5wpvm0azhpjr2kr0jhnq9c56is55i"))))
+    (arguments
+     `(#:skip-build? #t
+       #:cargo-inputs (("rust-hyphenation" ,rust-hyphenation-0.8)
+                       ("rust-smawk" ,rust-smawk-0.3)
+                       ("rust-terminal-size" ,rust-terminal-size-0.1)
+                       ("rust-unicode-linebreak" ,rust-unicode-linebreak-0.1)
+                       ("rust-unicode-width" ,rust-unicode-width-0.1))))))
+
+(define-public rust-windows-x86-64-msvc-0.36
+  (package
+    (inherit rust-windows-x86-64-msvc-0.28)
+    (name "rust-windows-x86-64-msvc")
+    (version "0.36.1")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "windows_x86_64_msvc" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "103n3xijm5vr7qxr1dps202ckfnv7njjnnfqmchg8gl5ii5cl4f8"))))))
+
+(define-public rust-windows-x86-64-gnu-0.36
+  (package
+    (inherit rust-windows-x86-64-gnu-0.28)
+    (name "rust-windows-x86-64-gnu")
+    (version "0.36.1")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "windows_x86_64_gnu" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1qfrck3jnihymfrd01s8260d4snql8ks2p8yaabipi3nhwdigkad"))))))
+
+(define-public rust-windows-i686-msvc-0.36
+  (package
+    (inherit rust-windows-i686-msvc-0.28)
+    (name "rust-windows-i686-msvc")
+    (version "0.36.1")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "windows_i686_msvc" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "097h2a7wig04wbmpi3rz1akdy4s8gslj5szsx8g2v0dj91qr3rz2"))))))
+
+(define-public rust-windows-i686-gnu-0.36
+  (package
+    (inherit rust-windows-i686-gnu-0.28)
+    (name "rust-windows-i686-gnu")
+    (version "0.36.1")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "windows_i686_gnu" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1dm3svxfzamrv6kklyda9c3qylgwn5nwdps6p0kc9x6s077nq3hq"))))))
+
+(define-public rust-windows-aarch64-msvc-0.36
+  (package
+    (inherit rust-windows-aarch64-msvc-0.28)
+    (name "rust-windows-aarch64-msvc")
+    (version "0.36.1")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "windows_aarch64_msvc" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "0ixaxs2c37ll2smprzh0xq5p238zn8ylzb3lk1zddqmd77yw7f4v"))))))
+
+(define-public rust-windows-sys-0.36
+  (package
+    (inherit rust-windows-sys-0.28)
+    (name "rust-windows-sys")
+    (version "0.36.1")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "windows-sys" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1lmqangv0zg1l46xiq7rfnqwsx8f8m52mqbgg2mrx7x52rd1a17a"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:skip-build? #t
+       #:cargo-inputs (("rust-windows-aarch64-msvc" ,rust-windows-aarch64-msvc-0.36)
+                       ("rust-windows-i686-gnu" ,rust-windows-i686-gnu-0.36)
+                       ("rust-windows-i686-msvc" ,rust-windows-i686-msvc-0.36)
+                       ("rust-windows-x86-64-gnu" ,rust-windows-x86-64-gnu-0.36)
+                       ("rust-windows-x86-64-msvc" ,rust-windows-x86-64-msvc-0.36))))))
+
+(define-public rust-hashbrown-0.12
+  (package
+    (inherit rust-hashbrown-0.11)
+    (name "rust-hashbrown")
+    (version "0.12.3")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "hashbrown" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1268ka4750pyg2pbgsr43f0289l5zah4arir2k4igx5a8c6fg7la"))))))
+
+(define-public rust-object-0.29
+  (package
+    (inherit rust-object-0.28)
+    (name "rust-object")
+    (version "0.29.0")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "object" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "0lzblxwxcih7j4z2cfx9094caax97hlfm9n0y5hlavda6cn8n591"))))
+    (arguments
+     `(#:skip-build? #t
+       #:cargo-inputs (("rust-compiler-builtins" ,rust-compiler-builtins-0.1)
+                       ("rust-crc32fast" ,rust-crc32fast-1)
+                       ("rust-flate2" ,rust-flate2-1)
+                       ("rust-hashbrown" ,rust-hashbrown-0.12)
+                       ("rust-indexmap" ,rust-indexmap-1)
+                       ("rust-memchr" ,rust-memchr-2)
+                       ("rust-rustc-std-workspace-alloc" ,rust-rustc-std-workspace-alloc-1)
+                       ("rust-rustc-std-workspace-core" ,rust-rustc-std-workspace-core-1)
+                       ("rust-wasmparser" ,rust-wasmparser-0.57))))))
+
+(define-public rust-object-0.27
+  (package
+    (inherit rust-object-0.28)
+    (name "rust-object")
+    (version "0.27.1")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "object" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1ygv9zgi9wz6q5f2z9xn72i0c97jjr1dgj30kbyicdhxk8zivb37"))))))
+
+(define-public rust-gimli-0.26
+  (package
+    (inherit rust-gimli-0.23)
+    (name "rust-gimli")
+    (version "0.26.2")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "gimli" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "0pafbk64rznibgnvfidhm1pqxd14a5s9m50yvsgnbv38b8n0w0r2"))))))
+
+(define-public rust-addr2line-0.17
+  (package
+    (inherit rust-addr2line-0.14)
+    (name "rust-addr2line")
+    (version "0.17.0")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "addr2line" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "0sw16zqy6w0ar633z69m7lw6gb0k1y7xj3387a8wly43ij5div5r"))))))
+
+(define-public rust-backtrace-0.3.66
+  (package
+    (inherit rust-backtrace-0.3)
+    (name "rust-backtrace")
+    (version "0.3.66")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "backtrace" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "19yrfx0gprqmzphmf6qv32g93w76ny5g751ks1abdkqnsqcl7f6a"))))
+    (arguments
+     `(#:skip-build? #t
+       #:cargo-inputs (("rust-addr2line" ,rust-addr2line-0.17)
+                       ("rust-cc" ,rust-cc-1)
+                       ("rust-cfg-if" ,rust-cfg-if-1)
+                       ("rust-cpp-demangle" ,rust-cpp-demangle-0.3)
+                       ("rust-libc" ,rust-libc-0.2)
+                       ("rust-miniz-oxide" ,rust-miniz-oxide-0.5)
+                       ("rust-object" ,rust-object-0.29)
+                       ("rust-rustc-demangle" ,rust-rustc-demangle-0.1)
+                       ("rust-rustc-serialize" ,rust-rustc-serialize-0.3)
+                       ("rust-serde" ,rust-serde-1)
+                       ("rust-winapi" ,rust-winapi-0.3))))))
+
+(define-public rust-parking-lot-core-0.9
+  (package
+    (inherit rust-parking-lot-core-0.8)
+    (name "rust-parking-lot-core")
+    (version "0.9.3")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "parking_lot_core" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "0ab95rljb99rm51wcic16jgbajcr6lgbqkrr21w7bc2wyb5pk8h9"))))
+    (arguments
+     `(#:skip-build? #t
+       #:cargo-inputs (("rust-backtrace" ,rust-backtrace-0.3.66)
+                       ("rust-cfg-if" ,rust-cfg-if-1)
+                       ("rust-libc" ,rust-libc-0.2)
+                       ("rust-petgraph" ,rust-petgraph-0.6)
+                       ("rust-redox-syscall" ,rust-redox-syscall-0.2)
+                       ("rust-smallvec" ,rust-smallvec-1)
+                       ("rust-thread-id" ,rust-thread-id-4)
+                       ("rust-windows-sys" ,rust-windows-sys-0.36))))))
+
+(define-public rust-once-cell-1.13.0
+  (package
+    (inherit rust-once-cell-1)
+    (name "rust-once-cell")
+    (version "1.13.0")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "once_cell" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1qfqvgnwfzzwxd13ybvplzshaqwnjnna9ghcn0zgijaq0zixp9hq"))))
+    (arguments
+     `(#:skip-build? #t
+       #:cargo-inputs (("rust-atomic-polyfill" ,rust-atomic-polyfill-0.1)
+                       ("rust-parking-lot-core" ,rust-parking-lot-core-0.9))))))
+
+(define-public rust-clap-lex-0.2
+  (package
+    (name "rust-clap-lex")
+    (version "0.2.4")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "clap_lex" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1ib1a9v55ybnaws11l63az0jgz5xiy24jkdgsmyl7grcm3sz4l18"))))
+    (build-system cargo-build-system)
+    (arguments
+     `(#:skip-build? #t
+       #:cargo-inputs (("rust-os-str-bytes" ,rust-os-str-bytes-6))))
+    (home-page "https://github.com/clap-rs/clap/tree/master/clap_lex")
+    (synopsis "Minimal, flexible command line parser")
+    (description "Minimal, flexible command line parser")
+    (license (list license:expat license:asl2.0))))
+
+(define-public rust-clap-derive-3.2.15
+  (package
+    (inherit rust-clap-derive-3)
+    (name "rust-clap-derive")
+    (version "3.2.15")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "clap_derive" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1d2c4vs345fwihkd8cc7m6acbiydcwramkd5mnp36p0a7g6jm9cv"))))
+    (arguments
+     `(#:skip-build? #t
+       #:cargo-inputs (("rust-heck" ,rust-heck-0.4)
+                       ("rust-proc-macro-error" ,rust-proc-macro-error-1)
+                       ("rust-proc-macro2" ,rust-proc-macro2-1.0.43)
+                       ("rust-quote" ,rust-quote-1)
+                       ("rust-syn" ,rust-syn-1.0.99))))))
+
+(define-public rust-clap-3.2.16
+  (package
+    (inherit rust-clap-3)
+    (name "rust-clap")
+    (version "3.2.16")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "clap" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1af06z8z7m3327yz1xvzxfjanclgpvvy3lssb745rig7adkbpnx3"))))
+    (arguments
+     `(#:skip-build? #t
+       #:cargo-inputs (("rust-atty" ,rust-atty-0.2)
+                       ("rust-backtrace" ,rust-backtrace-0.3.66)
+                       ("rust-bitflags" ,rust-bitflags-1)
+                       ("rust-clap-derive" ,rust-clap-derive-3.2.15)
+                       ("rust-clap-lex" ,rust-clap-lex-0.2)
+                       ("rust-indexmap" ,rust-indexmap-1)
+                       ("rust-once-cell" ,rust-once-cell-1.13.0)
+                       ("rust-regex" ,rust-regex-1)
+                       ("rust-strsim" ,rust-strsim-0.10)
+                       ("rust-termcolor" ,rust-termcolor-1)
+                       ("rust-terminal-size" ,rust-terminal-size-0.1)
+                       ("rust-textwrap" ,rust-textwrap-0.15)
+                       ("rust-unicase" ,rust-unicase-2)
+                       ("rust-yaml-rust" ,rust-yaml-rust-0.4))))))
+
+(define-public rust-cbindgen-0.24
+  (package
+    (inherit rust-cbindgen-0.19)
+    (name "rust-cbindgen")
+    (version "0.24.3")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "cbindgen" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1yqxqsz2d0cppd8zwihk2139g5gy38wqgl9snj6rnk8gyvnqsdd6"))))
+    (arguments
+     `(#:cargo-inputs (("rust-clap" ,rust-clap-3.2.16)
+                       ("rust-heck" ,rust-heck-0.4)
+                       ("rust-indexmap" ,rust-indexmap-1)
+                       ("rust-log" ,rust-log-0.4)
+                       ("rust-proc-macro2" ,rust-proc-macro2-1.0.43)
+                       ("rust-quote" ,rust-quote-1)
+                       ("rust-serde" ,rust-serde-1)
+                       ("rust-serde-json" ,rust-serde-json-1)
+                       ("rust-syn" ,rust-syn-1.0.99)
+                       ("rust-tempfile" ,rust-tempfile-3)
+                       ("rust-toml" ,rust-toml-0.5))
+       #:cargo-development-inputs (("rust-serial-test" ,rust-serial-test-0.5))))))
+
+;; Bug with firefox build (v101-102) with cbindgen-0.24, see
+;; https://bugzilla.mozilla.org/show_bug.cgi?id=1773259#c5 for possible patch
+;; (untested)
+(define-public rust-cbindgen-0.23
+  (package
+    (inherit rust-cbindgen-0.24)
+    (name "rust-cbindgen")
+    (version "0.23.0")
+    (source (origin
+              (method url-fetch)
+              (uri (crate-uri "cbindgen" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "006rn3fn4njayjxr2vd24g1awssr9i3894nbmfzkybx07j728vav"))))))
 
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
