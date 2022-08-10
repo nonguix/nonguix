@@ -533,19 +533,19 @@ according to Unicode Standard Annex #31")
 
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
-(define %firefox-build-id "20220520000000")
+(define %firefox-esr-build-id "20220726000000")
 
-(define-public firefox
+(define-public firefox-esr
   (package
-    (name "firefox")
-    (version "100.0.2")
+    (name "firefox-esr")
+    (version "102.1.0esr")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "05w499jjsi8n04zwwr5vskriddafd6dghyhlizykhsag41hrh46w"))))
+        (base32 "0q4lawxynvdiihlqnqiwxdp0ai71qq2fp6mkdsy5p08vgmr6wyv3"))))
     (build-system gnu-build-system)
     (arguments
      (list
@@ -622,7 +622,6 @@ according to Unicode Standard Annex #31")
                 (substitute* "dom/media/platforms/ffmpeg/FFmpegRuntimeLinker.cpp"
                   (("libavcodec\\.so")
                    libavcodec)))))
-
           (add-after 'patch-source-shebangs 'patch-cargo-checksums
             (lambda _
               (use-modules (guix build cargo-utils))
@@ -664,13 +663,24 @@ according to Unicode Standard Annex #31")
               (substitute* "build/RunCbindgen.py"
                 (("\"--frozen\",") ""))))
           (delete 'bootstrap)
+          (add-before 'configure 'set-build-id
+            ;; Firefox will write the timestamp to output, which is harmful
+            ;; for reproducibility, so change it to a fixed date.  Use a
+            ;; separate phase for easier modification with inherit.
+            (lambda _
+              (setenv "MOZ_BUILD_DATE" #$%firefox-esr-build-id)))
           (replace 'configure
             (lambda* (#:key inputs outputs configure-flags #:allow-other-keys)
               (setenv "AUTOCONF" (string-append (assoc-ref inputs "autoconf")
                                                 "/bin/autoconf"))
               (setenv "SHELL" (which "bash"))
               (setenv "CONFIG_SHELL" (which "bash"))
-              (setenv "MACH_USE_SYSTEM_PYTHON" "1")
+              (setenv "MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE" "system")
+              ;; This should use the host info probably (does firefox build on
+              ;; non-x86_64 though?)
+              (setenv "GUIX_PYTHONPATH"
+                      (string-append (getcwd)
+                                     "/obj-x86_64-pc-linux-gnu/_virtualenvs/build"))
 
               ;; Use Clang, Clang is 2x faster than GCC
               (setenv "AR" "llvm-ar")
@@ -687,9 +697,6 @@ according to Unicode Standard Annex #31")
                        "/bin/clang++"))
 
               (setenv "MOZ_NOSPAM" "1")
-              ;; Firefox will write the timestamp to output, which is harmful for
-              ;; reproducibility, so change it to a fixed date.
-              (setenv "MOZ_BUILD_DATE" #$%firefox-build-id)
 
               (setenv "MOZBUILD_STATE_PATH" (getcwd))
 
@@ -817,7 +824,7 @@ according to Unicode Standard Annex #31")
         gtk+
         gtk+-2
         hunspell
-        icu4c-70
+        icu4c-71
         jemalloc
         libcanberra
         libevent
@@ -861,48 +868,115 @@ according to Unicode Standard Annex #31")
         pkg-config
         python
         rust-firefox
-        rust-cbindgen-0.19
+        rust-cbindgen-0.23
         which
         yasm))
     (home-page "https://mozilla.org/firefox/")
     (synopsis "Trademarkless version of Firefox")
     (description
      "Full-featured browser client built from Firefox source tree, without
-the official icon and the name \"firefox\".")
+the official icon and the name \"firefox\".  This is the Extended Support
+Release (ESR) version.")
     (license license:mpl2.0)))
 
- (define-public firefox/wayland
-   (package
-     (inherit firefox)
-     (name "firefox-wayland")
-     (native-inputs '())
-     (inputs
-      `(("bash" ,bash-minimal)
-        ("firefox" ,firefox)))
-     (build-system trivial-build-system)
-     (arguments
-      '(#:modules ((guix build utils))
-        #:builder
-        (begin
-          (use-modules (guix build utils))
-          (let* ((bash    (assoc-ref %build-inputs "bash"))
-                 (firefox (assoc-ref %build-inputs "firefox"))
-                 (out     (assoc-ref %outputs "out"))
-                 (exe     (string-append out "/bin/firefox")))
-            (mkdir-p (dirname exe))
+(define-public firefox-esr/wayland
+  (package
+    (inherit firefox-esr)
+    (name "firefox-esr-wayland")
+    (native-inputs '())
+    (inputs
+     `(("bash" ,bash-minimal)
+       ("firefox-esr" ,firefox-esr)))
+    (build-system trivial-build-system)
+    (arguments
+     '(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((bash    (assoc-ref %build-inputs "bash"))
+                (firefox (assoc-ref %build-inputs "firefox-esr"))
+                (out     (assoc-ref %outputs "out"))
+                (exe     (string-append out "/bin/firefox")))
+           (mkdir-p (dirname exe))
 
-            (call-with-output-file exe
-              (lambda (port)
-                (format port "#!~a
+           (call-with-output-file exe
+             (lambda (port)
+               (format port "#!~a
 MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
-                        (string-append bash "/bin/bash")
-                        (string-append firefox "/bin/firefox"))))
-            (chmod exe #o555)
+                       (string-append bash "/bin/bash")
+                       (string-append firefox "/bin/firefox"))))
+           (chmod exe #o555)
 
-            ;; Provide the manual and .desktop file.
-            (copy-recursively (string-append firefox "/share")
-                              (string-append out "/share"))
-            (substitute* (string-append
-                          out "/share/applications/firefox.desktop")
-              ((firefox) out))
-            #t))))))
+           ;; Provide the manual and .desktop file.
+           (copy-recursively (string-append firefox "/share")
+                             (string-append out "/share"))
+           (substitute* (string-append
+                         out "/share/applications/firefox.desktop")
+             ((firefox) out))
+           #t))))))
+
+;; Update this id with every firefox update to it's release date.
+;; It's used for cache validation and therefor can lead to strange bugs.
+(define %firefox-build-id "20220809000000")
+
+(define-public firefox
+  (package
+    (inherit firefox-esr)
+    (name "firefox")
+    (version "103.0.2")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
+                           version "/source/firefox-" version ".source.tar.xz"))
+       (sha256
+        (base32 "1ajkshdsbbi4fdxdkjf632qaxzqrg4is6pd80m1sh5wwwgl86qbn"))))
+    (arguments
+     (substitute-keyword-arguments (package-arguments firefox-esr)
+       ((#:phases phases)
+        #~(modify-phases #$phases
+            (replace 'set-build-id
+              (lambda _
+                (setenv "MOZ_BUILD_DATE" #$%firefox-build-id)))))))
+    (native-inputs
+     (modify-inputs (package-native-inputs firefox-esr)
+       (replace "rust-cbindgen" rust-cbindgen-0.24)))
+    (description
+     "Full-featured browser client built from Firefox source tree, without
+the official icon and the name \"firefox\".")))
+
+(define-public firefox/wayland
+  (package
+    (inherit firefox)
+    (name "firefox-wayland")
+    (native-inputs '())
+    (inputs
+     `(("bash" ,bash-minimal)
+       ("firefox" ,firefox)))
+    (build-system trivial-build-system)
+    (arguments
+     '(#:modules ((guix build utils))
+       #:builder
+       (begin
+         (use-modules (guix build utils))
+         (let* ((bash    (assoc-ref %build-inputs "bash"))
+                (firefox (assoc-ref %build-inputs "firefox"))
+                (out     (assoc-ref %outputs "out"))
+                (exe     (string-append out "/bin/firefox")))
+           (mkdir-p (dirname exe))
+
+           (call-with-output-file exe
+             (lambda (port)
+               (format port "#!~a
+MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
+                       (string-append bash "/bin/bash")
+                       (string-append firefox "/bin/firefox"))))
+           (chmod exe #o555)
+
+           ;; Provide the manual and .desktop file.
+           (copy-recursively (string-append firefox "/share")
+                             (string-append out "/share"))
+           (substitute* (string-append
+                         out "/share/applications/firefox.desktop")
+             ((firefox) out))
+           #t))))))
