@@ -62,7 +62,7 @@
 (define nvidia-version "470.86")
 
 ; Used for the open-source kernel module package
-(define nversion "515.48.07")
+(define nversion "515.57")
 
 (define-public nvidia-driver
   (package
@@ -421,7 +421,7 @@ package.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1bpyq1dn14l7g32aalxy20zsxsay2yzibq8m8chy1byglrsjnqhh"))))
+                "11f723xjj700pmxffz4v5mv6fyl5zc44i6ix042pj446dfbdgiqg"))))
     (build-system linux-module-build-system)
     (arguments
      (list #:linux linux
