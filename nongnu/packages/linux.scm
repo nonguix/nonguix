@@ -65,8 +65,8 @@
 System on hardware which requires nonfree software to function.")))
 
 (define-public linux-5.18
-  (corrupt-linux linux-libre-5.18 "5.18.14"
-                 "1bsnk2rskdkimciij5q3hjs00lc7ks1h1qh9kc4s7lrk252lczg1"))
+  (corrupt-linux linux-libre-5.18 "5.18.16"
+                 "1khi1npn8d8jimwdy8bf3r7l780mxdmvk5azdv419pk33qjqdxgi"))
 
 (define-public linux-5.15
   (corrupt-linux linux-libre-5.15 "5.15.59"
