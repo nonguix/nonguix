@@ -1,5 +1,5 @@
 ;;; Copyright © 2019, 2020 Alex Griffin <a@ajgrf.com>
-;;; Copyright © 2021 Timotej Lazar <timotej.lazar@araneo.si>
+;;; Copyright © 2021-2022 Timotej Lazar <timotej.lazar@araneo.si>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
   #:use-module (gnu packages xml)
   #:use-module (guix packages)
   #:use-module (guix git-download)
-  #:use-module (guix build-system cmake)
+  #:use-module (guix build-system qt)
   #:use-module ((guix licenses) #:prefix license:))
 
 (define-public lgogdownloader
@@ -43,7 +43,7 @@
        (file-name (git-file-name name version))
        (sha256
         (base32 "1hbwgwdm1vn7lkz366q9q8f44sk1pvhgjffndwx49lh3md66xps2"))))
-    (build-system cmake-build-system)
+    (build-system qt-build-system)
     (arguments
      `(#:configure-flags '("-DUSE_QT_GUI=ON")
        #:tests? #f))                    ; no tests
@@ -54,9 +54,9 @@
            jsoncpp
            liboauth
            qtbase-5
-           qtdeclarative
-           qtwebchannel
-           qtwebengine
+           qtdeclarative-5
+           qtwebchannel-5
+           qtwebengine-5
            rhash
            tinyxml2
            zlib))
