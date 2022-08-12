@@ -432,6 +432,7 @@ in a sandboxed FHS environment."
                 (expose `("/dev/bus/usb" ; Needed for libusb.
                           "/dev/dri"
                           "/dev/input"  ; Needed for controller input.
+                          "/dev/uinput" ; Needed for Steam Input.
                           ,@(exists-> "/dev/nvidia0") ; needed for nvidia proprietary driver
                           ,@(exists-> "/dev/nvidiactl")
                           ,@(exists-> "/dev/nvidia-modeset")
