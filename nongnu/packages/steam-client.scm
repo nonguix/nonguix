@@ -51,13 +51,16 @@
 ;;; module is apparently disallowed inside build phases.
 
 (define-module (nongnu packages steam-client)
+  #:use-module ((guix licenses) #:prefix license:)
   #:use-module ((nonguix licenses) #:prefix license:)
   #:use-module (guix gexp)
+  #:use-module (guix git-download)
   #:use-module (guix utils)
   #:use-module (guix packages)
   #:use-module (guix records)
   #:use-module (guix download)
   #:use-module (guix build-system gnu)
+  #:use-module (guix build-system python)
   #:use-module (guix build-system trivial)
   #:use-module (guix transformations)
   #:use-module (gnu packages)
@@ -86,6 +89,8 @@
   #:use-module (gnu packages pciutils)
   #:use-module (gnu packages pulseaudio)
   #:use-module (gnu packages python)
+  #:use-module (gnu packages python-web)
+  #:use-module (gnu packages python-xyz)
   #:use-module (gnu packages toolkits)
   #:use-module (nonguix utils))
 
@@ -726,3 +731,27 @@ all games will be installed."))))
 Valve.  This package provides a script for launching Steam in a Guix container
 which will use the directory @file{$HOME/.local/share/guix-sandbox-home} where
 all games will be installed."))))
+
+(define-public protonup-ng
+  (package
+    (name "protonup-ng")
+    (version "0.2.1")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/cloudishBenne/protonup-ng")
+             (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "0yd2mhhqxzarqxk85zf42s931jzc94f1cssn1hblsqghr79laa45"))))
+    (build-system python-build-system)
+    (arguments
+     (list #:tests? #f)) ; there are no tests
+    (inputs
+     (list python-configparser python-requests))
+    (home-page "https://github.com/cloudishBenne/protonup-ng")
+    (synopsis "Manage Proton-GE Installations")
+    (description "ProtonUp-ng is a CLI program and API to automate the installation
+and update of GloriousEggroll's Proton-GE.")
+    (license license:gpl3)))
