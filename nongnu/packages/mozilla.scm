@@ -45,6 +45,7 @@
   #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module (guix utils)
+  #:use-module ((guix build utils) #:select (alist-replace))
 
   #:use-module (gnu packages)
   #:use-module (gnu packages assembly)
@@ -83,6 +84,36 @@
   #:use-module (nongnu packages wasm)
   #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xorg))
+
+;; Copied from guix/gnu/packages/rust.scm
+(define* (rust-uri version #:key (dist "static"))
+  (string-append "https://" dist ".rust-lang.org/dist/"
+                 "rustc-" version "-src.tar.gz"))
+
+(define* (rust-bootstrapped-package base-rust version checksum)
+  "Bootstrap rust VERSION with source checksum CHECKSUM using BASE-RUST."
+  (package
+    (inherit base-rust)
+    (version version)
+    (source
+     (origin
+       (inherit (package-source base-rust))
+       (uri (rust-uri version))
+       (sha256 (base32 checksum))))
+    (native-inputs
+     (alist-replace "cargo-bootstrap" (list base-rust "cargo")
+                    (alist-replace "rustc-bootstrap" (list base-rust)
+                                   (package-native-inputs base-rust))))))
+
+(define rust-firefox-1.58
+  (rust-bootstrapped-package
+   rust "1.58.1" "1iq7kj16qfpkx8gvw50d8rf7glbm6s0pj2y1qkrz7mi56vfsyfd8"))
+
+(define rust-firefox-1.59
+  (rust-bootstrapped-package
+   rust-firefox-1.58 "1.59.0" "1yc5bwcbmbwyvpfq7zvra78l0r8y3lbv60kbr62fzz2vx2pfxj57"))
+
+(define-public rust-firefox rust-firefox-1.59)
 
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
@@ -403,7 +434,7 @@
       (list
         alsa-lib
         autoconf-2.13
-        `(,rust "cargo")
+        `(,rust-firefox "cargo")
         clang-12
         llvm-12
         wasm32-wasi-clang-toolchain
@@ -413,7 +444,7 @@
         perl
         pkg-config
         python
-        rust
+        rust-firefox
         rust-cbindgen-0.19
         which
         yasm))
