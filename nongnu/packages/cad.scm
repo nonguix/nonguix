@@ -39,7 +39,7 @@
 (define-public lightburn
   (package
     (name "lightburn")
-    (version "1.0.06")
+    (version "1.2.01")
     (source (origin
               (method url-fetch)
               (uri (string-append
@@ -48,7 +48,7 @@
                     "/LightBurn-Linux64-v" version ".7z"))
               (sha256
                (base32
-                "04s6dzx8a480972fd2d9inkv7laxmnml6xa32rd57z7hsnvp4sfr"))))
+                "1yqxkf0izcfz05wrxh9xpmm7qi5wd5f1w9d2kni2wbzs531nr22p"))))
     (build-system binary-build-system)
     (arguments
      `(#:strip-binaries? #f ;TODO: For some reason it fails validate-runpath
