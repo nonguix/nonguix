@@ -159,7 +159,7 @@
                   pulseaudio
                   qtbase-5
                   qtserialport
-                  qtmultimedia
+                  qtmultimedia-5
                   zlib))
     (synopsis "Layout, editing, and control software for your laser cutter")
     (description
