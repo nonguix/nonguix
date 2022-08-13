@@ -174,4 +174,4 @@ cut order, etc.
 @item send the result directly to your laser cutter
 @end enumerate")
     (home-page "https://lightburnsoftware.com/")
-    (license license:nonfree)))
+    (license (license:nonfree "https://lightburnsoftware.com/pages/how-the-lightburn-license-works"))))
