@@ -845,6 +845,7 @@ according to Unicode Standard Annex #31")
         nspr-4.32
         ;; nss
         pango
+        pipewire
         pixman
         pulseaudio
         startup-notification
