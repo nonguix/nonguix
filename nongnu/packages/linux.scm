@@ -4,6 +4,9 @@
 ;;; Copyright © 2019 Timotej Lazar <timotej.lazar@araneo.si>
 ;;; Copyright © 2020, 2021 James Smith <jsubuntuxp@disroot.org>
 ;;; Copyright © 2020, 2021, 2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2020 Michael Rohleder <mike@rohleder.de>
+;;; Copyright © 2020, 2021 Tobias Geerinckx-Rice <me@tobias.gr>
+;;; Copyright © 2020, 2021, 2022 Zhu Zihao <all_but_last@163.com>
 ;;; Copyright © 2021 Mathieu Othacehe <m.othacehe@gmail.com>
 ;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
 ;;; Copyright © 2021 Risto Stevcev <me@risto.codes>
@@ -12,6 +15,7 @@
 ;;; Copyright © 2022 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2022 Petr Hodina <phodina@protonmail.com>
 ;;; Copyright © 2022 Remco van 't Veer <remco@remworks.net>
+
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -858,3 +862,44 @@ audio DSPs that can be found on the Intel Skylake architecture.  This
 firmware can be built from source but need to be signed by Intel in order to be
 loaded by Linux.")
     (license bsd-3)))
+
+(define-public rtl8821ce-linux-module
+  (let ((commit "be733dc86781c68571650b395dd0fa6b53c0a039")
+        (revision "6"))
+    (package
+      (name "rtl8821ce-linux-module")
+      (version (git-version "0.0.0" revision commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/tomaspinho/rtl8821ce")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32
+           "00sd7s0582b9jcpfgy0fw6418dwg700mfyizkfr22jf2x140iy70"))))
+      (build-system linux-module-build-system)
+      (arguments
+       (list #:make-flags
+             #~(list (string-append "CC=" #$(cc-for-target))
+                     (string-append "KSRC="
+                                    (assoc-ref %build-inputs
+                                               "linux-module-builder")
+                                    "/lib/modules/build"))
+             #:phases
+             #~(modify-phases %standard-phases
+                 (replace 'build
+                   (lambda* (#:key (make-flags '()) (parallel-build? #t)
+                                   #:allow-other-keys)
+                     (apply invoke "make"
+                            `(,@(if parallel-build?
+                                    `("-j" ,(number->string (parallel-job-count)))
+                                    '())
+                              ,@make-flags)))))
+             #:tests? #f))                  ; no test suite
+      (home-page "https://github.com/tomaspinho/rtl8821ce")
+      (synopsis "Linux driver for Realtek RTL8821CE wireless network adapters")
+      (description "This is Realtek's RTL8821CE Linux driver for wireless
+network adapters.")
+      (license license:gpl2))))
