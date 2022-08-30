@@ -107,8 +107,8 @@ System on hardware which requires nonfree software to function.")))
 		 #:name "linux-arm64-generic"))
 
 (define-public linux-arm64-generic-5.15
-  (corrupt-linux linux-libre-arm64-generic "5.15.61"
-                 "0hpx0ziz162lc41jwi2ybj3qgidinjcsp71lchvmp6h0vyiddj9v"
+  (corrupt-linux linux-libre-arm64-generic "5.15.63"
+                 "0hbkxgadz0vcslni4r46yc202wcnxblcfvkcph1017b2b8gcvlvd"
 		 #:name "linux-arm64-generic"))
 
 (define-public linux-arm64-generic linux-arm64-generic-5.18)
