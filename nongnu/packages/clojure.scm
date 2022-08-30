@@ -35,15 +35,14 @@
 (define leiningen-jar
   (package
     (name "leiningen-jar")
-    (version "2.9.8")
+    (version "2.9.10")
     (source (origin
               (method url-fetch)
-              (uri (string-append "https://github.com/technomancy/leiningen/releases/download/"
-                                  version "/leiningen-" version "-standalone.jar"))
+              (uri "https://codeberg.org/attachments/895a0a0d-f20d-4580-a277-e06b5eec3b6b")
               (file-name "leiningen-standalone.jar")
               (sha256
                (base32
-                "13f4n15i0gsk9jq52gxivnsk32qjahmxgrddm54cf8ynw0a923ia"))))
+                "1ja9q8lav83h5qhayjgc39f6yyvk1n5f6gfwznn561xm007m6a52"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
@@ -65,16 +64,16 @@ lets you focus on your code.")
   (package
     (inherit leiningen-jar)
     (name "leiningen")
-    (version "2.9.8")
+    (version "2.9.10")
     (source (origin
               (method git-fetch)
               (uri (git-reference
-                    (url "https://github.com/technomancy/leiningen.git")
+                    (url "https://codeberg.org/leiningen/leiningen.git")
                     (commit version)))
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1i6pn8vzzhgnm9hmlb92z65l79nxcxa5zdsrgg5svq7vmbixgnhl"))))
+                "1hl62ykq7sckfpgg5l3wpzq5smh6s572xnadr988vpl97l2x1g4y"))))
     (build-system gnu-build-system)
     (arguments
      `(#:tests? #f
