@@ -121,7 +121,7 @@
 (define steam-client
   (package
     (name "steam-client")
-    (version "1.0.0.74")
+    (version "1.0.0.75")
     (source
      (origin
        (method url-fetch)
@@ -129,7 +129,7 @@
                            version ".tar.gz"))
        (sha256
         (base32
-         "0d52n6ifsc3ix3w1qw02yg6w0vddhnfmi2wdnvdfhhgmg21kpvdh"))
+         "19rn29slsxv7b5fisr1jzn79bskzifbj5hmxqn2436ivwfjna9g5"))
        (file-name (string-append name "-" version ".tar.gz"))))
     (build-system gnu-build-system)
     (arguments
