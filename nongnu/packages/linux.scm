@@ -101,9 +101,9 @@ System on hardware which requires nonfree software to function.")))
 ;; linux-lts points to the *newest* released long-term support version.
 (define-public linux-lts linux-5.15)
 
-(define-public linux-arm64-generic-5.18
-  (corrupt-linux linux-libre-arm64-generic "5.18.19"
-                 "1mc8zhiw0v7fka64mydpdrxkrvy0jyqggq5lghw3pyqj2wjrpw6z"
+(define-public linux-arm64-generic-5.19
+  (corrupt-linux linux-libre-arm64-generic "5.19.5"
+                 "1g9p4m9w9y0y1gk6vzqvsxzwqspbm10mmhd8n1mhal1yz721qgwc"
 		 #:name "linux-arm64-generic"))
 
 (define-public linux-arm64-generic-5.15
@@ -111,7 +111,7 @@ System on hardware which requires nonfree software to function.")))
                  "0hbkxgadz0vcslni4r46yc202wcnxblcfvkcph1017b2b8gcvlvd"
 		 #:name "linux-arm64-generic"))
 
-(define-public linux-arm64-generic linux-arm64-generic-5.18)
+(define-public linux-arm64-generic linux-arm64-generic-5.19)
 
 (define-public linux-arm64-generic-lts linux-arm64-generic-5.15)
 
