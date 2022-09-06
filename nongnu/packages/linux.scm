@@ -865,8 +865,8 @@ loaded by Linux.")
     (license bsd-3)))
 
 (define-public rtl8821ce-linux-module
-  (let ((commit "be733dc86781c68571650b395dd0fa6b53c0a039")
-        (revision "6"))
+  (let ((commit "812fb928f05980d13a3c58a62c8762d3aa21c033")
+        (revision "7"))
     (package
       (name "rtl8821ce-linux-module")
       (version (git-version "0.0.0" revision commit))
@@ -879,7 +879,7 @@ loaded by Linux.")
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "00sd7s0582b9jcpfgy0fw6418dwg700mfyizkfr22jf2x140iy70"))))
+           "1wa5rdz730w8xpzahcqylinwkp0ljyywgmvny66ab0wb4zf8cb6j"))))
       (build-system linux-module-build-system)
       (arguments
        (list #:make-flags
