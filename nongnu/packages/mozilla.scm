@@ -138,40 +138,6 @@
 according to Unicode Standard Annex #31")
     (license (list license:unicode license:expat))))
 
-(define-public rust-proc-macro2-1.0.43
-  (package
-    (inherit rust-proc-macro2-1)
-    (name "rust-proc-macro2")
-    (version "1.0.43")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "proc-macro2" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "1avvpf4qki8mg2na60yr3afbsfl5p6vllac6516xgwy93g3a4b0a"))))
-    (arguments
-     `(#:skip-build? #t
-       #:cargo-inputs (("rust-unicode-ident" ,rust-unicode-ident-1))))))
-
-(define-public rust-syn-1.0.99
-  (package
-    (inherit rust-syn-1)
-    (name "rust-syn")
-    (version "1.0.99")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "syn" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "04xba78p559nl737llv7nqcwm723dp6ah5bbp0h5w1amqrpfznsq"))))
-    (arguments
-     `(#:skip-build? #t
-       #:cargo-inputs (("rust-proc-macro2" ,rust-proc-macro2-1.0.43)
-                       ("rust-quote" ,rust-quote-1)
-                       ("rust-unicode-ident" ,rust-unicode-ident-1))))))
-
 (define-public rust-textwrap-0.15
   (package
     (inherit rust-textwrap-0.12)
@@ -191,234 +157,6 @@ according to Unicode Standard Annex #31")
                        ("rust-terminal-size" ,rust-terminal-size-0.1)
                        ("rust-unicode-linebreak" ,rust-unicode-linebreak-0.1)
                        ("rust-unicode-width" ,rust-unicode-width-0.1))))))
-
-(define-public rust-windows-x86-64-msvc-0.36
-  (package
-    (inherit rust-windows-x86-64-msvc-0.28)
-    (name "rust-windows-x86-64-msvc")
-    (version "0.36.1")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "windows_x86_64_msvc" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "103n3xijm5vr7qxr1dps202ckfnv7njjnnfqmchg8gl5ii5cl4f8"))))))
-
-(define-public rust-windows-x86-64-gnu-0.36
-  (package
-    (inherit rust-windows-x86-64-gnu-0.28)
-    (name "rust-windows-x86-64-gnu")
-    (version "0.36.1")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "windows_x86_64_gnu" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "1qfrck3jnihymfrd01s8260d4snql8ks2p8yaabipi3nhwdigkad"))))))
-
-(define-public rust-windows-i686-msvc-0.36
-  (package
-    (inherit rust-windows-i686-msvc-0.28)
-    (name "rust-windows-i686-msvc")
-    (version "0.36.1")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "windows_i686_msvc" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "097h2a7wig04wbmpi3rz1akdy4s8gslj5szsx8g2v0dj91qr3rz2"))))))
-
-(define-public rust-windows-i686-gnu-0.36
-  (package
-    (inherit rust-windows-i686-gnu-0.28)
-    (name "rust-windows-i686-gnu")
-    (version "0.36.1")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "windows_i686_gnu" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "1dm3svxfzamrv6kklyda9c3qylgwn5nwdps6p0kc9x6s077nq3hq"))))))
-
-(define-public rust-windows-aarch64-msvc-0.36
-  (package
-    (inherit rust-windows-aarch64-msvc-0.28)
-    (name "rust-windows-aarch64-msvc")
-    (version "0.36.1")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "windows_aarch64_msvc" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "0ixaxs2c37ll2smprzh0xq5p238zn8ylzb3lk1zddqmd77yw7f4v"))))))
-
-(define-public rust-windows-sys-0.36
-  (package
-    (inherit rust-windows-sys-0.28)
-    (name "rust-windows-sys")
-    (version "0.36.1")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "windows-sys" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "1lmqangv0zg1l46xiq7rfnqwsx8f8m52mqbgg2mrx7x52rd1a17a"))))
-    (build-system cargo-build-system)
-    (arguments
-     `(#:skip-build? #t
-       #:cargo-inputs (("rust-windows-aarch64-msvc" ,rust-windows-aarch64-msvc-0.36)
-                       ("rust-windows-i686-gnu" ,rust-windows-i686-gnu-0.36)
-                       ("rust-windows-i686-msvc" ,rust-windows-i686-msvc-0.36)
-                       ("rust-windows-x86-64-gnu" ,rust-windows-x86-64-gnu-0.36)
-                       ("rust-windows-x86-64-msvc" ,rust-windows-x86-64-msvc-0.36))))))
-
-(define-public rust-hashbrown-0.12
-  (package
-    (inherit rust-hashbrown-0.11)
-    (name "rust-hashbrown")
-    (version "0.12.3")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "hashbrown" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "1268ka4750pyg2pbgsr43f0289l5zah4arir2k4igx5a8c6fg7la"))))))
-
-(define-public rust-object-0.29
-  (package
-    (inherit rust-object-0.28)
-    (name "rust-object")
-    (version "0.29.0")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "object" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "0lzblxwxcih7j4z2cfx9094caax97hlfm9n0y5hlavda6cn8n591"))))
-    (arguments
-     `(#:skip-build? #t
-       #:cargo-inputs (("rust-compiler-builtins" ,rust-compiler-builtins-0.1)
-                       ("rust-crc32fast" ,rust-crc32fast-1)
-                       ("rust-flate2" ,rust-flate2-1)
-                       ("rust-hashbrown" ,rust-hashbrown-0.12)
-                       ("rust-indexmap" ,rust-indexmap-1)
-                       ("rust-memchr" ,rust-memchr-2)
-                       ("rust-rustc-std-workspace-alloc" ,rust-rustc-std-workspace-alloc-1)
-                       ("rust-rustc-std-workspace-core" ,rust-rustc-std-workspace-core-1)
-                       ("rust-wasmparser" ,rust-wasmparser-0.57))))))
-
-(define-public rust-object-0.27
-  (package
-    (inherit rust-object-0.28)
-    (name "rust-object")
-    (version "0.27.1")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "object" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "1ygv9zgi9wz6q5f2z9xn72i0c97jjr1dgj30kbyicdhxk8zivb37"))))))
-
-(define-public rust-gimli-0.26
-  (package
-    (inherit rust-gimli-0.23)
-    (name "rust-gimli")
-    (version "0.26.2")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "gimli" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "0pafbk64rznibgnvfidhm1pqxd14a5s9m50yvsgnbv38b8n0w0r2"))))))
-
-(define-public rust-addr2line-0.17
-  (package
-    (inherit rust-addr2line-0.14)
-    (name "rust-addr2line")
-    (version "0.17.0")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "addr2line" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "0sw16zqy6w0ar633z69m7lw6gb0k1y7xj3387a8wly43ij5div5r"))))))
-
-(define-public rust-backtrace-0.3.66
-  (package
-    (inherit rust-backtrace-0.3)
-    (name "rust-backtrace")
-    (version "0.3.66")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "backtrace" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "19yrfx0gprqmzphmf6qv32g93w76ny5g751ks1abdkqnsqcl7f6a"))))
-    (arguments
-     `(#:skip-build? #t
-       #:cargo-inputs (("rust-addr2line" ,rust-addr2line-0.17)
-                       ("rust-cc" ,rust-cc-1)
-                       ("rust-cfg-if" ,rust-cfg-if-1)
-                       ("rust-cpp-demangle" ,rust-cpp-demangle-0.3)
-                       ("rust-libc" ,rust-libc-0.2)
-                       ("rust-miniz-oxide" ,rust-miniz-oxide-0.5)
-                       ("rust-object" ,rust-object-0.29)
-                       ("rust-rustc-demangle" ,rust-rustc-demangle-0.1)
-                       ("rust-rustc-serialize" ,rust-rustc-serialize-0.3)
-                       ("rust-serde" ,rust-serde-1)
-                       ("rust-winapi" ,rust-winapi-0.3))))))
-
-(define-public rust-parking-lot-core-0.9
-  (package
-    (inherit rust-parking-lot-core-0.8)
-    (name "rust-parking-lot-core")
-    (version "0.9.3")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "parking_lot_core" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "0ab95rljb99rm51wcic16jgbajcr6lgbqkrr21w7bc2wyb5pk8h9"))))
-    (arguments
-     `(#:skip-build? #t
-       #:cargo-inputs (("rust-backtrace" ,rust-backtrace-0.3.66)
-                       ("rust-cfg-if" ,rust-cfg-if-1)
-                       ("rust-libc" ,rust-libc-0.2)
-                       ("rust-petgraph" ,rust-petgraph-0.6)
-                       ("rust-redox-syscall" ,rust-redox-syscall-0.2)
-                       ("rust-smallvec" ,rust-smallvec-1)
-                       ("rust-thread-id" ,rust-thread-id-4)
-                       ("rust-windows-sys" ,rust-windows-sys-0.36))))))
-
-(define-public rust-once-cell-1.13.0
-  (package
-    (inherit rust-once-cell-1)
-    (name "rust-once-cell")
-    (version "1.13.0")
-    (source (origin
-              (method url-fetch)
-              (uri (crate-uri "once_cell" version))
-              (file-name (string-append name "-" version ".tar.gz"))
-              (sha256
-               (base32
-                "1qfqvgnwfzzwxd13ybvplzshaqwnjnna9ghcn0zgijaq0zixp9hq"))))
-    (arguments
-     `(#:skip-build? #t
-       #:cargo-inputs (("rust-atomic-polyfill" ,rust-atomic-polyfill-0.1)
-                       ("rust-parking-lot-core" ,rust-parking-lot-core-0.9))))))
 
 (define-public rust-clap-lex-0.2
   (package
@@ -456,9 +194,9 @@ according to Unicode Standard Annex #31")
      `(#:skip-build? #t
        #:cargo-inputs (("rust-heck" ,rust-heck-0.4)
                        ("rust-proc-macro-error" ,rust-proc-macro-error-1)
-                       ("rust-proc-macro2" ,rust-proc-macro2-1.0.43)
+                       ("rust-proc-macro2" ,rust-proc-macro2-1)
                        ("rust-quote" ,rust-quote-1)
-                       ("rust-syn" ,rust-syn-1.0.99))))))
+                       ("rust-syn" ,rust-syn-1))))))
 
 (define-public rust-clap-3.2.16
   (package
@@ -475,12 +213,12 @@ according to Unicode Standard Annex #31")
     (arguments
      `(#:skip-build? #t
        #:cargo-inputs (("rust-atty" ,rust-atty-0.2)
-                       ("rust-backtrace" ,rust-backtrace-0.3.66)
+                       ("rust-backtrace" ,rust-backtrace-0.3)
                        ("rust-bitflags" ,rust-bitflags-1)
                        ("rust-clap-derive" ,rust-clap-derive-3.2.15)
                        ("rust-clap-lex" ,rust-clap-lex-0.2)
                        ("rust-indexmap" ,rust-indexmap-1)
-                       ("rust-once-cell" ,rust-once-cell-1.13.0)
+                       ("rust-once-cell" ,rust-once-cell-1)
                        ("rust-regex" ,rust-regex-1)
                        ("rust-strsim" ,rust-strsim-0.10)
                        ("rust-termcolor" ,rust-termcolor-1)
@@ -506,11 +244,11 @@ according to Unicode Standard Annex #31")
                        ("rust-heck" ,rust-heck-0.4)
                        ("rust-indexmap" ,rust-indexmap-1)
                        ("rust-log" ,rust-log-0.4)
-                       ("rust-proc-macro2" ,rust-proc-macro2-1.0.43)
+                       ("rust-proc-macro2" ,rust-proc-macro2-1)
                        ("rust-quote" ,rust-quote-1)
                        ("rust-serde" ,rust-serde-1)
                        ("rust-serde-json" ,rust-serde-json-1)
-                       ("rust-syn" ,rust-syn-1.0.99)
+                       ("rust-syn" ,rust-syn-1)
                        ("rust-tempfile" ,rust-tempfile-3)
                        ("rust-toml" ,rust-toml-0.5))
        #:cargo-development-inputs (("rust-serial-test" ,rust-serial-test-0.5))))))
