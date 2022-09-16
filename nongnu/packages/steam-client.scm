@@ -61,7 +61,7 @@
   #:use-module (gnu packages freedesktop)
   #:use-module (gnu packages gawk)
   #:use-module (gnu packages gcc)
-  #:use-module (gnu packages gl)
+  #:use-module (nongnu packages mesa)
   #:use-module (gnu packages glib)
   #:use-module (gnu packages gnome)
   #:use-module (gnu packages graphics)
@@ -209,8 +209,8 @@
     ("libva" ,libva)                    ; Required for hardware video encoding/decoding.
     ("libvdpau" ,libvdpau)              ; Required for hardware video encoding/decoding.
     ("libvdpau-va-gl" ,libvdpau-va-gl)  ; Additional VDPAU support.
-    ("llvm" ,llvm-11)                   ; Required for mesa.
-    ("mesa" ,mesa)                      ; Required for steam startup.
+    ("llvm" ,llvm)                      ; Required for mesa.
+    ("mesa" ,mesa-next)                 ; Required for steam startup.
     ("nss-certs" ,nss-certs)            ; Required for steam login.
     ("pciutils" ,pciutils)              ; Tries to run lspci at steam startup.
     ("procps" ,procps)
