@@ -447,6 +447,7 @@ in a sandboxed FHS environment."
                           "/sys/class/hwmon" ; Needed for hw monitoring like MangoHud.
                           "/sys/class/hidraw" ; Needed for devices like the Valve Index.
                           "/sys/class/input" ; Needed for controller input.
+                          ,@(exists-> "/sys/class/power_supply") ; Needed for power monitoring like MangoHud.
                           ,@(exists-> "/sys/class/powercap") ; Needed for power monitoring like MangoHud.
                           "/sys/dev"
                           "/sys/devices"
