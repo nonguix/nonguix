@@ -82,20 +82,20 @@ various IDEs and plugins.")
     (license license:expat)))
 
 (define-public dotnet
-  (let ((dotnet-sdk-version "6.0.5"))
+  (let ((dotnet-sdk-version "6.0.9"))
     (package
       (name "dotnet")
-      (version "6.0.300")
+      (version "6.0.401")
       (source
        (origin
          (method url-fetch/tarbomb)
          (uri
-          (string-append "https://dotnetcli.azureedge.net/dotnet/Sdk/"
-                         version "/dotnet-sdk-"
-                         version "-linux-x64.tar.gz"))
+          (string-append "https://download.visualstudio.microsoft.com/download/pr/8159607a-e686-4ead-ac99-b4c97290a5fd/ec6070b1b2cc0651ebe57cf1bd411315/dotnet-sdk-"
+                         version
+                         "-linux-x64.tar.gz"))
          (sha256
           (base32
-           "01bhd7amirchcvimbyv07bzvs6i7jydcfwlq9vyfjbf3ln88qk0x"))))
+           "05yr64ffcaf48ripxzcv9nwlzp7r83cy9hz17dm5c0317lhksqch"))))
       (build-system binary-build-system)
       (arguments
        `(#:patchelf-plan
