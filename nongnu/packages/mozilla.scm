@@ -117,11 +117,32 @@
   (rust-bootstrapped-package
    rust-firefox-1.59 "1.60.0" "1drqr0a26x1rb2w3kj0i6abhgbs3jx5qqkrcwbwdlx7n3inq5ji0"))
 
+(define rust-firefox-1.61
+  (let ((base-rust (rust-bootstrapped-package
+                    rust-firefox-1.60 "1.61.0"
+                    "1vfs05hkf9ilk19b2vahqn8l6k17pl9nc1ky9kgspaascx8l62xd")))
+    (package
+      (inherit base-rust)
+      (arguments
+       (substitute-keyword-arguments (package-arguments base-rust)
+         ((#:phases phases)
+          `(modify-phases ,phases
+             (add-after 'unpack 'disable-tests-with-sigint
+               ;; These tests rely on killing a process with SIGINT which
+               ;; fails in the build container.
+               (lambda _
+                 (substitute* "library/std/src/sys/unix/process/process_common/tests.rs"
+                   (("fn test_process_group_posix_spawn")
+                    "#[ignore]\nfn test_process_group_posix_spawn")
+                   (("fn test_process_group_no_posix_spawn")
+                    "#[ignore]\nfn test_process_group_no_posix_spawn")))))))))))
+
 ;; Define the versions of rust needed to build firefox, trying to match
 ;; upstream.  See the file taskcluster/ci/toolchain/rust.yml at
 ;; https://searchfox.org under the particular firefox release, like
 ;; mozilla-esr102.
 (define-public rust-firefox-esr rust-firefox-1.60)
+(define-public rust-firefox rust-firefox-1.61) ; 1.63 is also listed, but 1.61 is the minimum needed
 
 ;; rust-cbindgen-0.23/0.24 dependencies
 (define-public rust-unicode-ident-1
@@ -664,20 +685,20 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
 
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
-(define %firefox-build-id "20220906000000")
+(define %firefox-build-id "20220920000000")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "104.0.2")
+    (version "105.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "0si8kwhwcqi161ry61iy4mz5mhdi7r0hc6cm09mmyx770ips1fvj"))))
+        (base32 "0qpdl3k4n1dzmk9xj1yh0i4vbqgag98sv1lcp83j0axai6xyqnrb"))))
     (arguments
      (substitute-keyword-arguments (package-arguments firefox-esr)
        ((#:phases phases)
@@ -687,6 +708,8 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
                 (setenv "MOZ_BUILD_DATE" #$%firefox-build-id)))))))
     (native-inputs
      (modify-inputs (package-native-inputs firefox-esr)
+       (replace "rust" rust-firefox)
+       (replace "rust:cargo" `(,rust-firefox "cargo"))
        (replace "node" node-lts)
        (replace "rust-cbindgen" rust-cbindgen-0.24)))
     (description
