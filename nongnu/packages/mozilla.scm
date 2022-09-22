@@ -113,7 +113,15 @@
   (rust-bootstrapped-package
    rust-firefox-1.58 "1.59.0" "1yc5bwcbmbwyvpfq7zvra78l0r8y3lbv60kbr62fzz2vx2pfxj57"))
 
-(define-public rust-firefox rust-firefox-1.59)
+(define rust-firefox-1.60
+  (rust-bootstrapped-package
+   rust-firefox-1.59 "1.60.0" "1drqr0a26x1rb2w3kj0i6abhgbs3jx5qqkrcwbwdlx7n3inq5ji0"))
+
+;; Define the versions of rust needed to build firefox, trying to match
+;; upstream.  See the file taskcluster/ci/toolchain/rust.yml at
+;; https://searchfox.org under the particular firefox release, like
+;; mozilla-esr102.
+(define-public rust-firefox-esr rust-firefox-1.60)
 
 ;; rust-cbindgen-0.23/0.24 dependencies
 (define-public rust-unicode-ident-1
@@ -596,7 +604,7 @@ according to Unicode Standard Annex #31")
       (list
         alsa-lib
         autoconf-2.13
-        `(,rust-firefox "cargo")
+        `(,rust-firefox-esr "cargo")
         clang-12
         llvm-12
         wasm32-wasi-clang-toolchain
@@ -606,7 +614,7 @@ according to Unicode Standard Annex #31")
         perl
         pkg-config
         python
-        rust-firefox
+        rust-firefox-esr
         rust-cbindgen-0.23
         which
         yasm))
