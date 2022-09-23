@@ -92,6 +92,7 @@
   #:use-module (gnu packages python-web)
   #:use-module (gnu packages python-xyz)
   #:use-module (gnu packages toolkits)
+  #:use-module (gnu packages video)
   #:use-module (nonguix utils))
 
 (define-record-type* <nonguix-container>
@@ -220,6 +221,9 @@
     ("libbsd" ,libbsd)
     ("libcap" ,libcap)                  ; Required for SteamVR, but needs pkexec too.
     ("libusb" ,libusb)                  ; Required for SteamVR.
+    ("libva" ,libva)                    ; Required for hardware video encoding/decoding.
+    ("libvdpau" ,libvdpau)              ; Required for hardware video encoding/decoding.
+    ("libvdpau-va-gl" ,libvdpau-va-gl)  ; Additional VDPAU support.
     ("llvm" ,llvm-11)                   ; Required for mesa.
     ("mesa" ,mesa)                      ; Required for steam startup.
     ("nss-certs" ,nss-certs)            ; Required for steam login.
@@ -424,6 +428,7 @@ in a sandboxed FHS environment."
                                  "_proxy$"
                                  "^SDL_"
                                  "^STEAM_"
+                                 "^VDPAU_DRIVER_PATH$" ; For VDPAU drivers.
                                  "^XAUTHORITY$"
                                  ;; Matching all ^XDG_ vars causes issues
                                  ;; discussed in 80decf05.
@@ -475,6 +480,10 @@ in a sandboxed FHS environment."
            ;; for whatever reason), see:
            ;; https://gitlab.steamos.cloud/steamrt/steam-runtime-tools/-/merge_requests/406
            (setenv "PRESSURE_VESSEL_FILESYSTEMS_RO" "/gnu/store")
+           ;; By default VDPAU drivers are searched for in libvdpau's store
+           ;; path, so set this path to where the drivers will actually be
+           ;; located in the container.
+           (setenv "VDPAU_DRIVER_PATH" "/lib64/vdpau")
            (format #t "\n* Launching ~a in sandbox: ~a.\n\n"
                    #$(package-name (ngc-wrap-package container)) sandbox-home)
            (when DEBUG
