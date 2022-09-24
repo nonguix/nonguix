@@ -1,6 +1,8 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2019 Pierre Neidhardt <mail@ambrevar.xyz>
 ;;; Copyright © 2020 Zhu Zihao <all_but_last@163.com>
+;;; Copyright © 2022 Fredrik Salomonsson <plattfot@posteo.net>
+;;; Copyright © 2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -18,10 +20,13 @@
 ;;; along with GNU Guix.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (nongnu packages emacs)
+  #:use-module ((guix licenses) #:prefix license:)
+  #:use-module (gnu packages emacs-xyz)
   #:use-module (guix packages)
   #:use-module (guix build-system emacs)
   #:use-module (guix build-system copy)
   #:use-module (guix download)
+  #:use-module (guix gexp)
   #:use-module (guix git-download)
   #:use-module (nonguix licenses)
   #:use-module (nongnu packages lisp))
@@ -131,3 +136,32 @@ Then you can start Allegro CL by entering @code{M-x fi:common-lisp}.")
       ;; While this may be a free license, this Emacs package is only useful
       ;; with the non-free Allegro CL.
       (license (nonfree "https://raw.githubusercontent.com/franzinc/eli/acl10.1express_Feb2022update2022-02-11/LICENSE")))))
+
+(define-public emacs-org-roam-ui
+  (let ((commit "c75fc7506ee7f03840a9a93ed9336d7ed24551aa")
+        (revision "0"))
+    (package
+      (name "emacs-org-roam-ui")
+      (version (git-version "0" revision commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/org-roam/org-roam-ui")
+               (commit commit)))
+         (file-name (string-append name "-" version "-checkout"))
+         (sha256
+          (base32 "0mkcd2622np8s5qz2zvx7lch6dc586xqmn6914gi4ym7nvklf3zy"))))
+      (build-system emacs-build-system)
+      (arguments
+       (list #:include #~(cons "^out" %default-include)))
+      (propagated-inputs
+       (list emacs-org-roam emacs-simple-httpd emacs-websocket))
+      (home-page "https://github.com/org-roam/org-roam-ui")
+      (synopsis "Web User Interface for Org Roam")
+      (description
+       "Org Roam UI is meant as a successor of Org Roam server that extends
+functionality of Org Roam with a web application that runs side-by-side with
+Emacs. It provides a web interface for navigating around notes created within
+Org Roam.")
+      (license license:gpl3))))
