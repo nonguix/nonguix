@@ -162,3 +162,118 @@ its core.")
     (properties
      '((release-monitoring-url . "https://github.com/vector-im/element-desktop/releases")))
     (license license:asl2.0)))
+
+(define-public signal-desktop
+  (package
+    (name "signal-desktop")
+    (version "5.61.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri
+        (string-append
+         "https://updates.signal.org/desktop/apt/pool/main/s/" name "/" name "_" version
+         "_amd64.deb"))
+       (sha256
+        (base32 "0y2kwifj1szll79jscpmhdh8dvlrsqp0n82wh1zkiz55zfxcwhyl"))))
+    (supported-systems '("x86_64-linux"))
+    (build-system binary-build-system)
+    (arguments
+     (list #:validate-runpath? #f ; TODO: fails on wrapped binary and included other files
+           #:patchelf-plan
+           #~'(("lib/Signal/signal-desktop"
+                ("alsa-lib" "at-spi2-atk" "at-spi2-core" "atk" "cairo" "cups"
+                 "dbus" "expat" "fontconfig-minimal" "gcc" "gdk-pixbuf" "glib"
+                 "gtk+" "libdrm" "libsecret" "libx11" "libxcb" "libxcomposite"
+                 "libxcursor" "libxdamage" "libxext" "libxfixes" "libxi"
+                 "libxkbcommon" "libxkbfile" "libxrandr" "libxshmfence" "libxtst"
+                 "mesa" "nspr" "pango" "pulseaudio" "zlib")))
+           #:phases
+           #~(modify-phases %standard-phases
+               (replace 'unpack
+                 (lambda _
+                   (invoke "ar" "x" #$source)
+                   (invoke "tar" "xvf" "data.tar.xz")
+                   (copy-recursively "usr/" ".")
+                   ;; Use the more standard lib directory for everything.
+                   (rename-file "opt/" "lib")
+                   ;; Remove unneeded files.
+                   (delete-file-recursively "usr")
+                   (delete-file "control.tar.gz")
+                   (delete-file "data.tar.xz")
+                   (delete-file "debian-binary")
+                   (delete-file "environment-variables")
+                   ;; Fix the .desktop file binary location.
+                   (substitute* '("share/applications/signal-desktop.desktop") 
+                     (("/opt/Signal/")
+                      (string-append #$output "/lib/Signal/")))))
+               (add-after 'install 'symlink-binary-file-and-cleanup
+                 (lambda _
+                   (delete-file (string-append #$output "/environment-variables"))
+                   (mkdir-p (string-append #$output "/bin"))
+                   (symlink (string-append #$output "/lib/Signal/signal-desktop")
+                            (string-append #$output "/bin/signal-desktop"))))
+               (add-after 'install 'wrap-where-patchelf-does-not-work
+                 (lambda _
+                   (wrap-program (string-append #$output "/lib/Signal/signal-desktop")
+                     `("FONTCONFIG_PATH" ":" prefix
+                       (,(string-join
+                          (list
+                           (string-append #$(this-package-input "fontconfig-minimal") "/etc/fonts")
+                           #$output)
+                          ":")))
+                     `("LD_LIBRARY_PATH" ":" prefix
+                       (,(string-join
+                          (list
+                           (string-append #$(this-package-input "nss") "/lib/nss")
+                           (string-append #$(this-package-input "eudev") "/lib")
+                           (string-append #$(this-package-input "gcc") "/lib")
+                           (string-append #$(this-package-input "mesa") "/lib")
+                           (string-append #$(this-package-input "libxkbfile") "/lib")
+                           (string-append #$(this-package-input "pulseaudio") "/lib")
+                           (string-append #$(this-package-input "zlib") "/lib")
+                           (string-append #$(this-package-input "libsecret") "/lib")
+                           (string-append #$output "/lib/Signal")
+                           #$output)
+                          ":")))))))))
+    (native-inputs (list tar))
+    (inputs (list alsa-lib
+                  at-spi2-atk
+                  at-spi2-core
+                  atk
+                  cairo
+                  cups
+                  dbus
+                  eudev
+                  expat
+                  fontconfig
+                  `(,gcc "lib")
+                  glib
+                  gtk+
+                  libdrm
+                  librsvg
+                  libsecret
+                  libx11
+                  libxcb
+                  libxcomposite
+                  libxdamage
+                  libxext
+                  libxfixes
+                  libxkbcommon
+                  libxkbfile
+                  libxrandr
+                  libxshmfence
+                  mesa
+                  nspr
+                  nss
+                  pango
+                  pulseaudio
+                  zlib))
+    (home-page "https://signal.org/")
+    (synopsis "Private messenger using the Signal protocol")
+    (description "Signal Desktop is an Electron application that links with Signal on Android
+or iOS.")
+    ;; doesn't work?
+    (properties
+     '((release-monitoring-url . "https://github.com/signalapp/Signal-Desktop/releases")))
+    (license license:agpl3)))
