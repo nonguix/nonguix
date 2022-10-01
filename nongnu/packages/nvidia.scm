@@ -520,9 +520,9 @@ packages that have been compiled with a mesa output, take a look at the nvda
 package.")
     (license (license:nonfree (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
 
-(define-public nvidia-module
+(define-public nvidia-module-open
   (package
-    (name "nvidia-module")
+    (name "nvidia-module-open")
     (version nversion)
     (source (origin
               (method git-fetch)
