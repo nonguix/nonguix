@@ -416,48 +416,24 @@ simultaneous NVML calls from multiple threads.")
       (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
 
 (define-public nvidia-module-open
-  (package
-    (name "nvidia-module-open")
-    (version nversion)
-    (source (origin
-              (method git-fetch)
-              (uri (git-reference
-                    (url "https://github.com/NVIDIA/open-gpu-kernel-modules")
-                    (commit nversion)))
-              (file-name (git-file-name name version))
-              (sha256
-               (base32
-                "1mkibm0i943ljcy921i63jzc0db6r4pm1ycmwbka9kddcviyb3gk"))))
-    (build-system linux-module-build-system)
-    (arguments
-     (list #:linux linux
-           #:source-directory "kernel-open"
-           #:tests?  #f
-           #:make-flags
-           #~(list (string-append "CC=" #$(cc-for-target))
-                   (string-append "SYSSRC=" (assoc-ref %build-inputs
-                                             "linux-module-builder")
-                                  "/lib/modules/build"))
-           #:phases
-           #~(modify-phases %standard-phases
-               (add-after 'unpack 'fixpath
-                 (lambda* (#:key inputs outputs #:allow-other-keys)
-                   (substitute* "kernel-open/Kbuild"
-                     (("/bin/sh") (string-append #$bash-minimal "/bin/sh")))))
-               (replace 'build
-                 (lambda* (#:key make-flags outputs #:allow-other-keys)
-                   (apply invoke
-                          `("make" "-j"
-                            ,@make-flags "modules")))))))
-    (inputs (list bash-minimal))
-    (home-page "https://github.com/NVIDIA/open-gpu-kernel-modules")
-    (synopsis "Nvidia kernel module")
-    (description
-     "This package provides Nvidia open-gpu-kernel-modules.  However,
-they are only for the latest GPU architectures Turing and Ampere.  Also they
-still require firmware file @code{gsp.bin} to be loaded as well as closed
-source userspace tools from the corresponding driver release.")
-    (license license-gnu:gpl2)))
+  (let ((base nvidia-module))
+    (package/inherit base
+      (name "nvidia-module-open")
+      (arguments
+       (substitute-keyword-arguments (package-arguments base)
+         ;; NOTE: Kernels compiled with CONFIG_LTO_CLANG_THIN would cause an
+         ;; error here.  See also:
+         ;; <https://github.com/NVIDIA/open-gpu-kernel-modules/issues/214>
+         ;; <https://github.com/llvm/llvm-project/issues/55820>
+         ((#:source-directory _) "kernel-open")))
+      (home-page "https://github.com/NVIDIA/open-gpu-kernel-modules")
+      (synopsis "NVIDIA kernel module")
+      (description
+       "This package provides NVIDIA open-gpu-kernel-modules.  However, they
+are only for the latest GPU architectures Turing and Ampere.  Also they still
+require firmware file @code{gsp.bin} to be loaded as well as closed source
+userspace tools from the corresponding driver release.")
+      (license license-gnu:gpl2))))
 
 (define-public nvidia-settings
   (package
