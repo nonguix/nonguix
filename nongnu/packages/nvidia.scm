@@ -520,6 +520,46 @@ packages that have been compiled with a mesa output, take a look at the nvda
 package.")
     (license (license:nonfree (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
 
+(define-public nvidia-module
+  (package
+    (name "nvidia-module")
+    (version nvidia-version)
+    (source nvidia-source)
+    (build-system linux-module-build-system)
+    (arguments
+     (list #:linux linux-lts
+           #:source-directory "kernel"
+           #:tests? #f
+           #:make-flags
+           #~(list (string-append "CC=" #$(cc-for-target)))
+           #:phases
+           #~(modify-phases %standard-phases
+               (delete 'strip)
+               (add-before 'configure 'fixpath
+                 (lambda* (#:key (source-directory ".") #:allow-other-keys)
+                   (substitute* (string-append source-directory "/Kbuild")
+                     (("/bin/sh") (which "sh")))))
+               (replace 'build
+                 (lambda* (#:key (make-flags '()) (parallel-build? #t)
+                           (source-directory ".")
+                           inputs
+                           #:allow-other-keys)
+                   (apply invoke "make" "-C" (canonicalize-path source-directory)
+                          (string-append "SYSSRC=" (search-input-directory
+                                                    inputs "/lib/modules/build"))
+                          `(,@(if parallel-build?
+                                  `("-j" ,(number->string
+                                           (parallel-job-count)))
+                                  '())
+                            ,@make-flags)))))))
+    (home-page "https://www.nvidia.com")
+    (synopsis "Proprietary NVIDIA kernel modules")
+    (description
+     "This package provides the evil NVIDIA proprietary kernel modules.")
+    (license
+     (license:nonfree
+      (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
+
 (define-public nvidia-module-open
   (package
     (name "nvidia-module-open")
