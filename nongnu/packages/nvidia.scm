@@ -256,12 +256,12 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
            wayland))
     (home-page "https://www.nvidia.com")
     (synopsis "Proprietary NVIDIA driver")
-    (description "This is the evil NVIDIA driver.  Don't forget to add
-@code{nvidia-driver} to the @code{udev-rules} in your @file{config.scm}:
-@code{(simple-service 'custom-udev-rules udev-service-type (list
-nvidia-driver))}.  Further xorg should be configured by adding: @code{(modules
-(cons* nvidia-driver %default-xorg-modules)) (drivers '(\"nvidia\"))} to
-@code{xorg-configuration}.")
+    (description
+     "This is the evil NVIDIA driver.  Don't forget to add @code{service
+nvidia-service-type} to your @file{config.scm}.  Further xorg should be
+configured by adding: @code{(modules (cons* nvidia-driver
+%default-xorg-modules)) (drivers '(\"nvidia\"))} to @code{xorg-configuration}.
+")
     (license
      (license:nonfree
       (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
