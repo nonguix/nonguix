@@ -65,11 +65,7 @@
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1))
 
-; Used for closed-source packages
 (define nvidia-version "515.76")
-
-; Used for the open-source kernel module package
-(define nversion "515.76")
 
 (define computed-origin-method
   (@@ (guix packages) computed-origin-method))
