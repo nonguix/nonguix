@@ -41,6 +41,7 @@
   #:use-module (gnu packages compression)
   #:use-module (gnu packages elf)
   #:use-module (gnu packages freedesktop)
+  #:use-module (gnu packages gawk)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages gl)
   #:use-module (gnu packages glib)
@@ -68,18 +69,55 @@
 ; Used for the open-source kernel module package
 (define nversion "515.76")
 
+(define computed-origin-method
+  (@@ (guix packages) computed-origin-method))
+
+;; Extract the driver installer and make it a new origin instance for reusing.
+(define (make-nvidia-source version installer)
+  (origin
+    (method computed-origin-method)
+    (file-name (string-append "nvidia-driver-" version "-checkout"))
+    (sha256 #f)
+    (uri
+     (delay
+       (with-imported-modules '((guix build utils))
+         #~(begin
+             (use-modules (guix build utils)
+                          (ice-9 ftw))
+             (set-path-environment-variable
+              "PATH" '("bin")
+              (list (canonicalize-path #+bash-minimal)
+                    (canonicalize-path #+coreutils)
+                    (canonicalize-path #+gawk)
+                    (canonicalize-path #+grep)
+                    (canonicalize-path #+tar)
+                    (canonicalize-path #+which)
+                    (canonicalize-path #+xz)))
+             (setenv "XZ_OPT" (string-join (%xz-parallel-args)))
+             (invoke "sh" #$installer "-x")
+             (copy-recursively
+              (car (scandir (canonicalize-path (getcwd))
+                            (lambda (file)
+                              (not (member file '("." ".."))))))
+              #$output)))))))
+
+(define nvidia-source
+  (let ((version nvidia-version))
+    (make-nvidia-source
+     version
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://us.download.nvidia.com/XFree86/Linux-x86_64/"
+             version "/NVIDIA-Linux-x86_64-" version ".run"))
+       (sha256
+        (base32 "0krwcxc0j19vjnk8sv6mx1lin2rm8hcfhc2hg266846jvcws1dsg"))))))
+
 (define-public nvidia-driver
   (package
     (name "nvidia-driver")
     (version nvidia-version)
-    (source
-     (origin
-       (uri (format #f "http://us.download.nvidia.com/XFree86/Linux-x86_64/~a/~a.run"
-                    version
-                    (format #f "NVIDIA-Linux-x86_64-~a" version)))
-       (sha256 (base32 "0krwcxc0j19vjnk8sv6mx1lin2rm8hcfhc2hg266846jvcws1dsg"))
-       (method url-fetch)
-       (file-name (string-append "nvidia-driver-" version "-checkout"))))
+    (source nvidia-source)
     (build-system linux-module-build-system)
     (arguments
      (list #:linux linux-lts
@@ -93,10 +131,6 @@
                        (ice-9 textual-ports))
            #:phases
            #~(modify-phases %standard-phases
-               (replace 'unpack
-                 (lambda _
-                   (invoke "sh" #$source "--extract-only")
-                   (chdir #$(format #f "NVIDIA-Linux-x86_64-~a" version))))
                (replace 'build
                  (lambda*  (#:key inputs outputs #:allow-other-keys)
                    ;; We cannot use with-directory-excursion, because the install
@@ -249,7 +283,7 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                      (symlink (string-append "libglxserver_nvidia.so." #$version)
                               (string-append #$output "/lib/xorg/modules/extensions/" "libglxserver_nvidia.so"))))))))
     (supported-systems '("x86_64-linux"))
-    (native-inputs (list patchelf perl python-2 which xz))
+    (native-inputs (list patchelf))
     (inputs
      (list `(,gcc "lib")
            atk
