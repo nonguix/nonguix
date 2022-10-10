@@ -295,7 +295,7 @@ building different types of applications.")
          ("mit-krb5" ,mit-krb5)
          ("openssl" ,openssl)
          ("zlib" ,zlib)))
-      (home-page "https://docs.microsoft.com/en-us/dotnet/")
+      (home-page "https://dotnet.microsoft.com/en-us/")
       (supported-systems '("x86_64-linux"))
       (synopsis "Binary build of the @code{.NET} SDK and runtime")
       (description "@code{.NET} is a cross-platform developer platform for
