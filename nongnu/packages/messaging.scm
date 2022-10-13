@@ -1,6 +1,7 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2021, 2022 PantherX OS Team <team@pantherx.org>
 ;;; Copyright © 2022 John Kehayias <john.kehayias@protonmail.com>
+;;; Copyright © 2022 Evgenii Lepikhin <johnlepikhin@gmail.com>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -20,6 +21,7 @@
 
 (define-module (nongnu packages messaging)
   #:use-module (gnu packages base)
+  #:use-module (gnu packages bash)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages cups)
   #:use-module (gnu packages databases)
@@ -32,6 +34,7 @@
   #:use-module (gnu packages linux)
   #:use-module (gnu packages nss)
   #:use-module (gnu packages pulseaudio)
+  #:use-module (gnu packages qt)
   #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xml)
   #:use-module (gnu packages xorg)
@@ -41,6 +44,7 @@
   #:use-module (guix utils)
   #:use-module ((guix licenses) :prefix license:)
   #:use-module (nonguix build-system binary)
+  #:use-module ((nonguix licenses) :prefix license:)
   #:use-module (ice-9 match))
 
 (define-public element-desktop
@@ -277,3 +281,193 @@ or iOS.")
     (properties
      '((release-monitoring-url . "https://github.com/signalapp/Signal-Desktop/releases")))
     (license license:agpl3)))
+
+(define-public zoom
+  (package
+    (name "zoom")
+    (version "5.12.2.4816")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://cdn.zoom.us/prod/" version "/zoom_x86_64.tar.xz"))
+       (file-name (string-append name "-" version "-x86_64.tar.xz"))
+       (sha256
+        (base32 "0vxlvxp0jzpc5xsh9wlxc74466i5ipg3fwpi0kv03rl8ib8y1n7p"))))
+    (supported-systems '("x86_64-linux"))
+    (build-system binary-build-system)
+    (arguments
+     (list #:validate-runpath? #f ; TODO: fails on wrapped binary and included other files
+           #:patchelf-plan
+           #~(let ((libs '("alsa-lib"
+                           "at-spi2-atk"
+                           "at-spi2-core"
+                           "atk"
+                           "cairo"
+                           "cups"
+                           "dbus"
+                           "eudev"
+                           "expat"
+                           "fontconfig-minimal"
+                           "gcc"
+                           "glib"
+                           "gtk+"
+                           "libdrm"
+                           "libx11"
+                           "libxcb"
+                           "libxcomposite"
+                           "libxcursor"
+                           "libxdamage"
+                           "libxext"
+                           "libxfixes"
+                           "libxi"
+                           "libxkbcommon"
+                           "libxkbfile"
+                           "libxrandr"
+                           "libxshmfence"
+                           "libxtst"
+                           "mesa"
+                           "nspr"
+                           "pango"
+                           "pulseaudio"
+                           "xcb-util-image"
+                           "xcb-util-keysyms"
+                           "zlib")))
+               `(("lib/zoom/ZoomLauncher"
+                 ,libs)
+                ("lib/zoom/zoom"
+                 ,libs)
+                ("lib/zoom/zopen"
+                 ,libs)))
+           #:phases
+           #~(modify-phases %standard-phases
+               (replace 'unpack
+                 (lambda _
+                   (invoke "tar" "xvf" #$source)
+                   ;; Use the more standard lib directory for everything.
+                   (mkdir-p "lib")
+                   (rename-file "zoom/" "lib/zoom")))
+               (add-after 'install 'wrap-where-patchelf-does-not-work
+                 (lambda _
+                   (wrap-program (string-append #$output "/lib/zoom/zopen")
+                     `("LD_LIBRARY_PATH" prefix
+                       ,(list #$@(map (lambda (pkg)
+                                        (file-append (this-package-input pkg) "/lib"))
+                                      '("fontconfig-minimal"
+                                        "freetype"
+                                        "gcc"
+                                        "glib"
+                                        "libxcomposite"
+                                        "libxdamage"
+                                        "libxkbcommon"
+                                        "libxkbfile"
+                                        "libxrandr"
+                                        "libxrender"
+                                        "zlib")))))
+                   (wrap-program (string-append #$output "/lib/zoom/zoom")
+                     `("FONTCONFIG_PATH" ":" prefix
+                       (,(string-join
+                          (list
+                           (string-append #$(this-package-input "fontconfig-minimal") "/etc/fonts")
+                           #$output)
+                          ":")))
+                     `("LD_LIBRARY_PATH" prefix
+                       ,(list (string-append #$(this-package-input "nss") "/lib/nss")
+                              #$@(map (lambda (pkg)
+                                        (file-append (this-package-input pkg) "/lib"))
+                                      '("alsa-lib"
+                                        "atk"
+                                        "at-spi2-atk"
+                                        "at-spi2-core"
+                                        "cairo"
+                                        "cups"
+                                        "dbus"
+                                        "eudev"
+                                        "expat"
+                                        "gcc"
+                                        "glib"
+                                        "mesa"
+                                        "nspr"
+                                        "libxcomposite"
+                                        "libxdamage"
+                                        "libxkbcommon"
+                                        "libxkbfile"
+                                        "libxrandr"
+                                        "libxshmfence"
+                                        "pango"
+                                        "pulseaudio"
+                                        "zlib")))))))
+               (add-after 'wrap-where-patchelf-does-not-work 'symlink-binaries
+                 (lambda _
+                   (delete-file (string-append #$output "/environment-variables"))
+                   (mkdir-p (string-append #$output "/bin"))
+                   (symlink (string-append #$output "/lib/zoom/zoom")
+                            (string-append #$output "/bin/zoom"))
+                   (symlink (string-append #$output "/lib/zoom/zopen")
+                            (string-append #$output "/bin/zopen"))
+                   (symlink (string-append #$output "/lib/zoom/ZoomLauncher")
+                            (string-append #$output "/bin/ZoomLauncher"))))
+               (add-after 'symlink-binaries 'create-desktop-file
+                 (lambda _
+                   (let ((apps (string-append #$output "/share/applications")))
+                     (mkdir-p apps)
+                     (make-desktop-entry-file
+                      (string-append apps "/zoom.desktop")
+                      #:name "Zoom"
+                      #:generic-name "Zoom Client for Linux"
+                      #:exec (string-append #$output "/bin/ZoomLauncher %U")
+                      #:mime-type (list
+                                   "x-scheme-handler/zoommtg"
+                                   "x-scheme-handler/zoomus"
+                                   "x-scheme-handler/tel"
+                                   "x-scheme-handler/callto"
+                                   "x-scheme-handler/zoomphonecall"
+                                   "application/x-zoom")
+                      #:categories '("Network" "InstantMessaging"
+                                     "VideoConference" "Telephony")
+                      #:startup-w-m-class "zoom"
+                      #:comment
+                      '(("en" "Zoom Video Conference")
+                        (#f "Zoom Video Conference")))))))))
+    (native-inputs (list tar))
+    (inputs (list alsa-lib
+                  at-spi2-atk
+                  at-spi2-core
+                  atk
+                  bash-minimal
+                  cairo
+                  cups
+                  dbus
+                  eudev
+                  expat
+                  fontconfig
+                  freetype
+                  `(,gcc "lib")
+                  glib
+                  gtk+
+                  libdrm
+                  librsvg
+                  libx11
+                  libxcb
+                  libxcomposite
+                  libxdamage
+                  libxext
+                  libxfixes
+                  libxkbcommon
+                  libxkbfile
+                  libxrandr
+                  libxrender
+                  libxshmfence
+                  mesa
+                  nspr
+                  nss
+                  pango
+                  pulseaudio
+                  qtmultimedia
+                  xcb-util-image
+                  xcb-util-keysyms
+                  zlib))
+    (home-page "https://zoom.us/")
+    (synopsis "Video conference client")
+    (description "The Zoom video conferencing and messaging client.  Zoom must be run via an
+app launcher to use its .desktop file, or with @code{ZoomLauncher}.")
+    (license (license:nonfree "https://explore.zoom.us/en/terms/"))))
