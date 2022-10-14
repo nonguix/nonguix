@@ -47,6 +47,130 @@
   #:use-module ((nonguix licenses) :prefix license:)
   #:use-module (ice-9 match))
 
+(define-public discord
+  (package
+    (name "discord")
+    (version "0.0.20")
+    (source
+     (origin
+       (method url-fetch)
+       (uri
+        (string-append
+         "https://dl.discordapp.net/apps/linux/" version "/" name "-" version ".deb"))
+       (sha256
+        (base32 "036pg6xi6jwn7qadfbdq88w55mwyszy83sq4xnfbhm1xw5gmn16n"))))
+    (supported-systems '("x86_64-linux"))
+    (build-system binary-build-system)
+    (arguments
+     (list #:validate-runpath? #f ; TODO: fails on wrapped binary and included other files
+           #:patchelf-plan
+           #~'(("lib/discord/Discord"
+                ("alsa-lib" "at-spi2-atk" "at-spi2-core" "atk" "cairo" "cups"
+                 "dbus" "expat" "fontconfig-minimal" "gcc" "gdk-pixbuf" "glib"
+                 "gtk+" "libdrm" "libnotify" "libx11" "libxcb"
+                 "libxcomposite" "libxcursor" "libxdamage" "libxext" "libxfixes"
+                 "libxi" "libxkbcommon" "libxkbfile" "libxrandr" "libxshmfence"
+                 "libxrender" "libxkbcommon" "libxkbfile" "libxrandr" "libxtst"
+                 "libxtst" "mesa" "nspr" "pango" "pulseaudio" "zlib")))
+           #:phases
+           #~(modify-phases %standard-phases
+               (replace 'unpack
+                 (lambda _
+                   (invoke "ar" "x" #$source)
+                   (invoke "tar" "xvf" "data.tar.gz")
+                   (copy-recursively "usr/" ".")
+                   ;; Use the more standard lib directory for everything.
+                   (mkdir-p "lib")
+                   (rename-file "share/discord" "lib/discord")
+                   ;; Remove unneeded files.
+                   (delete-file-recursively "bin")
+                   (delete-file "control.tar.gz")
+                   (delete-file "data.tar.gz")
+                   (delete-file "debian-binary")))
+               (add-after 'unpack 'fix-desktop-file
+                 (lambda _
+                   ;; Fix the .desktop file binary location.
+                   (rename-file "lib/discord/discord.desktop" "share/applications/discord.desktop")
+                   (substitute* '("share/applications/discord.desktop")
+                     (("/usr/share/")
+                      (string-append #$output "/lib/")))
+                   ;; And move the icon, replacing the (broken) symlink.
+                   (rename-file "lib/discord/discord.png" "share/pixmaps/discord.png")))
+               (add-after 'install 'symlink-binary-file-and-cleanup
+                 (lambda _
+                   (delete-file (string-append #$output "/environment-variables"))
+                   (mkdir-p (string-append #$output "/bin"))
+                   (symlink (string-append #$output "/lib/discord/Discord")
+                            (string-append #$output "/bin/discord"))))
+               (add-after 'install 'wrap-where-patchelf-does-not-work
+                 (lambda _
+                   (wrap-program (string-append #$output "/lib/discord/Discord")
+                     `("FONTCONFIG_PATH" ":" prefix
+                       (,(string-join
+                          (list
+                           (string-append #$(this-package-input "fontconfig-minimal") "/etc/fonts")
+                           #$output)
+                          ":")))
+                     `("LD_LIBRARY_PATH" ":" prefix
+                       (,(string-join
+                          (list
+                           (string-append #$(this-package-input "nss") "/lib/nss")
+                           (string-append #$(this-package-input "eudev") "/lib")
+                           (string-append #$(this-package-input "gcc") "/lib")
+                           (string-append #$(this-package-input "libnotify") "/lib")
+                           (string-append #$(this-package-input "libxkbfile") "/lib")
+                           (string-append #$(this-package-input "mesa") "/lib")
+                           (string-append #$(this-package-input "pulseaudio") "/lib")
+                           (string-append #$(this-package-input "sqlcipher") "/lib")
+                           (string-append #$(this-package-input "zlib") "/lib")
+                           (string-append #$output "/lib/discord")
+                           #$output)
+                          ":")))))))))
+    (native-inputs (list tar))
+    (inputs
+     (list alsa-lib
+           at-spi2-atk
+           at-spi2-core
+           atk
+           cairo
+           cups
+           dbus
+           eudev
+           expat
+           fontconfig
+           `(,gcc "lib")
+           glib
+           gtk+
+           libdrm
+           libnotify
+           librsvg
+           libx11
+           libxcb
+           libxcomposite
+           libxcursor
+           libxdamage
+           libxext
+           libxfixes
+           libxi
+           libxkbcommon
+           libxkbfile
+           libxrandr
+           libxrender
+           libxshmfence
+           libxtst
+           mesa
+           nspr
+           nss
+           pango
+           pulseaudio
+           sqlcipher
+           zlib))
+    (home-page "https://discord.com/")
+    (synopsis "All-in-one voice, video, and text chat for gamers")
+    (description "Discord is a cross-platform text, voice, and video chat platform aimed at
+gamers.")
+    (license (license:nonfree "https://discord.com/terms"))))
+
 (define-public element-desktop
   (package
     (name "element-desktop")
