@@ -396,7 +396,17 @@ or iOS.")
                                         "pango"
                                         "pulseaudio"
                                         "zlib")))))))
-               (add-after 'wrap-where-patchelf-does-not-work 'symlink-binaries
+               (add-after 'wrap-where-patchelf-does-not-work 'rename-binary
+                 ;; IPC (for single sign-on and handling links) fails if the
+                 ;; name does not end in "zoom," so rename the real binary.
+                 ;; Thanks to the Nix packagers for figuring this out.
+                 (lambda _
+                   (rename-file (string-append #$output "/lib/zoom/.zoom-real")
+                                (string-append #$output "/lib/zoom/.zoom"))
+                   (substitute* (string-append #$output "/lib/zoom/zoom")
+                     (("zoom-real")
+                      "zoom"))))
+               (add-after 'rename-binary 'symlink-binaries
                  (lambda _
                    (delete-file (string-append #$output "/environment-variables"))
                    (mkdir-p (string-append #$output "/bin"))
