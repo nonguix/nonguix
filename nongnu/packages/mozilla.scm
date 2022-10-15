@@ -105,21 +105,9 @@
                     (alist-replace "rustc-bootstrap" (list base-rust)
                                    (package-native-inputs base-rust))))))
 
-(define rust-firefox-1.58
-  (rust-bootstrapped-package
-   rust "1.58.1" "1iq7kj16qfpkx8gvw50d8rf7glbm6s0pj2y1qkrz7mi56vfsyfd8"))
-
-(define rust-firefox-1.59
-  (rust-bootstrapped-package
-   rust-firefox-1.58 "1.59.0" "1yc5bwcbmbwyvpfq7zvra78l0r8y3lbv60kbr62fzz2vx2pfxj57"))
-
-(define rust-firefox-1.60
-  (rust-bootstrapped-package
-   rust-firefox-1.59 "1.60.0" "1drqr0a26x1rb2w3kj0i6abhgbs3jx5qqkrcwbwdlx7n3inq5ji0"))
-
 (define rust-firefox-1.61
   (let ((base-rust (rust-bootstrapped-package
-                    rust-firefox-1.60 "1.61.0"
+                    rust "1.61.0"
                     "1vfs05hkf9ilk19b2vahqn8l6k17pl9nc1ky9kgspaascx8l62xd")))
     (package
       (inherit base-rust)
@@ -141,7 +129,7 @@
 ;; upstream.  See the file taskcluster/ci/toolchain/rust.yml at
 ;; https://searchfox.org under the particular firefox release, like
 ;; mozilla-esr102.
-(define-public rust-firefox-esr rust-firefox-1.60)
+(define-public rust-firefox-esr rust) ; 1.60 is the default in Guix
 (define-public rust-firefox rust-firefox-1.61) ; 1.63 is also listed, but 1.61 is the minimum needed
 
 ;; rust-cbindgen-0.23/0.24 dependencies
