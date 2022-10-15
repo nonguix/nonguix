@@ -237,6 +237,15 @@ svga,swrast,virgl")))
                       (("'lp_test_arit', ") ""))))
                  (_
                   '((display "No tests to disable on this architecture.\n"))))))
+         ,@(if (string=? (%current-system) "i686-linux")
+               '((add-after 'disable-failing-test 'fix-instrfromstring-test
+                   (lambda _
+                     ;; The instrfromstring test fails on i686, which has been already
+                     ;; fixed upstream but not in 22.2.1.
+                     ;; TODO: remove on update
+                     (substitute* "src/gallium/drivers/r600/sfn/sfn_instr_export.cpp"
+                       (("buf\\[6\\]") "buf[6] = {0}")))))
+               '())
          (add-before 'configure 'fix-dlopen-libnames
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((out (assoc-ref outputs "out")))
