@@ -614,8 +614,8 @@ according to Unicode Standard Annex #31")
         alsa-lib
         autoconf-2.13
         `(,rust-firefox-esr "cargo")
-        clang-12
-        llvm-12
+        clang
+        llvm
         wasm32-wasi-clang-toolchain
         m4
         nasm
