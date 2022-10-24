@@ -44,6 +44,10 @@
     (arguments
      `(#:phases
        (modify-phases %standard-phases
+         (add-before 'configure 'allow-newer-coq-version
+           (lambda _
+             (substitute* "configure"
+               (("8.14.0") "8.16.0"))))
          (replace 'configure
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((system ,(match (or (%current-target-system) (%current-system))
