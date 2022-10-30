@@ -15,6 +15,7 @@
 ;;; Copyright © 2022 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2022 Petr Hodina <phodina@protonmail.com>
 ;;; Copyright © 2022 Remco van 't Veer <remco@remworks.net>
+;;; Copyright © 2022 Simen Endsjø <simendsjo@gmail.com>
 
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
@@ -118,7 +119,7 @@ System on hardware which requires nonfree software to function.")))
 (define-public linux-firmware
   (package
     (name "linux-firmware")
-    (version "20220913")
+    (version "20221012")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://git.kernel.org/pub/scm/linux/kernel"
@@ -126,7 +127,7 @@ System on hardware which requires nonfree software to function.")))
                                   "linux-firmware-" version ".tar.gz"))
               (sha256
                (base32
-                "05s6b00n56kgin9b031799a6kxlccmq0d1m213cs5wb34yylip4w"))))
+                "0akk38qfkznanpj80jidz4cx8cvs580llb46xd7q1haljykipjys"))))
     (build-system gnu-build-system)
     (arguments
      `(#:tests? #f
