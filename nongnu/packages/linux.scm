@@ -95,8 +95,8 @@ System on hardware which requires nonfree software to function.")))
                  "0w8f7m3mdj6gcxdvsvxw5hqqfhwffpfl794rgianl4r6iad8w7s6"))
 
 (define-public linux-4.9
-  (corrupt-linux linux-libre-4.9 "4.9.330"
-                 "0psrl8fcbp1bsanjmllic503dlyhkj8bjzfc20p2ksahlhv1j0mz"))
+  (corrupt-linux linux-libre-4.9 "4.9.332"
+                 "1kiqa9kw4932n5qglkyymsrak849wbbszw9rnq1aygmdinjz4c8i"))
 
 (define-public linux linux-6.0)
 ;; linux-lts points to the *newest* released long-term support version.
