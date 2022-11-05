@@ -78,7 +78,7 @@
 (define-public mesa-next
   (package
     (name "mesa")
-    (version "22.2.1")
+    (version "22.2.2")
     (source
      (origin
        (method url-fetch)
@@ -90,7 +90,7 @@
                                  version "/mesa-" version ".tar.xz")))
        (sha256
         (base32
-         "0g5ij57ljh3l04qf7qpildl45g5g7s8ycngc19z5xx1k1anbwy80"))))
+         "1ya8i7kz98h6vdyfjmlpnvcd237a7hhgwjcfh4dngk659yvizq9d"))))
     (build-system meson-build-system)
     (propagated-inputs
      ;; The following are in the Requires.private field of gl.pc.
