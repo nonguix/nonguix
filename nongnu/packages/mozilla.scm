@@ -1,7 +1,7 @@
 ;;; GNU Guix --- Functional package management for GNU
 ;;; Copyright © 2013, 2015 Andreas Enge <andreas@enge.fr>
 ;;; Copyright © 2013, 2014, 2015, 2016, 2017, 2018, 2019 Ludovic Courtès <ludo@gnu.org>
-;;; Copyright © 2014, 2015, 2016, 2017, 2018, 2019, 2020 Mark H Weaver <mhw@netris.org>
+;;; Copyright © 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021 Mark H Weaver <mhw@netris.org>
 ;;; Copyright © 2015 Sou Bunnbu <iyzsong@gmail.com>
 ;;; Copyright © 2016, 2017, 2018, 2019 Efraim Flashner <efraim@flashner.co.il>
 ;;; Copyright © 2016 Alex Griffin <a@ajgrf.com>
@@ -348,7 +348,12 @@ according to Unicode Standard Annex #31")
       #:imported-modules %cargo-utils-modules
       #:modules `((ice-9 regex)
                   (ice-9 ftw)
+                  (srfi srfi-1)
                   (srfi srfi-26)
+                  (rnrs bytevectors)
+                  (rnrs io ports)
+                  (guix elf)
+                  (guix build gremlin)
                   ,@%gnu-build-system-modules)
       #:phases
       #~(modify-phases %standard-phases
@@ -508,6 +513,19 @@ according to Unicode Standard Annex #31")
             (lambda _ (invoke "./mach" "install")))
           (add-after 'install 'wrap-program
             (lambda* (#:key inputs outputs #:allow-other-keys)
+              ;; The following two functions are from Guix's icecat package in
+              ;; (gnu packages gnuzilla).  See commit
+              ;; b7a0935420ee630a29b7e5ac73a32ba1eb24f00b.
+              (define (runpath-of lib)
+                (call-with-input-file lib
+                  (compose elf-dynamic-info-runpath
+                           elf-dynamic-info
+                           parse-elf
+                           get-bytevector-all)))
+              (define (runpaths-of-input label)
+                (let* ((dir (string-append (assoc-ref inputs label) "/lib"))
+                       (libs (find-files dir "\\.so$")))
+                  (append-map runpath-of libs)))
               (let* ((out (assoc-ref outputs "out"))
                      (lib (string-append out "/lib"))
                      ;; TODO: make me a loop again
@@ -518,6 +536,20 @@ according to Unicode Standard Annex #31")
                      ;; For hardware video acceleration via VA-API
                      (libva-lib (string-append (assoc-ref inputs "libva")
                                                "/lib"))
+                     ;; VA-API is run in the RDD (Remote Data Decoder) sandbox
+                     ;; and must be explicitly given access to files it needs.
+                     ;; Rather than adding the whole store (as Nix had
+                     ;; upstream do, see
+                     ;; <https://github.com/NixOS/nixpkgs/pull/165964> and
+                     ;; linked upstream patches), we can just follow the
+                     ;; runpaths of the needed libraries to add everything to
+                     ;; LD_LIBRARY_PATH.  These will then be accessible in the
+                     ;; RDD sandbox.
+                     (rdd-whitelist
+                      (map (cut string-append <> "/")
+                           (delete-duplicates
+                            (append-map runpaths-of-input
+                                        '("mesa" "ffmpeg")))))
                      (pulseaudio-lib (string-append (assoc-ref inputs "pulseaudio")
                                                     "/lib"))
                      ;; For U2F and WebAuthn
@@ -526,7 +558,7 @@ according to Unicode Standard Annex #31")
                                                "/share")))
                 (wrap-program (car (find-files lib "^firefox$"))
                   `("LD_LIBRARY_PATH" prefix (,mesa-lib ,libnotify-lib ,libva-lib
-                                              ,pulseaudio-lib ,eudev-lib))
+                                              ,pulseaudio-lib ,eudev-lib ,@rdd-whitelist))
                   `("XDG_DATA_DIRS" prefix (,gtk-share))
                   `("MOZ_LEGACY_PROFILES" = ("1"))
                   `("MOZ_ALLOW_DOWNGRADE" = ("1"))))))
