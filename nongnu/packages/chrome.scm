@@ -195,3 +195,6 @@
 
 (define-public google-chrome-stable
   (make-google-chrome "stable" "107.0.5304.68" "1x9svz5s8fm2zhnpzjpqckzfp37hjni3nf3pm63rwnvbd06y48ja"))
+
+(define-public google-chrome-beta
+  (make-google-chrome "beta" "108.0.5359.40" "1zd8dbs5w2vdnck91pqiymwa2bnz53jgjbg89cr96y6jwab3i4b0"))
