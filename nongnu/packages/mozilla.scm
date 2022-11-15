@@ -85,52 +85,12 @@
   #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xorg))
 
-;; Copied from guix/gnu/packages/rust.scm
-(define* (rust-uri version #:key (dist "static"))
-  (string-append "https://" dist ".rust-lang.org/dist/"
-                 "rustc-" version "-src.tar.gz"))
-
-(define* (rust-bootstrapped-package base-rust version checksum)
-  "Bootstrap rust VERSION with source checksum CHECKSUM using BASE-RUST."
-  (package
-    (inherit base-rust)
-    (version version)
-    (source
-     (origin
-       (inherit (package-source base-rust))
-       (uri (rust-uri version))
-       (sha256 (base32 checksum))))
-    (native-inputs
-     (alist-replace "cargo-bootstrap" (list base-rust "cargo")
-                    (alist-replace "rustc-bootstrap" (list base-rust)
-                                   (package-native-inputs base-rust))))))
-
-(define rust-firefox-1.61
-  (let ((base-rust (rust-bootstrapped-package
-                    rust "1.61.0"
-                    "1vfs05hkf9ilk19b2vahqn8l6k17pl9nc1ky9kgspaascx8l62xd")))
-    (package
-      (inherit base-rust)
-      (arguments
-       (substitute-keyword-arguments (package-arguments base-rust)
-         ((#:phases phases)
-          `(modify-phases ,phases
-             (add-after 'unpack 'disable-tests-with-sigint
-               ;; These tests rely on killing a process with SIGINT which
-               ;; fails in the build container.
-               (lambda _
-                 (substitute* "library/std/src/sys/unix/process/process_common/tests.rs"
-                   (("fn test_process_group_posix_spawn")
-                    "#[ignore]\nfn test_process_group_posix_spawn")
-                   (("fn test_process_group_no_posix_spawn")
-                    "#[ignore]\nfn test_process_group_no_posix_spawn")))))))))))
-
 ;; Define the versions of rust needed to build firefox, trying to match
 ;; upstream.  See the file taskcluster/ci/toolchain/rust.yml at
 ;; https://searchfox.org under the particular firefox release, like
 ;; mozilla-esr102.
 (define-public rust-firefox-esr rust) ; 1.60 is the default in Guix
-(define-public rust-firefox rust-firefox-1.61) ; 1.63 is also listed, but 1.61 is the minimum needed
+(define-public rust-firefox (@@ (gnu packages rust) rust-1.61)) ; 1.63 is also listed, but 1.61 is the minimum needed
 
 ;; rust-cbindgen-0.23/0.24 dependencies
 (define-public rust-unicode-ident-1
