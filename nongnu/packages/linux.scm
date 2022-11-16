@@ -119,7 +119,7 @@ System on hardware which requires nonfree software to function.")))
 (define-public linux-firmware
   (package
     (name "linux-firmware")
-    (version "20221012")
+    (version "20221109")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://git.kernel.org/pub/scm/linux/kernel"
@@ -127,7 +127,7 @@ System on hardware which requires nonfree software to function.")))
                                   "linux-firmware-" version ".tar.gz"))
               (sha256
                (base32
-                "0akk38qfkznanpj80jidz4cx8cvs580llb46xd7q1haljykipjys"))))
+                "16yv7snsy5zvcwwzy0sr0lx3nf74qhi3nammdsx8c28rdm19jcn2"))))
     (build-system gnu-build-system)
     (arguments
      `(#:tests? #f
