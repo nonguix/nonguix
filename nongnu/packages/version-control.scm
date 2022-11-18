@@ -1,4 +1,5 @@
 ;;; Copyright © 2022 dan <i@dan.games>
+;;; Copyright © 2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -31,14 +32,14 @@
                                   "/bin.linux26"
                                   (match (%current-system)
                                     ("i686-linux" "x86")
-                                    ("x86_64-linux" "x86_64"))
+                                    (_ "x86_64"))
                                   "/helix-core-server.tgz"))
               (sha256
                (base32
                 (match (%current-system)
                   ("i686-linux"
                    "0f5qs55rspw86axnmml3nxx551lwbxwz1cgi9kmy2f9g5rrplnkn")
-                  ("x86_64-linux"
+                  (_
                    "077rfbjgyhdgv76i2727s3yk3p52y75nml8n9wv8g7mvhfs9ypa9"))))))
     (build-system binary-build-system)
     (arguments
