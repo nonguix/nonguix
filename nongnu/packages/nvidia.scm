@@ -107,6 +107,8 @@
                  (lambda* (#:key inputs native-inputs outputs #:allow-other-keys)
                    (chdir "..")
                    (use-modules (ice-9 ftw)
+                                (ice-9 popen)
+                                (ice-9 rdelim)
                                 (ice-9 regex)
                                 (ice-9 textual-ports))
                    (let* ((libdir (string-append #$output "/lib"))
@@ -201,10 +203,11 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                                           (string-append #$(this-package-input "wayland") "/lib"))
                                     ":")))
                        (define (patch-elf file)
-                         (format #t "Patching ~a ...~%" file)
+                         (format #t "Patching ~a ..." file)
                          (unless (string-contains file ".so")
                            (invoke "patchelf" "--set-interpreter" ld.so file))
-                         (invoke "patchelf" "--set-rpath" rpath file))
+                         (invoke "patchelf" "--set-rpath" rpath file)
+                         (display " done\n"))
                        (for-each (lambda (file)
                                    (when (elf-file? file)
                                      (patch-elf file)))
@@ -213,30 +216,34 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
 
                      ;; ------------------------------
                      ;; Create short name symbolic links
-                     (for-each (lambda (file)
-                                 (let* ((short (regexp-substitute
-                                                #f
-                                                (string-match "([^/]*\\.so).*" file)
-                                                1))
-                                        (major (cond
-                                                ((or (string=? short "libGLX.so")
-                                                     (string=? short "libGLX_nvidia.so")
-                                                     (string=? short "libEGL_nvidia.so")) "0")
-                                                ((string=? short "libGLESv2.so") "2")
-                                                (else "1")))
-                                        (mid (string-append short "." major))
-                                        (short-file (string-append libdir "/" short))
-                                        (mid-file (string-append libdir "/" mid)))
-                                   ;; FIXME the same name, print out warning at least
-                                   ;; [X] libEGL.so.1.1.0
-                                   ;; [ ] libEGL.so.435.21
-                                   (when (not (file-exists? short-file))
-                                     (format #t "Linking ~a to ~a ...~%" short file)
-                                     (symlink (basename file) short-file))
-                                   (when (not (file-exists? mid-file))
-                                     (format #t "Linking ~a to ~a ...~%" mid file)
-                                     (symlink (basename file) mid-file))))
-                               (find-files libdir "\\.so\\."))
+                     (define (get-soname file)
+                       (when elf-file? file
+                             (let* ((cmd (string-append "patchelf --print-soname " file))
+                                    (port (open-input-pipe cmd))
+                                    (soname (read-line port)))
+                               (close-pipe port)
+                               soname)))
+
+                     (for-each
+                      (lambda (lib)
+                        (let ((lib-soname (get-soname lib)))
+                          (when (string? lib-soname)
+                            (let* ((soname (string-append
+                                            (dirname lib) "/" lib-soname))
+                                   (base (string-append
+                                          (regexp-substitute
+                                           #f (string-match "(.*)\\.so.*" soname) 1)
+                                          ".so"))
+                                   (source (basename lib)))
+                              (for-each
+                               (lambda (target)
+                                 (unless (file-exists? target)
+                                   (format #t "Symlinking ~a -> ~a..."
+                                           target source)
+                                   (symlink source target)
+                                   (display " done\n")))
+                               (list soname base))))))
+                      (find-files #$output "\\.so"))
                      (symlink (string-append "libglxserver_nvidia.so." #$version)
                               (string-append #$output "/lib/xorg/modules/extensions/" "libglxserver_nvidia.so"))))))))
     (supported-systems '("x86_64-linux"))
