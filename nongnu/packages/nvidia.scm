@@ -135,26 +135,20 @@
 
                      ;; Add udev rules for nvidia
                      (let ((rulesdir (string-append #$output "/lib/udev/rules.d/"))
-                           (rules    (string-append #$output "/lib/udev/rules.d/90-nvidia.rules"))
-                           (sh       (search-input-file inputs "/bin/sh"))
-                           (mknod    (search-input-file inputs "/bin/mknod"))
-                           (cut      (search-input-file inputs "/bin/cut"))
-                           (grep     (search-input-file inputs "/bin/grep")))
+                           (rules    (string-append #$output "/lib/udev/rules.d/90-nvidia.rules")))
                        (mkdir-p rulesdir)
                        (call-with-output-file rules
                          (lambda (port)
-                           (put-string port
-                                       (string-append
-                                        "KERNEL==\"nvidia\", "
-                                        "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidiactl c $$(" grep " nvidia-frontend /proc/devices | " cut " -d \\  -f 1) 255'\"" "\n"
-                                        "KERNEL==\"nvidia_modeset\", "
-                                        "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidia-modeset c $$(" grep " nvidia-frontend /proc/devices | " cut " -d \\  -f 1) 254'\"" "\n"
-                                        "KERNEL==\"card*\", SUBSYSTEM==\"drm\", DRIVERS==\"nvidia\", "
-                                        "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidia0 c $$(" grep " nvidia-frontend /proc/devices | " cut " -d \\  -f 1) 0'\"" "\n"
-                                        "KERNEL==\"nvidia_uvm\", "
-                                        "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidia-uvm c $$(" grep " nvidia-uvm /proc/devices | " cut " -d \\  -f 1) 0'\"" "\n"
-                                        "KERNEL==\"nvidia_uvm\", "
-                                        "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidia-uvm-tools c $$(" grep " nvidia-uvm /proc/devices | " cut " -d \\  -f 1) 0'\"" "\n" )))))
+                           (put-string port (format #f "~
+KERNEL==\"nvidia\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidiactl c $$(@grep@ nvidia-frontend /proc/devices | @cut@ -d \\  -f 1) 255'\"
+KERNEL==\"nvidia_modeset\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-modeset c $$(@grep@ nvidia-frontend /proc/devices | @cut@ -d \\  -f 1) 254'\"
+KERNEL==\"card*\", SUBSYSTEM==\"drm\", DRIVERS==\"nvidia\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia0 c $$(@grep@ nvidia-frontend /proc/devices | @cut@ -d \\  -f 1) 0'\"
+KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm c $$(@grep@ nvidia-uvm /proc/devices | @cut@ -d \\  -f 1) 0'\"
+KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $$(@grep@ nvidia-uvm /proc/devices | @cut@ -d \\  -f 1) 0'\"
+"))))
+                       (substitute* rules
+                         (("@\\<(sh|grep|mknod|cut)\\>@" all cmd)
+                          (search-input-file inputs (string-append "/bin/" cmd)))))
 
                      ;; ------------------------------
                      ;; Add a file to load nvidia drivers
