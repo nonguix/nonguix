@@ -6,6 +6,7 @@
 ;;; Copyright © 2021 Pierre Langlois <pierre.langlois@gmx.com>
 ;;; Copyright © 2022 Petr Hodina <phodina@protonmail.com>
 ;;; Copyright © 2022 Alexey Abramov <levenson@mmer.org>
+;;; Copyright © 2022 Hilton Chain <hako@ultrarare.space>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -82,210 +83,203 @@
     (build-system linux-module-build-system)
     (arguments
      (list #:linux linux-lts
-       #:tests? #f
-       #:phases
-       #~(modify-phases %standard-phases
-         (replace 'unpack
-           (lambda* (#:key inputs #:allow-other-keys #:rest r)
-             (let ((source (assoc-ref inputs "source")))
-               (invoke "sh" source "--extract-only")
-               (chdir #$(format #f "NVIDIA-Linux-x86_64-~a" version)))))
-         (replace 'build
-           (lambda*  (#:key inputs outputs #:allow-other-keys)
-             ;; We cannot use with-directory-excursion, because the install
-             ;; phase needs to be in the kernel folder. Otherwise no .ko
-             ;; would be installed.
-             (chdir "kernel")
-             ;; Patch Kbuild
-             (substitute* "Kbuild"
-               (("/bin/sh") (string-append #$bash-minimal "/bin/sh")))
-             (invoke "make"
-                     "-j"
-                     (string-append "SYSSRC="
-                                    (assoc-ref inputs "linux-module-builder")
-                                    "/lib/modules/build")
-                     "CC=gcc")))
-         (delete 'strip)
-         (add-after 'install 'install-copy
-           (lambda* (#:key inputs native-inputs outputs #:allow-other-keys)
-             (chdir "..")
-             (use-modules (ice-9 ftw)
-                          (ice-9 regex)
-                          (ice-9 textual-ports))
-             (let* ((libdir (string-append #$output "/lib"))
-                    (bindir (string-append #$output "/bin"))
-                    (etcdir (string-append #$output "/etc")))
-               ;; ------------------------------
-               ;; Copy .so files
-               (for-each
-                (lambda (file)
-                  (format #t "Copying '~a'...~%" file)
-                  (install-file file libdir))
-                (scandir "." (lambda (name)
-                               (string-contains name ".so"))))
+           #:tests? #f
+           #:phases
+           #~(modify-phases %standard-phases
+               (replace 'unpack
+                 (lambda* (#:key inputs #:allow-other-keys #:rest r)
+                   (let ((source (assoc-ref inputs "source")))
+                     (invoke "sh" source "--extract-only")
+                     (chdir #$(format #f "NVIDIA-Linux-x86_64-~a" version)))))
+               (replace 'build
+                 (lambda*  (#:key inputs outputs #:allow-other-keys)
+                   ;; We cannot use with-directory-excursion, because the install
+                   ;; phase needs to be in the kernel folder. Otherwise no .ko
+                   ;; would be installed.
+                   (chdir "kernel")
+                   ;; Patch Kbuild
+                   (substitute* "Kbuild"
+                     (("/bin/sh") (string-append #$bash-minimal "/bin/sh")))
+                   (invoke "make"
+                           "-j"
+                           (string-append "SYSSRC="
+                                          (assoc-ref inputs "linux-module-builder")
+                                          "/lib/modules/build")
+                           "CC=gcc")))
+               (delete 'strip)
+               (add-after 'install 'install-copy
+                 (lambda* (#:key inputs native-inputs outputs #:allow-other-keys)
+                   (chdir "..")
+                   (use-modules (ice-9 ftw)
+                                (ice-9 regex)
+                                (ice-9 textual-ports))
+                   (let* ((libdir (string-append #$output "/lib"))
+                          (bindir (string-append #$output "/bin"))
+                          (etcdir (string-append #$output "/etc")))
+                     ;; ------------------------------
+                     ;; Copy .so files
+                     (for-each
+                      (lambda (file)
+                        (format #t "Copying '~a'...~%" file)
+                        (install-file file libdir))
+                      (scandir "." (lambda (name)
+                                     (string-contains name ".so"))))
 
-               (install-file "nvidia_drv.so" (string-append #$output "/lib/xorg/modules/drivers/"))
-               (install-file (string-append "libglxserver_nvidia.so."
-                                            #$(package-version nvidia-driver))
-                             (string-append #$output "/lib/xorg/modules/extensions/"))
+                     (install-file "nvidia_drv.so" (string-append #$output "/lib/xorg/modules/drivers/"))
+                     (install-file (string-append "libglxserver_nvidia.so." #$(package-version nvidia-driver))
+                                   (string-append #$output "/lib/xorg/modules/extensions/"))
 
-               ;; ICD Loader for OpenCL
-               (let ((file (string-append etcdir "/OpenCL/vendors/nvidia.icd")))
-                 (mkdir-p (string-append etcdir "/OpenCL/vendors/"))
-                 (call-with-output-file file
-                   (lambda (port)
-                     (display (string-append #$output "/lib/libnvidia-opencl.so.1") port)))
-                 (chmod file #o555))
+                     ;; ICD Loader for OpenCL
+                     (let ((file (string-append etcdir "/OpenCL/vendors/nvidia.icd")))
+                       (mkdir-p (string-append etcdir "/OpenCL/vendors/"))
+                       (call-with-output-file file
+                         (lambda (port)
+                           (display (string-append #$output "/lib/libnvidia-opencl.so.1") port)))
+                       (chmod file #o555))
 
-               ;; Add udev rules for nvidia
-               (let ((rulesdir (string-append #$output "/lib/udev/rules.d/"))
-                     (rules    (string-append #$output "/lib/udev/rules.d/90-nvidia.rules"))
-                     (sh       (string-append #$bash-minimal "/bin/sh"))
-                     (mknod    (string-append #$coreutils "/bin/mknod"))
-                     (cut     (string-append #$coreutils "/bin/cut"))
-                     (grep     (string-append #$grep "/bin/grep")))
-                 (mkdir-p rulesdir)
-                 (call-with-output-file rules
-                   (lambda (port)
-                     (put-string port
-                                 (string-append
-                                  "KERNEL==\"nvidia\", "
-                                  "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidiactl c $$(" grep " nvidia-frontend /proc/devices | " cut " -d \\  -f 1) 255'\"" "\n"
-                                  "KERNEL==\"nvidia_modeset\", "
-                                  "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidia-modeset c $$(" grep " nvidia-frontend /proc/devices | " cut " -d \\  -f 1) 254'\"" "\n"
-                                  "KERNEL==\"card*\", SUBSYSTEM==\"drm\", DRIVERS==\"nvidia\", "
-                                  "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidia0 c $$(" grep " nvidia-frontend /proc/devices | " cut " -d \\  -f 1) 0'\"" "\n"
-                                  "KERNEL==\"nvidia_uvm\", "
-                                  "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidia-uvm c $$(" grep " nvidia-uvm /proc/devices | " cut " -d \\  -f 1) 0'\"" "\n"
-                                  "KERNEL==\"nvidia_uvm\", "
-                                  "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidia-uvm-tools c $$(" grep " nvidia-uvm /proc/devices | " cut " -d \\  -f 1) 0'\"" "\n" )))))
+                     ;; Add udev rules for nvidia
+                     (let ((rulesdir (string-append #$output "/lib/udev/rules.d/"))
+                           (rules    (string-append #$output "/lib/udev/rules.d/90-nvidia.rules"))
+                           (sh       (string-append #$bash-minimal "/bin/sh"))
+                           (mknod    (string-append #$coreutils "/bin/mknod"))
+                           (cut      (string-append #$coreutils "/bin/cut"))
+                           (grep     (string-append #$grep "/bin/grep")))
+                       (mkdir-p rulesdir)
+                       (call-with-output-file rules
+                         (lambda (port)
+                           (put-string port
+                                       (string-append
+                                        "KERNEL==\"nvidia\", "
+                                        "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidiactl c $$(" grep " nvidia-frontend /proc/devices | " cut " -d \\  -f 1) 255'\"" "\n"
+                                        "KERNEL==\"nvidia_modeset\", "
+                                        "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidia-modeset c $$(" grep " nvidia-frontend /proc/devices | " cut " -d \\  -f 1) 254'\"" "\n"
+                                        "KERNEL==\"card*\", SUBSYSTEM==\"drm\", DRIVERS==\"nvidia\", "
+                                        "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidia0 c $$(" grep " nvidia-frontend /proc/devices | " cut " -d \\  -f 1) 0'\"" "\n"
+                                        "KERNEL==\"nvidia_uvm\", "
+                                        "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidia-uvm c $$(" grep " nvidia-uvm /proc/devices | " cut " -d \\  -f 1) 0'\"" "\n"
+                                        "KERNEL==\"nvidia_uvm\", "
+                                        "RUN+=\"" sh " -c '" mknod " -m 666 /dev/nvidia-uvm-tools c $$(" grep " nvidia-uvm /proc/devices | " cut " -d \\  -f 1) 0'\"" "\n" )))))
 
-               ;; ------------------------------
-               ;; Add a file to load nvidia drivers
-               (mkdir-p bindir)
-               (let ((file (string-append bindir "/nvidia-insmod"))
-                     (moddir (string-append "/lib/modules/" (utsname:release (uname)) "-gnu/extra")))
-                 (call-with-output-file file
-                   (lambda (port)
-                     (put-string port (string-append "#!" (assoc-ref inputs "bash-minimal") "/bin/sh" "\n"
-                                                     "modprobe ipmi_devintf"                   "\n"
-                                                     "insmod " #$output moddir "/nvidia.ko"         "\n"
-                                                     "insmod " #$output moddir "/nvidia-modeset.ko" "\n"
-                                                     "insmod " #$output moddir "/nvidia-uvm.ko"     "\n"
-                                                     "insmod " #$output moddir "/nvidia-drm.ko"     "\n"))))
-                 (chmod file #o555))
-               (let ((file (string-append bindir "/nvidia-rmmod")))
-                 (call-with-output-file file
-                   (lambda (port)
-                     (put-string port (string-append "#!" #$bash-minimal "/bin/sh" "\n"
-                                                     "rmmod " "nvidia-drm"     "\n"
-                                                     "rmmod " "nvidia-uvm"     "\n"
-                                                     "rmmod " "nvidia-modeset" "\n"
-                                                     "rmmod " "nvidia"         "\n"
-                                                     "rmmod " "ipmi_devintf"   "\n"))))
-                 (chmod file #o555))
+                     ;; ------------------------------
+                     ;; Add a file to load nvidia drivers
+                     (mkdir-p bindir)
+                     (let ((file (string-append bindir "/nvidia-insmod"))
+                           (moddir (string-append "/lib/modules/" (utsname:release (uname)) "-gnu/extra")))
+                       (call-with-output-file file
+                         (lambda (port)
+                           (put-string port (string-append "#!" (assoc-ref inputs "bash-minimal") "/bin/sh" "\n"
+                                                           "modprobe ipmi_devintf"                   "\n"
+                                                           "insmod " #$output moddir "/nvidia.ko"         "\n"
+                                                           "insmod " #$output moddir "/nvidia-modeset.ko" "\n"
+                                                           "insmod " #$output moddir "/nvidia-uvm.ko"     "\n"
+                                                           "insmod " #$output moddir "/nvidia-drm.ko"     "\n"))))
+                       (chmod file #o555))
+                     (let ((file (string-append bindir "/nvidia-rmmod")))
+                       (call-with-output-file file
+                         (lambda (port)
+                           (put-string port (string-append "#!" #$bash-minimal "/bin/sh" "\n"
+                                                           "rmmod " "nvidia-drm"     "\n"
+                                                           "rmmod " "nvidia-uvm"     "\n"
+                                                           "rmmod " "nvidia-modeset" "\n"
+                                                           "rmmod " "nvidia"         "\n"
+                                                           "rmmod " "ipmi_devintf"   "\n"))))
+                       (chmod file #o555))
 
-               ;; ------------------------------
-               ;;  nvidia-smi
+                     ;; ------------------------------
+                     ;;  nvidia-smi
 
-               (install-file "nvidia-smi" bindir)
+                     (install-file "nvidia-smi" bindir)
 
-               ;; ------------------------------
-               ;; patchelf
-               (let* ((ld.so (string-append #$glibc #$(glibc-dynamic-linker)))
+                     ;; ------------------------------
+                     ;; patchelf
+                     (let* ((ld.so (string-append #$glibc #$(glibc-dynamic-linker)))
 
-                      (rpath (string-join
-                              (list "$ORIGIN"
-                                    (string-append #$output "/lib")
-                                    (string-append #$glibc "/lib")
-                                    (string-append #$libx11 "/lib")
-                                    (string-append #$libxext "/lib")
-                                    (string-append #$pango "/lib")
-                                    (string-append #$gtk+ "/lib")
-                                    (string-append #$gtk+-2 "/lib")
-                                    (string-append #$atk "/lib")
-                                    (string-append #$glib "/lib")
-                                    (string-append #$cairo "/lib")
-                                    (string-append #$gdk-pixbuf "/lib")
-                                    (string-append #$wayland "/lib")
-                                    (string-append #$gcc:lib "/lib"))
-                              ":")))
-                 (define (patch-elf file)
-                   (format #t "Patching ~a ...~%" file)
-                   (unless (string-contains file ".so")
-                     (invoke "patchelf" "--set-interpreter" ld.so file))
-                   (invoke "patchelf" "--set-rpath" rpath file))
-                 (for-each (lambda (file)
-                             (when (elf-file? file)
-                               (patch-elf file)))
-                           (find-files #$output  ".*\\.so"))
-                 (patch-elf (string-append bindir "/" "nvidia-smi")))
+                            (rpath (string-join
+                                    (list "$ORIGIN"
+                                          (string-append #$output "/lib")
+                                          (string-append #$gcc:lib "/lib")
+                                          (string-append #$gtk+-2 "/lib")
+                                          (string-append #$atk "/lib")
+                                          (string-append #$cairo "/lib")
+                                          (string-append #$gdk-pixbuf "/lib")
+                                          (string-append #$glib "/lib")
+                                          (string-append #$glibc "/lib")
+                                          (string-append #$gtk+ "/lib")
+                                          (string-append #$libx11 "/lib")
+                                          (string-append #$libxext "/lib")
+                                          (string-append #$pango "/lib")
+                                          (string-append #$wayland "/lib"))
+                                    ":")))
+                       (define (patch-elf file)
+                         (format #t "Patching ~a ...~%" file)
+                         (unless (string-contains file ".so")
+                           (invoke "patchelf" "--set-interpreter" ld.so file))
+                         (invoke "patchelf" "--set-rpath" rpath file))
+                       (for-each (lambda (file)
+                                   (when (elf-file? file)
+                                     (patch-elf file)))
+                                 (find-files #$output  ".*\\.so"))
+                       (patch-elf (string-append bindir "/" "nvidia-smi")))
 
-               ;; ------------------------------
-               ;; Create short name symbolic links
-               (for-each (lambda (file)
-                           (let* ((short (regexp-substitute
-                                          #f
-                                          (string-match "([^/]*\\.so).*" file)
-                                          1))
-                                  (major (cond
-                                          ((or (string=? short "libGLX.so")
-                                               (string=? short "libGLX_nvidia.so")
-                                               (string=? short "libEGL_nvidia.so")) "0")
-                                          ((string=? short "libGLESv2.so") "2")
-                                          (else "1")))
-                                  (mid (string-append short "." major))
-                                  (short-file (string-append libdir "/" short))
-                                  (mid-file (string-append libdir "/" mid)))
-                             ;; FIXME the same name, print out warning at least
-                             ;; [X] libEGL.so.1.1.0
-                             ;; [ ] libEGL.so.435.21
-                             (when (not (file-exists? short-file))
-                               (format #t "Linking ~a to ~a ...~%" short file)
-                               (symlink (basename file) short-file))
-                             (when (not (file-exists? mid-file))
-                               (format #t "Linking ~a to ~a ...~%" mid file)
-                               (symlink (basename file) mid-file))))
-                         (find-files libdir "\\.so\\."))
-               (symlink (string-append "libglxserver_nvidia.so."
-                                       #$(package-version nvidia-driver))
-                        (string-append #$output "/lib/xorg/modules/extensions/" "libglxserver_nvidia.so"))))))))
+                     ;; ------------------------------
+                     ;; Create short name symbolic links
+                     (for-each (lambda (file)
+                                 (let* ((short (regexp-substitute
+                                                #f
+                                                (string-match "([^/]*\\.so).*" file)
+                                                1))
+                                        (major (cond
+                                                ((or (string=? short "libGLX.so")
+                                                     (string=? short "libGLX_nvidia.so")
+                                                     (string=? short "libEGL_nvidia.so")) "0")
+                                                ((string=? short "libGLESv2.so") "2")
+                                                (else "1")))
+                                        (mid (string-append short "." major))
+                                        (short-file (string-append libdir "/" short))
+                                        (mid-file (string-append libdir "/" mid)))
+                                   ;; FIXME the same name, print out warning at least
+                                   ;; [X] libEGL.so.1.1.0
+                                   ;; [ ] libEGL.so.435.21
+                                   (when (not (file-exists? short-file))
+                                     (format #t "Linking ~a to ~a ...~%" short file)
+                                     (symlink (basename file) short-file))
+                                   (when (not (file-exists? mid-file))
+                                     (format #t "Linking ~a to ~a ...~%" mid file)
+                                     (symlink (basename file) mid-file))))
+                               (find-files libdir "\\.so\\."))
+                     (symlink (string-append "libglxserver_nvidia.so." #$(package-version nvidia-driver))
+                              (string-append #$output "/lib/xorg/modules/extensions/" "libglxserver_nvidia.so"))))))))
     (supported-systems '("x86_64-linux"))
-    (native-inputs
-     (list
-       patchelf
-       perl
-       python-2
-       which
-       xz))
+    (native-inputs (list patchelf perl python-2 which xz))
     (inputs
-     (list
-       atk
-       bash-minimal
-       cairo
-       coreutils
-       `(,gcc "lib")
-       gdk-pixbuf
-       glib
-       grep
-       gtk+
-       gtk+-2
-       kmod
-       glibc
-       libx11
-       libxext
-       linux-lts
-       pango
-       wayland))
+     (list `(,gcc "lib")
+           atk
+           bash-minimal
+           cairo
+           coreutils
+           gdk-pixbuf
+           glib
+           glibc
+           grep
+           gtk+
+           gtk+-2
+           kmod
+           libx11
+           libxext
+           linux-lts
+           pango
+           wayland))
     (home-page "https://www.nvidia.com")
-    (synopsis "Proprietary Nvidia driver")
-    (description "This is the evil Nvidia driver.  Don't forget to add
-nvidia-driver to the udev-rules in your config.scm:
-@code{(simple-service 'custom-udev-rules udev-service-type (list nvidia-driver))}
-Further xorg should be configured by adding:
-@code{(modules (cons* nvidia-driver %default-xorg-modules))
-(drivers '(\"nvidia\"))} to @code{xorg-configuration}.")
-    (license (license:nonfree (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
+    (synopsis "Proprietary NVIDIA driver")
+    (description "This is the evil NVIDIA driver.  Don't forget to add
+@code{nvidia-driver} to the @code{udev-rules} in your @file{config.scm}:
+@code{(simple-service 'custom-udev-rules udev-service-type (list
+nvidia-driver))}.  Further xorg should be configured by adding: @code{(modules
+(cons* nvidia-driver %default-xorg-modules)) (drivers '(\"nvidia\"))} to
+@code{xorg-configuration}.")
+    (license
+     (license:nonfree
+      (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
 
 (define-public nvidia-exec
   (package
