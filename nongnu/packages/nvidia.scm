@@ -84,6 +84,13 @@
     (arguments
      (list #:linux linux-lts
            #:tests? #f
+           #:modules '((guix build linux-module-build-system)
+                       (guix build utils)
+                       (ice-9 ftw)
+                       (ice-9 popen)
+                       (ice-9 rdelim)
+                       (ice-9 regex)
+                       (ice-9 textual-ports))
            #:phases
            #~(modify-phases %standard-phases
                (replace 'unpack
@@ -106,11 +113,6 @@
                (add-after 'install 'install-copy
                  (lambda* (#:key inputs native-inputs outputs #:allow-other-keys)
                    (chdir "..")
-                   (use-modules (ice-9 ftw)
-                                (ice-9 popen)
-                                (ice-9 rdelim)
-                                (ice-9 regex)
-                                (ice-9 textual-ports))
                    (let* ((libdir (string-append #$output "/lib"))
                           (bindir (string-append #$output "/bin"))
                           (etcdir (string-append #$output "/etc")))
