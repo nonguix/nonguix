@@ -266,6 +266,22 @@ nvidia-driver))}.  Further xorg should be configured by adding: @code{(modules
      (license:nonfree
       (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
 
+(define-public nvidia-firmware
+  (let ((base nvidia-driver))
+    (package
+      (inherit base)
+      (name "nvidia-firmware")
+      (arguments
+       (list #:install-plan
+             #~'(("firmware" #$(string-append
+                                "lib/firmware/nvidia/" (package-version base))))
+             #:phases
+             #~(modify-phases %standard-phases
+                 (delete 'strip))))
+      (inputs '())
+      (native-inputs '())
+      (properties `((hidden? . #t))))))
+
 (define-public nvidia-exec
   (package
     (name "nvidia-exec")
