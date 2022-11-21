@@ -157,7 +157,7 @@ Use @command{setup_dxvk} to install the required libraries to a Wine prefix.")
 (define-public dxvk-next
   (package
     (name "dxvk")
-    (version "1.10.1")
+    (version "2.0")
     (home-page "https://github.com/doitsujin/dxvk/")
     (source (origin
               (method url-fetch)
@@ -166,7 +166,7 @@ Use @command{setup_dxvk} to install the required libraries to a Wine prefix.")
                     version "/dxvk-" version ".tar.gz") )
               (sha256
                (base32
-                "1ah7nci49ipaj7z7zac4dqbrxq1ic3zyky42kkid8wqarf198d6w"))))
+                "0xr4lq4zdmqwxh5x19am2y4lvy6q6s6bl1nfr4ixfgy2l2sghliq"))))
     (build-system copy-build-system)
     (arguments
      `(#:install-plan
@@ -211,3 +211,19 @@ allows running complex 3D applications with high performance using Wine.
 Use @command{setup_dxvk} to install the required libraries to a Wine prefix.")
     (supported-systems '("i686-linux" "x86_64-linux"))
     (license license:zlib)))
+
+;; Keep 1.10 since it's backward-compatible with older hardware unlike 2.*
+;; See https://github.com/doitsujin/dxvk/releases/tag/v2.0
+(define-public dxvk-1.10
+  (package
+    (inherit dxvk)
+    (version "1.10.1")
+    (home-page "https://github.com/doitsujin/dxvk/")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://github.com/doitsujin/dxvk/releases/download/v"
+                    version "/dxvk-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1ah7nci49ipaj7z7zac4dqbrxq1ic3zyky42kkid8wqarf198d6w"))))))
