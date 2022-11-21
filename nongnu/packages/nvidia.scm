@@ -172,75 +172,71 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                        (("@\\<(sh|grep|mknod|cut)\\>@" all cmd)
                         (search-input-file inputs (string-append "/bin/" cmd)))))))
                (add-after 'install 'post-install
-                 (lambda* (#:key inputs native-inputs outputs #:allow-other-keys)
-                   (let* ((libdir (string-append #$output "/lib"))
-                          (bindir (string-append #$output "/bin"))
-                          (etcdir (string-append #$output "/etc")))
+                 (lambda _
+                   ;; ------------------------------
+                   ;; patchelf
+                   (let* ((ld.so (string-append #$(this-package-input "glibc")
+                                                #$(glibc-dynamic-linker)))
+                          (rpath (string-join
+                                  (list "$ORIGIN"
+                                        (string-append #$output "/lib")
+                                        (string-append #$gcc:lib "/lib")
+                                        (string-append #$gtk+-2 "/lib")
+                                        (string-append #$(this-package-input "atk") "/lib")
+                                        (string-append #$(this-package-input "cairo") "/lib")
+                                        (string-append #$(this-package-input "gdk-pixbuf") "/lib")
+                                        (string-append #$(this-package-input "glib") "/lib")
+                                        (string-append #$(this-package-input "glibc") "/lib")
+                                        (string-append #$(this-package-input "gtk+") "/lib")
+                                        (string-append #$(this-package-input "libx11") "/lib")
+                                        (string-append #$(this-package-input "libxext") "/lib")
+                                        (string-append #$(this-package-input "pango") "/lib")
+                                        (string-append #$(this-package-input "wayland") "/lib"))
+                                  ":")))
+                     (define (patch-elf file)
+                       (format #t "Patching ~a ..." file)
+                       (unless (string-contains file ".so")
+                         (invoke "patchelf" "--set-interpreter" ld.so file))
+                       (invoke "patchelf" "--set-rpath" rpath file)
+                       (display " done\n"))
+                     (for-each (lambda (file)
+                                 (when (elf-file? file)
+                                   (patch-elf file)))
+                               (append (find-files #$output  ".*\\.so")
+                                       (find-files (string-append #$output "/bin")))))
 
-                     ;; ------------------------------
-                     ;; patchelf
-                     (let* ((ld.so (string-append #$(this-package-input "glibc")
-                                                  #$(glibc-dynamic-linker)))
-                            (rpath (string-join
-                                    (list "$ORIGIN"
-                                          (string-append #$output "/lib")
-                                          (string-append #$gcc:lib "/lib")
-                                          (string-append #$gtk+-2 "/lib")
-                                          (string-append #$(this-package-input "atk") "/lib")
-                                          (string-append #$(this-package-input "cairo") "/lib")
-                                          (string-append #$(this-package-input "gdk-pixbuf") "/lib")
-                                          (string-append #$(this-package-input "glib") "/lib")
-                                          (string-append #$(this-package-input "glibc") "/lib")
-                                          (string-append #$(this-package-input "gtk+") "/lib")
-                                          (string-append #$(this-package-input "libx11") "/lib")
-                                          (string-append #$(this-package-input "libxext") "/lib")
-                                          (string-append #$(this-package-input "pango") "/lib")
-                                          (string-append #$(this-package-input "wayland") "/lib"))
-                                    ":")))
-                       (define (patch-elf file)
-                         (format #t "Patching ~a ..." file)
-                         (unless (string-contains file ".so")
-                           (invoke "patchelf" "--set-interpreter" ld.so file))
-                         (invoke "patchelf" "--set-rpath" rpath file)
-                         (display " done\n"))
-                       (for-each (lambda (file)
-                                   (when (elf-file? file)
-                                     (patch-elf file)))
-                                 (find-files #$output  ".*\\.so"))
-                       (patch-elf (string-append bindir "/" "nvidia-smi")))
+                   ;; ------------------------------
+                   ;; Create short name symbolic links
+                   (define (get-soname file)
+                     (when elf-file? file
+                           (let* ((cmd (string-append "patchelf --print-soname " file))
+                                  (port (open-input-pipe cmd))
+                                  (soname (read-line port)))
+                             (close-pipe port)
+                             soname)))
 
-                     ;; ------------------------------
-                     ;; Create short name symbolic links
-                     (define (get-soname file)
-                       (when elf-file? file
-                             (let* ((cmd (string-append "patchelf --print-soname " file))
-                                    (port (open-input-pipe cmd))
-                                    (soname (read-line port)))
-                               (close-pipe port)
-                               soname)))
-
-                     (for-each
-                      (lambda (lib)
-                        (let ((lib-soname (get-soname lib)))
-                          (when (string? lib-soname)
-                            (let* ((soname (string-append
-                                            (dirname lib) "/" lib-soname))
-                                   (base (string-append
-                                          (regexp-substitute
-                                           #f (string-match "(.*)\\.so.*" soname) 1)
-                                          ".so"))
-                                   (source (basename lib)))
-                              (for-each
-                               (lambda (target)
-                                 (unless (file-exists? target)
-                                   (format #t "Symlinking ~a -> ~a..."
-                                           target source)
-                                   (symlink source target)
-                                   (display " done\n")))
-                               (list soname base))))))
-                      (find-files #$output "\\.so"))
-                     (symlink (string-append "libglxserver_nvidia.so." #$version)
-                              (string-append #$output "/lib/xorg/modules/extensions/" "libglxserver_nvidia.so"))))))))
+                   (for-each
+                    (lambda (lib)
+                      (let ((lib-soname (get-soname lib)))
+                        (when (string? lib-soname)
+                          (let* ((soname (string-append
+                                          (dirname lib) "/" lib-soname))
+                                 (base (string-append
+                                        (regexp-substitute
+                                         #f (string-match "(.*)\\.so.*" soname) 1)
+                                        ".so"))
+                                 (source (basename lib)))
+                            (for-each
+                             (lambda (target)
+                               (unless (file-exists? target)
+                                 (format #t "Symlinking ~a -> ~a..."
+                                         target source)
+                                 (symlink source target)
+                                 (display " done\n")))
+                             (list soname base))))))
+                    (find-files #$output "\\.so"))
+                   (symlink (string-append "libglxserver_nvidia.so." #$version)
+                            (string-append #$output "/lib/xorg/modules/extensions/" "libglxserver_nvidia.so")))))))
     (supported-systems '("x86_64-linux"))
     (native-inputs (list patchelf))
     (inputs
