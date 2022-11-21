@@ -118,105 +118,64 @@
     (name "nvidia-driver")
     (version nvidia-version)
     (source nvidia-source)
-    (build-system linux-module-build-system)
+    (build-system copy-build-system)
     (arguments
-     (list #:linux linux-lts
-           #:tests? #f
-           #:modules '((guix build linux-module-build-system)
+     (list #:modules '((guix build copy-build-system)
                        (guix build utils)
                        (ice-9 ftw)
                        (ice-9 popen)
                        (ice-9 rdelim)
                        (ice-9 regex)
                        (ice-9 textual-ports))
+           #:install-plan
+           #~`(("." "lib/" #:include-regexp ("^./[^/]+\\.so") #:exclude-regexp ("nvidia_drv\\.so" "libglxserver_nvidia\\.so\\..*"))
+               ("." "share/nvidia/" #:include-regexp ("nvidia-application-profiles.*"))
+               ("10_nvidia_wayland.json" "share/egl/egl_external_platform.d/")
+               ("90-nvidia.rules" "lib/udev/rules.d/")
+               ("nvidia-drm-outputclass.conf" "share/x11/xorg.conf.d/")
+               ("nvidia-smi" "bin/")
+               ("nvidia-smi.1.gz" "share/man/man1/")
+               ("nvidia.icd" "etc/OpenCL/vendors/")
+               ("nvidia_drv.so" "lib/xorg/modules/drivers/")
+               ("nvidia_icd.json" "share/vulkan/icd.d/")
+               ("nvidia_layers.json" "share/vulkan/implicit_layer.d/")
+               (,(string-append "libglxserver_nvidia.so." #$version) "lib/xorg/modules/extensions/"))
            #:phases
            #~(modify-phases %standard-phases
-               (replace 'build
-                 (lambda*  (#:key inputs outputs #:allow-other-keys)
-                   ;; We cannot use with-directory-excursion, because the install
-                   ;; phase needs to be in the kernel folder. Otherwise no .ko
-                   ;; would be installed.
-                   (chdir "kernel")
-                   ;; Patch Kbuild
-                   (substitute* "Kbuild" (("/bin/sh") (which "sh")))
-                   (invoke "make" "-j"
-                           (string-append "CC=" #$(cc-for-target))
-                           (string-append "SYSSRC=" (search-input-directory
-                                                     inputs "/lib/modules/build")))))
                (delete 'strip)
-               (add-after 'install 'install-copy
-                 (lambda* (#:key inputs native-inputs outputs #:allow-other-keys)
-                   (chdir "..")
-                   (let* ((libdir (string-append #$output "/lib"))
-                          (bindir (string-append #$output "/bin"))
-                          (etcdir (string-append #$output "/etc")))
-                     ;; ------------------------------
-                     ;; Copy .so files
-                     (for-each
-                      (lambda (file)
-                        (format #t "Copying '~a'...~%" file)
-                        (install-file file libdir))
-                      (scandir "." (lambda (name)
-                                     (string-contains name ".so"))))
+               (add-after 'unpack 'create-misc-files
+                 (lambda* (#:key inputs #:allow-other-keys)
+                   ;; Vulkan layer configuration
+                   (for-each (lambda (file)
+                               (substitute* file
+                                 (("lib(GLX|nvidia).*\\.so\\..*" all)
+                                  (string-append #$output "/lib/" all))))
+                             (scandir "." (lambda (name)
+                                            (string-contains name ".json"))))
 
-                     (install-file "nvidia_drv.so" (string-append #$output "/lib/xorg/modules/drivers/"))
-                     (install-file (string-append "libglxserver_nvidia.so." #$version)
-                                   (string-append #$output "/lib/xorg/modules/extensions/"))
+                   ;; OpenCL vendor ICD configuration
+                   (substitute* "nvidia.icd"
+                     ((".*" all) (string-append #$output "/lib/" all)))
 
-                     ;; ICD Loader for OpenCL
-                     (let ((file (string-append etcdir "/OpenCL/vendors/nvidia.icd")))
-                       (mkdir-p (string-append etcdir "/OpenCL/vendors/"))
-                       (call-with-output-file file
-                         (lambda (port)
-                           (display (string-append #$output "/lib/libnvidia-opencl.so.1") port)))
-                       (chmod file #o555))
-
-                     ;; Add udev rules for nvidia
-                     (let ((rulesdir (string-append #$output "/lib/udev/rules.d/"))
-                           (rules    (string-append #$output "/lib/udev/rules.d/90-nvidia.rules")))
-                       (mkdir-p rulesdir)
-                       (call-with-output-file rules
-                         (lambda (port)
-                           (put-string port (format #f "~
+                   ;; Add udev rules for nvidia
+                   (let ((rules "90-nvidia.rules"))
+                     (call-with-output-file rules
+                       (lambda (port)
+                         (put-string port (format #f "~
 KERNEL==\"nvidia\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidiactl c $$(@grep@ nvidia-frontend /proc/devices | @cut@ -d \\  -f 1) 255'\"
 KERNEL==\"nvidia_modeset\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-modeset c $$(@grep@ nvidia-frontend /proc/devices | @cut@ -d \\  -f 1) 254'\"
 KERNEL==\"card*\", SUBSYSTEM==\"drm\", DRIVERS==\"nvidia\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia0 c $$(@grep@ nvidia-frontend /proc/devices | @cut@ -d \\  -f 1) 0'\"
 KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm c $$(@grep@ nvidia-uvm /proc/devices | @cut@ -d \\  -f 1) 0'\"
 KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $$(@grep@ nvidia-uvm /proc/devices | @cut@ -d \\  -f 1) 0'\"
 "))))
-                       (substitute* rules
-                         (("@\\<(sh|grep|mknod|cut)\\>@" all cmd)
-                          (search-input-file inputs (string-append "/bin/" cmd)))))
-
-                     ;; ------------------------------
-                     ;; Add a file to load nvidia drivers
-                     (mkdir-p bindir)
-                     (let ((file (string-append bindir "/nvidia-insmod"))
-                           (moddir (string-append "/lib/modules/" (utsname:release (uname)) "-gnu/extra")))
-                       (call-with-output-file file
-                         (lambda (port)
-                           (put-string port (string-append "#!" (search-input-file inputs "/bin/sh") "\n"
-                                                           "modprobe ipmi_devintf"                   "\n"
-                                                           "insmod " #$output moddir "/nvidia.ko"         "\n"
-                                                           "insmod " #$output moddir "/nvidia-modeset.ko" "\n"
-                                                           "insmod " #$output moddir "/nvidia-uvm.ko"     "\n"
-                                                           "insmod " #$output moddir "/nvidia-drm.ko"     "\n"))))
-                       (chmod file #o555))
-                     (let ((file (string-append bindir "/nvidia-rmmod")))
-                       (call-with-output-file file
-                         (lambda (port)
-                           (put-string port (string-append "#!" (search-input-file inputs "/bin/sh") "\n"
-                                                           "rmmod " "nvidia-drm"     "\n"
-                                                           "rmmod " "nvidia-uvm"     "\n"
-                                                           "rmmod " "nvidia-modeset" "\n"
-                                                           "rmmod " "nvidia"         "\n"
-                                                           "rmmod " "ipmi_devintf"   "\n"))))
-                       (chmod file #o555))
-
-                     ;; ------------------------------
-                     ;;  nvidia-smi
-
-                     (install-file "nvidia-smi" bindir)
+                     (substitute* rules
+                       (("@\\<(sh|grep|mknod|cut)\\>@" all cmd)
+                        (search-input-file inputs (string-append "/bin/" cmd)))))))
+               (add-after 'install 'post-install
+                 (lambda* (#:key inputs native-inputs outputs #:allow-other-keys)
+                   (let* ((libdir (string-append #$output "/lib"))
+                          (bindir (string-append #$output "/bin"))
+                          (etcdir (string-append #$output "/etc")))
 
                      ;; ------------------------------
                      ;; patchelf
