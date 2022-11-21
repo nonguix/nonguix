@@ -171,10 +171,8 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                      (substitute* rules
                        (("@\\<(sh|grep|mknod|cut)\\>@" all cmd)
                         (search-input-file inputs (string-append "/bin/" cmd)))))))
-               (add-after 'install 'post-install
+               (add-after 'install 'patch-elf
                  (lambda _
-                   ;; ------------------------------
-                   ;; patchelf
                    (let* ((ld.so (string-append #$(this-package-input "glibc")
                                                 #$(glibc-dynamic-linker)))
                           (rpath (string-join
@@ -203,10 +201,9 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                                  (when (elf-file? file)
                                    (patch-elf file)))
                                (append (find-files #$output  ".*\\.so")
-                                       (find-files (string-append #$output "/bin")))))
-
-                   ;; ------------------------------
-                   ;; Create short name symbolic links
+                                       (find-files (string-append #$output "/bin")))))))
+               (add-after 'patch-elf 'create-short-name-symlinks
+                 (lambda _
                    (define (get-soname file)
                      (when elf-file? file
                            (let* ((cmd (string-append "patchelf --print-soname " file))
