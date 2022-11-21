@@ -55,6 +55,7 @@
   #:use-module (gnu packages python)
   #:use-module (gnu packages video)
   #:use-module (gnu packages web)
+  #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xorg)
   #:use-module (nongnu packages linux)
   #:use-module (ice-9 match)
@@ -65,7 +66,7 @@
   #:use-module (srfi srfi-1))
 
 ; Used for closed-source packages
-(define nvidia-version "470.86")
+(define nvidia-version "515.76")
 
 ; Used for the open-source kernel module package
 (define nversion "515.76")
@@ -112,7 +113,7 @@
              "https://us.download.nvidia.com/XFree86/Linux-x86_64/"
              version "/NVIDIA-Linux-x86_64-" version ".run"))
        (sha256
-        (base32 "0krwcxc0j19vjnk8sv6mx1lin2rm8hcfhc2hg266846jvcws1dsg"))))))
+        (base32 "0i5zyvlsjnfkpfqhw6pklp0ws8nndyiwxrg4pj04jpwnxf6a38n6"))))))
 
 (define-public nvidia-driver
   (package
@@ -131,10 +132,11 @@
            #:install-plan
            #~`(("." "lib/" #:include-regexp ("^./[^/]+\\.so") #:exclude-regexp ("nvidia_drv\\.so" "libglxserver_nvidia\\.so\\..*"))
                ("." "share/nvidia/" #:include-regexp ("nvidia-application-profiles.*"))
-               ("10_nvidia_wayland.json" "share/egl/egl_external_platform.d/")
+               ("." "share/egl/egl_external_platform.d/" #:include-regexp (".*_nvidia_.*\\.json"))
                ("90-nvidia.rules" "lib/udev/rules.d/")
                ("nvidia-drm-outputclass.conf" "share/x11/xorg.conf.d/")
                ("nvidia-smi" "bin/")
+               ("nvidia-dbus.conf" "share/dbus-1/system.d/")
                ("nvidia-smi.1.gz" "share/man/man1/")
                ("nvidia.icd" "etc/OpenCL/vendors/")
                ("nvidia_drv.so" "lib/xorg/modules/drivers/")
@@ -187,8 +189,10 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                                         (string-append #$(this-package-input "glib") "/lib")
                                         (string-append #$(this-package-input "glibc") "/lib")
                                         (string-append #$(this-package-input "gtk+") "/lib")
+                                        (string-append #$(this-package-input "libdrm") "/lib")
                                         (string-append #$(this-package-input "libx11") "/lib")
                                         (string-append #$(this-package-input "libxext") "/lib")
+                                        (string-append #$(this-package-input "mesa") "/lib")
                                         (string-append #$(this-package-input "pango") "/lib")
                                         (string-append #$(this-package-input "wayland") "/lib"))
                                   ":")))
@@ -234,7 +238,9 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                              (list soname base))))))
                     (find-files #$output "\\.so"))
                    (symlink (string-append "libglxserver_nvidia.so." #$version)
-                            (string-append #$output "/lib/xorg/modules/extensions/" "libglxserver_nvidia.so")))))))
+                            (string-append #$output "/lib/xorg/modules/extensions/" "libglxserver_nvidia.so"))
+                   (symlink (string-append "libnvidia-allocator.so." #$version)
+                            (string-append #$output "/lib/nvidia-drm_gbm.so" )))))))
     (supported-systems '("x86_64-linux"))
     (native-inputs (list patchelf))
     (inputs
@@ -250,9 +256,11 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
            gtk+
            gtk+-2
            kmod
+           libdrm
            libx11
            libxext
            linux-lts
+           mesa
            pango
            wayland))
     (home-page "https://www.nvidia.com")
@@ -463,7 +471,7 @@ source userspace tools from the corresponding driver release.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1lnj5hwmfkzs664fxlhljqy323394s1i7qzlpsjyrpm07sa93bky"))))
+                "1hplc42115c06cc555cjmw3c9371qn7ibwjpqjybcf6ixfd6lryq"))))
     (build-system gnu-build-system)
     (arguments
      (list #:tests? #f ;no test suite
