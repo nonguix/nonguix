@@ -216,8 +216,8 @@ Use @command{setup_dxvk} to install the required libraries to a Wine prefix.")
 ;; See https://github.com/doitsujin/dxvk/releases/tag/v2.0
 (define-public dxvk-1.10
   (package
-    (inherit dxvk)
-    (version "1.10.1")
+    (inherit dxvk-1.7)
+    (version "1.10.3")
     (home-page "https://github.com/doitsujin/dxvk/")
     (source (origin
               (method url-fetch)
@@ -226,4 +226,4 @@ Use @command{setup_dxvk} to install the required libraries to a Wine prefix.")
                     version "/dxvk-" version ".tar.gz"))
               (sha256
                (base32
-                "1ah7nci49ipaj7z7zac4dqbrxq1ic3zyky42kkid8wqarf198d6w"))))))
+                "1ijkznb8asqg18blhs6f82g67xpncjp7i17rg7451d314y8kq6ld"))))))
