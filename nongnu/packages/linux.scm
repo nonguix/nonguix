@@ -63,7 +63,14 @@
     (source (origin
               (method url-fetch)
               (uri (linux-urls version))
-              (sha256 (base32 hash))))
+              (sha256 (base32 hash))
+              ;; By default the linux-libre package will "make infodocs" for
+              ;; supported kernels (version > 5.10) which needs the following
+              ;; patch.  Include the patch if it applies rather than disabling
+              ;; the associated "build-doc" phase.
+              (patches (if ((@@ (gnu packages linux) doc-supported?) version)
+                           (search-patches "linux-libre-infodocs-target.patch")
+                           '()))))
     (home-page "https://www.kernel.org/")
     (synopsis "Linux kernel with nonfree binary blobs included")
     (description
