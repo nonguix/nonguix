@@ -78,7 +78,7 @@
 (define-public mesa-next
   (package
     (name "mesa")
-    (version "22.2.2")
+    (version "22.3.0")
     (source
      (origin
        (method url-fetch)
@@ -90,7 +90,7 @@
                                  version "/mesa-" version ".tar.xz")))
        (sha256
         (base32
-         "1ya8i7kz98h6vdyfjmlpnvcd237a7hhgwjcfh4dngk659yvizq9d"))))
+         "0ihp63756kmp9rd0w83li1lf98saigail4b2hywc4j25b0vgjjv4"))))
     (build-system meson-build-system)
     (propagated-inputs
      ;; The following are in the Requires.private field of gl.pc.
@@ -237,15 +237,6 @@ svga,swrast,virgl")))
                       (("'lp_test_arit', ") ""))))
                  (_
                   '((display "No tests to disable on this architecture.\n"))))))
-         ,@(if (string=? (%current-system) "i686-linux")
-               '((add-after 'disable-failing-test 'fix-instrfromstring-test
-                   (lambda _
-                     ;; The instrfromstring test fails on i686, which has been already
-                     ;; fixed upstream but not in 22.2.1.
-                     ;; TODO: remove on update
-                     (substitute* "src/gallium/drivers/r600/sfn/sfn_instr_export.cpp"
-                       (("buf\\[6\\]") "buf[6] = {0}")))))
-               '())
          (add-before 'configure 'fix-dlopen-libnames
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((out (assoc-ref outputs "out")))
