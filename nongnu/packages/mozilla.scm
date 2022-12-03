@@ -334,6 +334,11 @@ according to Unicode Standard Annex #31")
                 ;; XDG settings should be managed by Guix.
                 (write-setting "browser.shell.checkDefaultBrowser" "false")
                 (close-port port))))
+	  (add-after 'fix-preferences 'fix-store-permissions
+            (lambda* (#:key inputs #:allow-other-keys)
+              ;; Piggyback off of (and overwrite) the existing NixOS sandbox policy
+              (substitute* "security/sandbox/linux/broker/SandboxBrokerPolicyFactory.cpp"
+                (("/nix/store") "/gnu/store"))))
           (add-after 'fix-preferences 'fix-ffmpeg-runtime-linker
             (lambda* (#:key inputs #:allow-other-keys)
               (let* ((ffmpeg (assoc-ref inputs "ffmpeg"))
