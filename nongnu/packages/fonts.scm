@@ -20,6 +20,7 @@
 (define-module (nongnu packages fonts)
   #:use-module (ice-9 string-fun)
   #:use-module (gnu packages compression)
+  #:use-module (guix deprecation)
   #:use-module (guix download)
   #:use-module (guix packages)
   #:use-module (guix build-system font)
@@ -90,12 +91,15 @@ font from the pack of Microsoft core fonts for the web."))
    #:font-name "Comic Sans MS"
    #:hash "0ki0rljjc1pxkbsxg515fwx15yc95bdyaksa3pjd89nyxzzg6vcw"))
 
-(define-public font-microsoft-couirer-new
+(define-public font-microsoft-courier-new
   (mscorefont
    "courie32"
    #:version "2.82"
    #:font-name "Courier New"
    #:hash "111k3waxki9yyxpjwl2qrdkswvsd2dmvhbjmmrwyipam2s31sldv"))
+
+(define-public font-microsoft-couirer-new
+  (deprecated-package "font-microsoft-couirer-new" font-microsoft-courier-new))
 
 (define-public font-microsoft-georgia
   (mscorefont
