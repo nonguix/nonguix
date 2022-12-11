@@ -6,17 +6,26 @@
 (define-module (nongnu packages chrome)
   #:use-module (gnu packages base)
   #:use-module (gnu packages compression)
+  #:use-module (gnu packages curl)
   #:use-module (gnu packages cups)
   #:use-module (gnu packages fontutils)
+  #:use-module (gnu packages fonts)
+  #:use-module (gnu packages freedesktop)
   #:use-module (gnu packages databases)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages gl)
   #:use-module (gnu packages glib)
   #:use-module (gnu packages gnome)
   #:use-module (gnu packages gtk)
+  #:use-module (gnu packages image)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages nss)
+  #:use-module (gnu packages pciutils)
+  #:use-module (gnu packages photo)
+  #:use-module (gnu packages video)
+  #:use-module (gnu packages wget)
   #:use-module (gnu packages xdisorg)
+  #:use-module (gnu packages xiph)
   #:use-module (gnu packages xml)
   #:use-module (gnu packages xorg)
   #:use-module (guix download)
@@ -31,7 +40,14 @@
   (let* ((name (string-append "google-chrome-" repo))
          (appname (if (string=? repo "stable")
                       "chrome"
-                      (string-replace-substring name "google-" ""))))
+                      (string-replace-substring name "google-" "")))
+         (patchelf-inputs (list "alsa-lib" "at-spi2-atk" "at-spi2-core" "atk" "cairo" "cups"
+                                "dbus" "eudev" "expat" "freetype" "fontconfig-minimal" "gcc" "gdk-pixbuf"
+                                "glib" "gtk" "harfbuzz" "libdrm" "libnotify" "libsecret" "libx11"
+                                "libxcb" "libexif" "libxcomposite" "libxcursor" "libxdamage"
+                                "libxext" "libxfixes" "libxi" "libxkbcommon" "libxkbfile" "libxrandr"
+                                "libxrender" "libxtst" "libnotify" "mesa" "nspr" "pango" "pipewire"
+                                "sqlcipher" "xdg-utils" "zlib")))
     (package
      (name name)
      (version version)
@@ -49,13 +65,7 @@
         ;; almost 300MB, faster to download and build from Google servers
         #:substitutable? #f
         #:patchelf-plan
-         #~(let ((patchelf-inputs
-                   '("alsa-lib" "at-spi2-atk" "at-spi2-core" "atk" "cairo" "cups"
-                     "dbus" "expat" "fontconfig-minimal" "gcc" "gdk-pixbuf" "glib"
-                     "gtk" "libdrm" "libnotify" "libsecret" "libx11" "libxcb"
-                     "libxcomposite" "libxcursor" "libxdamage" "libxext" "libxfixes"
-                     "libxi" "libxkbcommon" "libxkbfile" "libxrandr" "libxrender"
-                     "libxtst" "mesa" "nspr" "pango" "zlib"))
+         #~(let ((patchelf-inputs (list #$@patchelf-inputs))
                  (path (string-append "opt/google/" #$appname "/")))
              (map (lambda (file)
                     (cons (string-append path file) (list patchelf-inputs)))
@@ -106,7 +116,11 @@
                 (let* ((bin (string-append #$output "/bin"))
                        (exe (string-append bin "/google-" #$appname))
                        (share (string-append #$output "/share"))
-                       (chrome-target (string-append share "/google/" #$appname "/google-" #$appname)))
+                       (chrome-target (string-append share "/google/" #$appname "/google-" #$appname))
+                       (patchelf-inputs-packages (list #$@(map (lambda (i) (this-package-input i)) patchelf-inputs)))
+                       (ld-library-libs (map (lambda (input)
+                                               (string-append input "/lib"))
+                                             patchelf-inputs-packages)))
                   (mkdir-p bin)
                   (symlink chrome-target exe)
                   (wrap-program exe
@@ -118,19 +132,11 @@
                          ":")))
                     `("LD_LIBRARY_PATH" ":" prefix
                       (,(string-join
-                         (list
-                          (string-append #$(this-package-input "nss") "/lib/nss")
-                          (string-append #$(this-package-input "eudev") "/lib")
-                          (string-append #$(this-package-input "gcc") "/lib")
-                          (string-append #$(this-package-input "mesa") "/lib")
-                          (string-append #$(this-package-input "libxkbfile") "/lib")
-                          (string-append #$(this-package-input "zlib") "/lib")
-                          (string-append #$(this-package-input "libsecret") "/lib")
-                          (string-append #$(this-package-input "sqlcipher") "/lib")
-                          (string-append #$(this-package-input "libnotify") "/lib")
-                          (string-append #$(this-package-input "libdrm") "/lib")
-                          (string-append #$(this-package-input "pipewire") "/lib")
-                          #$output)
+                         (append
+                          ld-library-libs
+                          (list
+                           (string-append #$(this-package-input "nss") "/lib/nss")
+                           #$output))
                          ":")))
                     '("CHROME_WRAPPER" = (#$appname)))))))))
      (native-inputs (list tar))
@@ -139,19 +145,30 @@
             at-spi2-atk
             at-spi2-core
             atk
+            bzip2
             cairo
+            curl
             cups
             dbus
             eudev
             expat
+            flac
             fontconfig
+            freetype
+            font-liberation
             `(,gcc "lib")
+            gdk-pixbuf
             glib
             gtk
+            harfbuzz
             libdrm
+            libexif
+            libglvnd
             libnotify
+            libpng
             librsvg
             libsecret
+            libva
             libx11
             libxcb
             libxcomposite
@@ -163,14 +180,22 @@
             libxkbcommon
             libxkbfile
             libxrandr
+            libxscrnsaver
+            libxshmfence
             libxrender
             libxtst
             mesa
             nspr
             nss
+            opus
             pango
+            pciutils
             pipewire-0.3
+            snappy
             sqlcipher
+            util-linux
+            xdg-utils
+            wget
             zlib))
      (synopsis  "Freeware web browser")
      (supported-systems '("x86_64-linux"))
@@ -179,7 +204,7 @@
      (license (nonfree "https://www.google.com/intl/en/chrome/terms/")))))
 
 (define-public google-chrome-stable
-  (make-google-chrome "stable" "107.0.5304.68" "1x9svz5s8fm2zhnpzjpqckzfp37hjni3nf3pm63rwnvbd06y48ja"))
+  (make-google-chrome "stable" "108.0.5359.124" "00c11svz9dzkg57484jg7c558l0jz8jbgi5zyjs1w7xp24vpnnpg"))
 
 (define-public google-chrome-beta
   (make-google-chrome "beta" "108.0.5359.40" "1zd8dbs5w2vdnck91pqiymwa2bnz53jgjbg89cr96y6jwab3i4b0"))
