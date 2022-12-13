@@ -55,69 +55,52 @@
   (list (string-append "https://www.kernel.org/pub/linux/kernel/v"
                        (version-major version) ".x/linux-" version ".tar.xz")))
 
-(define* (corrupt-linux freedo version hash #:key (name "linux"))
+(define* (corrupt-linux freedo #:key (name "linux"))
   (package
-    (inherit freedo)
-    (name name)
-    (version version)
-    (source (origin
-              (method url-fetch)
-              (uri (linux-urls version))
-              (sha256 (base32 hash))
-              ;; By default the linux-libre package will "make infodocs" for
-              ;; supported kernels (version > 5.10) which needs the following
-              ;; patch.  Include the patch if it applies rather than disabling
-              ;; the associated "build-doc" phase.
-              (patches (if ((@@ (gnu packages linux) doc-supported?) version)
-                           (search-patches "linux-libre-infodocs-target.patch")
-                           '()))))
-    (home-page "https://www.kernel.org/")
-    (synopsis "Linux kernel with nonfree binary blobs included")
-    (description
-     "The unmodified Linux kernel, including nonfree blobs, for running Guix
+   (inherit
+    (customize-linux
+     #:name name
+     #:source (origin (inherit (package-source freedo))
+                      (method url-fetch)
+                      (uri (linux-urls (package-version freedo)))
+                      (patches '()))))
+   (version (package-version freedo))
+   (home-page "https://www.kernel.org/")
+   (synopsis "Linux kernel with nonfree binary blobs included")
+   (description
+    "The unmodified Linux kernel, including nonfree blobs, for running Guix
 System on hardware which requires nonfree software to function.")))
 
 (define-public linux-6.0
-  (corrupt-linux linux-libre-6.0 "6.0.12"
-                 "00ag63lnxw2gijw3b6v29lhrlv480m12954q5zh4jawlz3nk1dw9"))
+  (corrupt-linux linux-libre-6.0))
 
 (define-public linux-5.15
-  (corrupt-linux linux-libre-5.15 "5.15.82"
-                 "0r8v7113favmch2x6br7jk6idihza99l9qyd7ik99i5sg6xzdvpw"))
+  (corrupt-linux linux-libre-5.15))
 
 (define-public linux-5.10
-  (corrupt-linux linux-libre-5.10 "5.10.158"
-                 "1rq7lyp41fydybs53rcdjhiy271arh95xch16s5s3jhhanxj82hy"))
+  (corrupt-linux linux-libre-5.10))
 
 (define-public linux-5.4
-  (corrupt-linux linux-libre-5.4 "5.4.224"
-                 "0dixs4w7nmkjgxv9dxgjdy8v6r4parkpqyvdfyr0wqk0amdz4zcb"))
+  (corrupt-linux linux-libre-5.4))
 
 (define-public linux-4.19
-  (corrupt-linux linux-libre-4.19 "4.19.265"
-                 "1l5cdpgng1gci1p1gdr2jzqw486h3w56gpyc7fbq74hlc6nnwh1p"))
+  (corrupt-linux linux-libre-4.19))
 
 (define-public linux-4.14
-  (corrupt-linux linux-libre-4.14 "4.14.299"
-                 "0p5ic2mrb9vl3qkzvqxhia3kygjv8xa6s1kqkwgd6b4rmq1kc8r6"))
+  (corrupt-linux linux-libre-4.14))
 
 (define-public linux-4.9
-  (corrupt-linux linux-libre-4.9 "4.9.333"
-                 "0ash877gkrrc063h6ncl9d4gzyhndanpxsdgf1a93abbfv281gs1"))
+  (corrupt-linux linux-libre-4.9))
 
 (define-public linux linux-6.0)
 ;; linux-lts points to the *newest* released long-term support version.
 (define-public linux-lts linux-5.15)
 
 (define-public linux-arm64-generic-6.0
-  (corrupt-linux linux-libre-arm64-generic "6.0.9"
-                 "1irip1yk62carcisxlacwcxsiqib4qswx6h5mfhv8f97x04a4531"
-		 #:name "linux-arm64-generic"))
+  (corrupt-linux linux-libre-arm64-generic #:name "linux-arm64-generic"))
 
 (define-public linux-arm64-generic-5.15
-  (corrupt-linux linux-libre-arm64-generic "5.15.79"
-                 "0m61k7k6lj24z9a266q08wzghggjik2wizcabdwd1vn0vcqr18yb"
-		 #:name "linux-arm64-generic"))
+  (corrupt-linux linux-libre-arm64-generic #:name "linux-arm64-generic"))
 
 (define-public linux-arm64-generic linux-arm64-generic-6.0)
 
