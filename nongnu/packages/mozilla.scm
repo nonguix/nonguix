@@ -90,7 +90,7 @@
 ;; https://searchfox.org under the particular firefox release, like
 ;; mozilla-esr102.
 (define-public rust-firefox-esr rust) ; 1.60 is the default in Guix
-(define-public rust-firefox (@@ (gnu packages rust) rust-1.61)) ; 1.63 is also listed, but 1.61 is the minimum needed
+(define-public rust-firefox (@@ (gnu packages rust) rust-1.63)) ; 1.63 is also listed, but 1.61 is the minimum needed
 
 ;; rust-cbindgen-0.23/0.24 dependencies
 (define-public rust-unicode-ident-1
@@ -665,20 +665,20 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
 
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
-(define %firefox-build-id "20221129000000")
+(define %firefox-build-id "20221216000000")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "107.0.1")
+    (version "108.0.1")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "0iq67r9ik6zng9m8zzrsaf1d1fvhpsdpf66whgbb0hwipawm16g2"))))
+        (base32 "1shi0s4zhs414gxaf7ysa79jj4yljb6gcsr70cz3h0dd1l9sq8cq"))))
     (arguments
      (substitute-keyword-arguments (package-arguments firefox-esr)
        ((#:phases phases)
