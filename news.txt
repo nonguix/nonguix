@@ -7,6 +7,20 @@
 (channel-news
  (version 0)
 
+ (entry (commit "7d4c49eace0d3f074aa34ebbbf880236b6b0fab1")
+        (title
+          (en "Nvidia driver configuration refactored")
+          (de "Nvidia Treiberkonfiguration überarbeitet"))
+        (body
+          (en "The configuration of the Nvidia driver was completly over-worked.
+In the system definition @code{nvidia-driver} needs to be replaced by
+@code{nvidia-module} in the @code{kernel-loadable-module} list.  Further add
+the service @code{nvidia-service-type}.")
+          (de "Die Konfiguration der Nvidia Treiber wurde komplett überarbeitet.
+Dazu muss in der Systemkonfiguration @code{nvidia-driver} mit @code{nvidia-module}
+in der @code{kernel-loadable-module} Liste ersetzt werden.  Sowie der Dienst
+@code{nvidia-service-type} hinzugefügt werden.")))
+
  (entry (commit "1ac29b33f3ca19134fcbedd6dc22deb45c15229f")
         (title (en "Nonguix authenticated updates"))
         (body
