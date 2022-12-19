@@ -586,6 +586,49 @@ network adapters.")
       ;; hal/rtl8192e/hal8192e_fw.c
       (license gpl2))))
 
+(define-public rtl8821ce-linux-module
+  (let ((commit "538c34671b391340e0ae23ff11bde77b6588496c")
+        (revision "7"))
+    (package
+      (name "rtl8821ce-linux-module")
+      (version (git-version "0.0.0" revision commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/tomaspinho/rtl8821ce")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32
+           "0p7xj032bp3h6wp27dhf2j42bgd4gvpk7w95n830awbj07c04dss"))))
+      (build-system linux-module-build-system)
+      (arguments
+       (list #:make-flags
+             #~(list (string-append "CC=" #$(cc-for-target))
+                     (string-append "KSRC="
+                                    (assoc-ref %build-inputs
+                                               "linux-module-builder")
+                                    "/lib/modules/build"))
+             #:phases
+             #~(modify-phases %standard-phases
+                 (replace 'build
+                   (lambda* (#:key (make-flags '()) (parallel-build? #t)
+                                   #:allow-other-keys)
+                     (apply invoke "make"
+                            `(,@(if parallel-build?
+                                    `("-j" ,(number->string (parallel-job-count)))
+                                    '())
+                              ,@make-flags)))))
+             #:tests? #f))                  ; no test suite
+      (home-page "https://github.com/tomaspinho/rtl8821ce")
+      (synopsis "Linux driver for Realtek RTL8821CE wireless network adapters")
+      (description "This is Realtek's RTL8821CE Linux driver for wireless
+network adapters.")
+      ;; Rejected by Guix beause it contains a binary blob in:
+      ;; hal/rtl8821c/hal8821c_fw.c
+      (license gpl2))))
+
 (define broadcom-sta-version "6.30.223.271")
 
 (define broadcom-sta-x86_64-source
