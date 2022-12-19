@@ -1,4 +1,4 @@
-;;; GNU Guix --- Functional package management for GNU
+;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2020 Hebi Li <hebi@lihebi.com>
 ;;; Copyright © 2020 Malte Frank Gerdes <malte.f.gerdes@gmail.com>
 ;;; Copyright © 2020, 2021 Jean-Baptiste Volatier <jbv@pm.me>
@@ -7,21 +7,6 @@
 ;;; Copyright © 2022 Petr Hodina <phodina@protonmail.com>
 ;;; Copyright © 2022 Alexey Abramov <levenson@mmer.org>
 ;;; Copyright © 2022 Hilton Chain <hako@ultrarare.space>
-;;;
-;;; This file is not part of GNU Guix.
-;;;
-;;; This program is free software: you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation, either version 3 of the License, or
-;;; (at your option) any later version.
-;;;
-;;; This program is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 (define-module (nongnu packages nvidia)
   #:use-module (guix packages)
