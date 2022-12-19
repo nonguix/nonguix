@@ -1,5 +1,6 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2019 Pierre Neidhardt <mail@ambrevar.xyz>
+;;; Copyright © 2020 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 
 (define-module (nonguix utils)
   #:use-module (srfi srfi-26)
