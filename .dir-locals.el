@@ -1,3 +1,4 @@
+;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;; Per-directory local variables for GNU Emacs 23 and later.
 
 ((nil

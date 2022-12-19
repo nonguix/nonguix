@@ -1,3 +1,4 @@
+;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;; This is the list of OpenPGP keys currently authorized to sign commits in
 ;; this repository.
 
