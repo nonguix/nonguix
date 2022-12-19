@@ -5,8 +5,8 @@
 ;;; Copyright © 2019 Timotej Lazar <timotej.lazar@araneo.si>
 ;;; Copyright © 2020, 2021 James Smith <jsubuntuxp@disroot.org>
 ;;; Copyright © 2020, 2021, 2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
-;;; Copyright © 2020 Michael Rohleder <mike@rohleder.de>
-;;; Copyright © 2020, 2021 Tobias Geerinckx-Rice <me@tobias.gr>
+;;; Copyright © 2020, 2022 Michael Rohleder <mike@rohleder.de>
+;;; Copyright © 2020, 2021, 2022 Tobias Geerinckx-Rice <me@tobias.gr>
 ;;; Copyright © 2020, 2021, 2022 Zhu Zihao <all_but_last@163.com>
 ;;; Copyright © 2021 Mathieu Othacehe <m.othacehe@gmail.com>
 ;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
@@ -17,6 +17,7 @@
 ;;; Copyright © 2022 Petr Hodina <phodina@protonmail.com>
 ;;; Copyright © 2022 Remco van 't Veer <remco@remworks.net>
 ;;; Copyright © 2022 Simen Endsjø <simendsjo@gmail.com>
+;;; Copyright © 2022 Leo Famulari <leo@famulari.name>
 
 (define-module (nongnu packages linux)
   #:use-module (gnu packages)
@@ -628,6 +629,42 @@ network adapters.")
       ;; Rejected by Guix beause it contains a binary blob in:
       ;; hal/rtl8821c/hal8821c_fw.c
       (license gpl2))))
+
+(define-public rtl8812au-aircrack-ng-linux-module
+  (let ((commit "450db78f7bd23f0c611553eb475fa5b5731d6497")
+        (revision "9"))
+    (package
+      (inherit rtl8821ce-linux-module)
+      (name "rtl8812au-aircrack-ng-linux-module")
+      (version (git-version "5.6.4.2" revision commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/aircrack-ng/rtl8812au")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32 "1f11v315bfrm5a8v17vamh6m2x22ib1p7kwpnw7aj9qvfyznhdzl"))
+         (modules '((guix build utils)))
+         (snippet
+          #~(begin
+              ;; Remove bundled tarballs, APKs, word lists, speadsheets,
+              ;; and other unnecessary unlicenced things.
+              (for-each delete-file-recursively (list "android"
+                                                      "docs"
+                                                      "tools"))))))
+      (supported-systems '("x86_64-linux" "i686-linux"))
+      (home-page "https://github.com/aircrack-ng/rtl8812au")
+      (synopsis "Linux driver for Realtek USB wireless network adapters")
+      (description
+       "This is Realtek's rtl8812au Linux driver for USB 802.11n wireless
+network adapters, modified by the aircrack-ng project to support monitor mode
+and frame injection.  It provides a @code{88XXau} kernel module that supports
+RTL8812AU, RTL8821AU, and RTL8814AU chips.")
+      ;; Rejected by Guix beause it contains a binary blob in:
+      ;; hal/rtl8812a/hal8812a_fw.c
+      (license gpl2+))))
 
 (define broadcom-sta-version "6.30.223.271")
 
