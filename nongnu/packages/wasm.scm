@@ -102,6 +102,7 @@ other APIs.")
 ;; upstream Guix's support for cross-compiling with clang.
 
 (define clang-from-llvm (@@ (gnu packages llvm) clang-from-llvm))
+(define llvm-monorepo (@@ (gnu packages llvm) llvm-monorepo))
 
 (define-public wasm32-wasi-clang
   (let ((base (clang-from-llvm llvm-15 wasm32-wasi-clang-runtime)))
@@ -125,17 +126,8 @@ other APIs.")
 (define-public wasm32-wasi-libcxx
   (package
     (name "wasm32-wasi-libcxx")
-    (version "13.0.0")
-    (source
-     (origin
-       (method git-fetch)
-       (uri (git-reference
-             (url "https://github.com/llvm/llvm-project")
-             (commit (string-append "llvmorg-" version))))
-       (file-name (git-file-name name version))
-       (sha256
-        (base32
-         "0cjl0vssi4y2g4nfr710fb6cdhxmn5r0vis15sf088zsc5zydfhw"))))
+    (version (package-version llvm-15))
+    (source (llvm-monorepo version))
     (build-system cmake-build-system)
     (arguments
      (list
