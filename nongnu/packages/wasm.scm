@@ -104,10 +104,7 @@ other APIs.")
 (define clang-from-llvm (@@ (gnu packages llvm) clang-from-llvm))
 
 (define-public wasm32-wasi-clang
-  (let ((base (clang-from-llvm llvm-13 wasm32-wasi-clang-runtime
-                               (bytevector->nix-base32-string
-                                (content-hash-value
-                                 (origin-hash (package-source clang-13)))))))
+  (let ((base (clang-from-llvm llvm-15 wasm32-wasi-clang-runtime)))
     (package (inherit base)
       (name "wasm32-wasi-clang")
       (inputs
