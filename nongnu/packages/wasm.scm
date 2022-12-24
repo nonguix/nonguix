@@ -67,11 +67,11 @@ other APIs.")
               license:expat))))
 
 (define-public wasm32-wasi-clang-runtime
-  (package (inherit clang-runtime-13)
+  (package (inherit clang-runtime-15)
     (native-inputs
-     (list clang-13
+     (list clang-15
            wasi-libc))
-    (inputs (list llvm-13))
+    (inputs (list llvm-15))
     (arguments
      (list
       #:build-type "Release"
@@ -94,9 +94,7 @@ other APIs.")
 
               ;; WASM only needs libclang_rt.builtins-wasm32.a from
               ;; compiler-rt.
-              (string-append "../compiler-rt-"
-                             #$(package-version clang-runtime-13)
-                             ".src/lib/builtins"))))))
+              "../source/compiler-rt/lib/builtins")))))
 
 ;; FIXME: Ideally we wouldn't need to build a separate compiler because clang
 ;; can support multiple targets at runtime.  However Guix patches the default
