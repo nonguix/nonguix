@@ -1,5 +1,5 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
-;;; Copyright © 2022 Pierre Langlois <pierre.langlois@gmx.com>
+;;; Copyright © 2022-2023 Pierre Langlois <pierre.langlois@gmx.com>
 
 (define-module (nongnu packages wasm)
   #:use-module (guix base32)
@@ -16,53 +16,55 @@
   #:use-module (gnu packages python))
 
 (define-public wasi-libc
-  (let ((commit "ad5133410f66b93a2381db5b542aad5e0964db96")
-        (revision "1"))
-    (package
-      (name "wasi-libc")
-      (version (git-version "0.1-alpha" revision commit))
-      (source (origin
-                (method git-fetch)
-                (uri (git-reference
-                      (url "https://github.com/WebAssembly/wasi-libc")
-                      (commit commit)
-                      (recursive? #t)))
-                (file-name (git-file-name name version))
-                (sha256
-                 (base32
-                  "146jamq2q24vxjfpcwlqj84wzc80cbpbg0ns2wimyvzbanah48j6"))))
-      (build-system gnu-build-system)
-      (native-inputs (list clang-13))
-      (arguments
-       (list #:tests? #f ;No test suite
-             #:phases
-             #~(modify-phases %standard-phases
-                 (delete 'configure)
-                 (add-before 'build 'set-sysroot-include
-                   (lambda _
-                     (setenv "C_INCLUDE_PATH"
-                             (string-append (getcwd) "/sysroot/include"))))
-                 (add-before 'install 'set-install-dir
-                   (lambda _
-                     (setenv "INSTALL_DIR"
-                             (string-append #$output "/wasm32-wasi")))))))
-      (home-page "https://wasi.dev")
-      (synopsis "WASI libc implementation for WebAssembly")
-      (description
-       "WASI Libc is a libc for WebAssembly programs built on top of WASI
+  (package
+    (name "wasi-libc")
+    (version "sdk-19")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/WebAssembly/wasi-libc")
+                    (commit (string-append "wasi-" version))
+                    (recursive? #t)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "0bnpz8wk9wiic938296gxp4vz820bvpi1w41jksjzz5552hql169"))))
+    (build-system gnu-build-system)
+    (native-inputs (list clang-15))
+    (arguments
+     (list #:tests? #f ;No test suite
+           ;; Firefox uses wasm2c to compile WebAssembly to C code, and it
+           ;; does not support the memory.copy opcode.
+           ;; See https://bugzilla.mozilla.org/show_bug.cgi?id=1773200#c4
+           #:make-flags ''("BULK_MEMORY_SOURCES=")
+           #:phases
+           #~(modify-phases %standard-phases
+               (delete 'configure)
+               (add-before 'build 'set-sysroot-include
+                 (lambda _
+                   (setenv "C_INCLUDE_PATH"
+                           (string-append (getcwd) "/sysroot/include"))))
+               (add-before 'install 'set-install-dir
+                 (lambda _
+                   (setenv "INSTALL_DIR"
+                           (string-append #$output "/wasm32-wasi")))))))
+    (home-page "https://wasi.dev")
+    (synopsis "WASI libc implementation for WebAssembly")
+    (description
+     "WASI Libc is a libc for WebAssembly programs built on top of WASI
 system calls.  It provides a wide array of POSIX-compatible C APIs, including
 support for standard I/O, file I/O, filesystem manipulation, memory
 management, time, string, environment variables, program startup, and many
 other APIs.")
-      (license (list
-                ;; For wasi-libc, with LLVM exceptions
-                license:asl2.0
-                ;; For malloc.c.
-                license:cc0
-                ;; For cloudlibc.
-                license:bsd-2
-                ;; For wasi-libc and musl-libc.
-                license:expat)))))
+    (license (list
+              ;; For wasi-libc, with LLVM exceptions
+              license:asl2.0
+              ;; For malloc.c.
+              license:cc0
+              ;; For cloudlibc.
+              license:bsd-2
+              ;; For wasi-libc and musl-libc.
+              license:expat))))
 
 (define-public wasm32-wasi-clang-runtime
   (package (inherit clang-runtime-13)
