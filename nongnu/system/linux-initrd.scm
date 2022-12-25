@@ -67,7 +67,9 @@ MICROCODE-PACKAGES, in the format expected by the kernel."
                "/initrd.cpio"))
 
 (define (combined-initrd . initrds)
-  "Return a combined initrd, the result of concatenating INITRDS."
+  "Return a combined initrd, the result of concatenating INITRDS.  This relies
+on the kernel ability to detect and load multiple initrds archives from a
+single file."
   (define builder
     (with-imported-modules (source-module-closure
                             '((guix build utils)
@@ -75,13 +77,28 @@ MICROCODE-PACKAGES, in the format expected by the kernel."
                             #:select? import-nonguix-module?)
       #~(begin
           (use-modules (guix build utils)
-                       (nonguix build utils))
+                       (nonguix build utils)
+                       (srfi srfi-1))
 
           ;; Use .img suffix since the result is no longer easily inspected by
           ;; standard tools like cpio and gzip.
-          (let ((initrd (string-append #$output "/initrd.img")))
+          ;;
+          ;; The initrds may contain "references" files to keep some items
+          ;; such as the static guile alive.  Concatenate them in a single,
+          ;; top-level references file.
+          (let ((initrd (string-append #$output "/initrd.img"))
+                (references
+                 (filter-map
+                  (lambda (initrd)
+                    (let ((ref (string-append (dirname initrd)
+                                              "/references")))
+                      (and (file-exists? ref) ref)))
+                  '#$initrds))
+                (new-references
+                 (string-append #$output "/references")))
             (mkdir-p #$output)
-            (concatenate-files '#$initrds initrd)))))
+            (concatenate-files '#$initrds initrd)
+            (concatenate-files references new-references)))))
 
   (file-append (computed-file "combined-initrd" builder)
                "/initrd.img"))
