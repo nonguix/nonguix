@@ -408,6 +408,7 @@ in a sandboxed FHS environment."
                 (preserved-env '("^DBUS_"
                                  "^DISPLAY$"
                                  "^DRI_PRIME$"
+                                 "^GDK_SCALE$" ; For Steam UI scaling.
                                  "^PRESSURE_VESSEL_" ; For pressure vessel options.
                                  "_PROXY$"
                                  "_proxy$"
