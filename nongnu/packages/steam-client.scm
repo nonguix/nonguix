@@ -219,7 +219,7 @@
     ("usbutils" ,usbutils)              ; Required for SteamVR.
     ("util-linux" ,util-linux)          ; Required for steam login.
     ("wayland" ,wayland)                ; Required for mesa vulkan (e.g. libvulkan_radeon).
-    ("xdg-utils" ,xdg-utils)
+    ("flatpak-xdg-utils" ,flatpak-xdg-utils)
     ("xz" ,xz)
     ("zenity" ,zenity)))                ; Required for progress dialogs.
 
