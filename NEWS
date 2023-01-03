@@ -1,6 +1,7 @@
                                                               -*- org -*-
 # SPDX-License-Identifier: CC0-1.0
 # Copyright © 2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+# Copyright © 2023 John Kehayias <john.kehayias@protonmail.com>
 #+TITLE: NEWS about user visible changes of nonguix
 
 * Changes in 1.4.0 (since 2022-05-21 (Guix 1.3.0))
@@ -13,3 +14,5 @@ nvidia
 ** package updates including:
 firefox 108.0.1, firefox-esr 102.6.0esr, linux 6.0.12, nvidia-driver 515.76
 steam 1.0.0.75
+*** steam updates
+Steam now supports Proton versions 5.13 and newer, including support for SteamVR.
