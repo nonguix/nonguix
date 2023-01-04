@@ -45,6 +45,7 @@
   #:use-module (gnu packages glib)
   #:use-module (gnu packages gnome)
   #:use-module (gnu packages gtk)
+  #:use-module (gnu packages hunspell)
   #:use-module (gnu packages icu4c)
   #:use-module (gnu packages image)
   #:use-module (gnu packages jemalloc)
@@ -52,7 +53,6 @@
   #:use-module (gnu packages libcanberra)
   #:use-module (gnu packages libevent)
   #:use-module (gnu packages libffi)
-  #:use-module (gnu packages libreoffice) ;for hunspell
   #:use-module (gnu packages linux)
   #:use-module (gnu packages llvm)
   #:use-module (gnu packages m4)
