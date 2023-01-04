@@ -1,5 +1,22 @@
 ;;; GNU Guix --- Functional package management for GNU
-;;; Copyright © 2022 John Kehayias <john.kehayias@protonmail.com>
+;;; Copyright © 2013, 2015 Andreas Enge <andreas@enge.fr>
+;;; Copyright © 2013 Joshua Grant <tadni@riseup.net>
+;;; Copyright © 2014, 2016 David Thompson <davet@gnu.org>
+;;; Copyright © 2014, 2015, 2016, 2017 Mark H Weaver <mhw@netris.org>
+;;; Copyright © 2016 Nikita <nikita@n0.is>
+;;; Copyright © 2016, 2017, 2018, 2020, 2021 Ricardo Wurmus <rekado@elephly.net>
+;;; Copyright © 2017, 2018, 2019, 2021 Efraim Flashner <efraim@flashner.co.il>
+;;; Copyright © 2017 Arun Isaac <arunisaac@systemreboot.net>
+;;; Copyright © 2017, 2018, 2019 Rutger Helling <rhelling@mykolab.com>
+;;; Copyright © 2018–2021 Tobias Geerinckx-Rice <me@tobias.gr>
+;;; Copyright © 2019 Pierre Neidhardt <mail@ambrevar.xyz>
+;;; Copyright © 2020 Marius Bakke <mbakke@fastmail.com>
+;;; Copyright © 2020 Giacomo Leidi <goodoldpaul@autistici.org>
+;;; Copyright © 2020, 2021, 2022 Maxim Cournoyer <maxim.cournoyer@gmail.com>
+;;; Copyright © 2020 Kei Kebreau <kkebreau@posteo.net>
+;;; Copyright © 2021 Ivan Gankevich <i.gankevich@spbu.ru>
+;;; Copyright © 2022 Petr Hodina <phodina@protonmail.com>
+;;; Copyright © 2021, 2022, 2023 John Kehayias <john.kehayias@protonmail.com>
 ;;;
 ;;; This file is not part of GNU Guix.
 ;;;
@@ -55,7 +72,7 @@
                (base32
                 "1zr0hi7k5s7my4q9hyj6ryzg89zyjx24zbqfv3c5rcq9pl87gc00"))))))
 
-;; Copied from (gnu packages gl) without changes, neede for mesa.
+;; Copied from (gnu packages gl) without changes, needed for mesa.
 (define libva-without-mesa
   ;; Delay to work around circular import problem.
   (delay
@@ -78,7 +95,7 @@
 (define-public mesa-next
   (package
     (name "mesa")
-    (version "22.3.0")
+    (version "22.3.2")
     (source
      (origin
        (method url-fetch)
@@ -90,7 +107,7 @@
                                  version "/mesa-" version ".tar.xz")))
        (sha256
         (base32
-         "0ihp63756kmp9rd0w83li1lf98saigail4b2hywc4j25b0vgjjv4"))))
+         "02ql6fawsxhzj21qzcyrzxnv28iwb6s8w8iagzjm6pvrm1cgfpf1"))))
     (build-system meson-build-system)
     (propagated-inputs
      ;; The following are in the Requires.private field of gl.pc.
