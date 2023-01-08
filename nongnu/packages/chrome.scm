@@ -190,7 +190,7 @@
             opus
             pango
             pciutils
-            pipewire-0.3
+            pipewire
             snappy
             sqlcipher
             util-linux
