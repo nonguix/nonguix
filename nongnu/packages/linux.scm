@@ -62,9 +62,6 @@ System on hardware which requires nonfree software to function.")))
 (define-public linux-6.1
   (corrupt-linux linux-libre-6.1))
 
-(define-public linux-6.0
-  (corrupt-linux linux-libre-6.0))
-
 (define-public linux-5.15
   (corrupt-linux linux-libre-5.15))
 
@@ -80,7 +77,7 @@ System on hardware which requires nonfree software to function.")))
 (define-public linux-4.14
   (corrupt-linux linux-libre-4.14))
 
-(define-public linux linux-6.0)
+(define-public linux linux-6.1)
 ;; linux-lts points to the *newest* released long-term support version.
 (define-public linux-lts linux-5.15)
 
