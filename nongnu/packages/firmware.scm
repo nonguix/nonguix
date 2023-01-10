@@ -104,3 +104,38 @@ WiFi/Bluetooth chip in the PinePhone.")
 HDMI to USB Type-C Bridge in the PinePhone.")
       (home-page "https://megous.com/git/linux-firmware")
       (license (nonfree (string-append "unknown"))))))
+
+(define-public ap6256-firmware
+  (let ((commit "056d5f6776e515f90bbbbead1be06857aaef17d0")
+        (revision "1"))
+    (package
+      (name "ap6256-firmware")
+      (version (git-version "2020.02" revision commit))
+      (source (origin
+                (method git-fetch)
+                (uri (git-reference
+                      (url
+                       "https://gitlab.manjaro.org/manjaro-arm/packages/community/ap6256-firmware")
+                      (commit commit)))
+                (file-name (git-file-name name version))
+                (sha256
+                 (base32
+                  "1s52rpikw0gysph5lq7vr6b3nsxczg4ikgil9zdgmcknjnxk9kbv"))))
+      (build-system copy-build-system)
+      (arguments
+       `(#:install-plan '( ;Bluetooth firmware
+                           ("BCM4345C5.hcd" "usr/lib/firmware/brcm/")
+                          ;; WiFi firmware
+                          ("fw_bcm43456c5_ag.bin" "usr/lib/firmware/brcm/")
+                          ("brcmfmac43456-sdio.clm_blob"
+                           "usr/lib/firmware/brcm/")
+                          ("brcmfmac43456-sdio.AP6256.txt"
+                           "usr/lib/firmware/brcm/")
+                          ("brcmfmac43456-sdio.AP6256.txt"
+                           "usr/lib/firmware/brcm/brcmfmac43456-sdio.pine64,pinebook-pro.txt"))))
+      (synopsis "Firmware for the wifi/bt module AP6256")
+      (description
+       "This package provides Firmware for the wifi/bt module AP6256,
+found in Pinebook Pro.")
+      (home-page "https://gitlab.manjaro.org/manjaro-arm/packages/community/ap6256-firmware")
+      (license (nonfree (string-append "unknown"))))))
