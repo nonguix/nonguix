@@ -6,8 +6,11 @@
   #:use-module (gnu packages efi)
   #:use-module (gnu packages firmware)
   #:use-module (guix build-system copy)
+  #:use-module (guix build-system gnu)
+  #:use-module (guix download)
   #:use-module (guix gexp)
   #:use-module (guix git-download)
+  #:use-module ((guix licenses) #:prefix guix-license:)
   #:use-module (guix packages)
   #:use-module (guix utils)
   #:use-module (nonguix licenses))
@@ -139,3 +142,33 @@ HDMI to USB Type-C Bridge in the PinePhone.")
 found in Pinebook Pro.")
       (home-page "https://gitlab.manjaro.org/manjaro-arm/packages/community/ap6256-firmware")
       (license (nonfree (string-append "unknown"))))))
+
+(define-public bluez-firmware
+  (package
+    (name "bluez-firmware")
+    (version "1.2")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "http://bluez.sf.net/download/" name "-"
+                                  version ".tar.gz"))
+              (sha256
+               (base32
+                "1v4yv6gvlvvwslpb0lj1nsp4r900zxpvxz2ab0sbvimbiw8rw4dn"))))
+    (build-system gnu-build-system)
+    (arguments
+     (list #:phases #~(modify-phases %standard-phases
+                        (add-after 'install-license-files 'relocate-copyright
+                          (lambda* _
+                            (install-file (string-append #$output
+                                           "/lib/firmware/BCM-LEGAL.txt")
+                                          (string-append #$output
+                                           "/share/doc/bluez-firmware-"
+                                           #$(package-version bluez-firmware)
+                                           "/BCM-LEGAL.txt")))))))
+    (synopsis "Firmware for Broadcom BCM203x and STLC2300 Bluetooth chips")
+    (description "This package provides firmware for Broadcom BCM203x
+and STLC2300 Bluetooth chips.")
+    (home-page "https://github.com/RPi-Distro/bluez-firmware")
+    (license (list guix-license:gpl2+
+                   (nonfree
+                    "file:///share/doc/bluez-firmware-1.2/BCM-LEGAL.txt")))))
