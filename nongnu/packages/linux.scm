@@ -18,6 +18,7 @@
 ;;; Copyright © 2022 Remco van 't Veer <remco@remworks.net>
 ;;; Copyright © 2022 Simen Endsjø <simendsjo@gmail.com>
 ;;; Copyright © 2022 Leo Famulari <leo@famulari.name>
+;;; Copyright © 2023 Morgan Smith <Morgan.J.Smith@outlook.com>
 
 (define-module (nongnu packages linux)
   #:use-module (gnu packages)
@@ -662,6 +663,39 @@ RTL8812AU, RTL8821AU, and RTL8814AU chips.")
       ;; Rejected by Guix beause it contains a binary blob in:
       ;; hal/rtl8812a/hal8812a_fw.c
       (license gpl2+))))
+
+(define-public r8168-linux-module
+  (package
+    (name "r8168-linux-module")
+    (version "8.051.02")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/mtorromeo/r8168")
+                    (commit version)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "16mpr0np6xbmzdnwg4p3q6yli2gh032k98g4vplya33hrn50vh52"))))
+    (arguments
+     (list #:tests? #f
+           #:phases #~(modify-phases %standard-phases
+                        (add-after 'unpack 'enter-src-directory
+                          (lambda _
+                            (chdir "src")))
+                        ;; Needed to compile module for linux >= 6.1
+                        (add-before 'build 'fix-build
+                          (lambda _
+                            (substitute* "r8168.h"
+                              (("netif_napi_add\\(ndev, &priv->napi, function, weight\\)")
+                               "netif_napi_add(ndev, &priv->napi, function)")))))))
+    (build-system linux-module-build-system)
+    (home-page "https://github.com/mtorromeo/r8168")
+    (synopsis "Linux driver for Realtek PCIe network adapters")
+    (description
+     "Linux driver for Realtek PCIe network adapters.  If the r8169 kernel module is
+giving you trouble, you can try this module.")
+    (license gpl2)))
 
 (define broadcom-sta-version "6.30.223.271")
 
