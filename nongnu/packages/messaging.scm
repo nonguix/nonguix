@@ -1,6 +1,6 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2021, 2022 PantherX OS Team <team@pantherx.org>
-;;; Copyright © 2022 John Kehayias <john.kehayias@protonmail.com>
+;;; Copyright © 2022, 2023 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2022 Evgenii Lepikhin <johnlepikhin@gmail.com>
 
 (define-module (nongnu packages messaging)
@@ -154,7 +154,7 @@ its core.")
 (define-public signal-desktop
   (package
     (name "signal-desktop")
-    (version "6.1.0")
+    (version "6.2.0")
     (source
      (origin
        (method url-fetch)
@@ -163,7 +163,7 @@ its core.")
          "https://updates.signal.org/desktop/apt/pool/main/s/" name "/" name "_" version
          "_amd64.deb"))
        (sha256
-        (base32 "0z9p4d4gc3024ixw7p808qhddxbb9akccn9ay6rvf7d3dkzi0hpg"))))
+        (base32 "1ms2fv6hmg17vggbv3f2a730kvk15iz2nqbrn9mkwghabhr9rqva"))))
     (supported-systems '("x86_64-linux"))
     (build-system binary-build-system)
     (arguments
