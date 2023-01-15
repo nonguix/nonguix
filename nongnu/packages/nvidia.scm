@@ -4,7 +4,7 @@
 ;;; Copyright © 2020, 2021 Jean-Baptiste Volatier <jbv@pm.me>
 ;;; Copyright © 2020-2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2021 Pierre Langlois <pierre.langlois@gmx.com>
-;;; Copyright © 2022 Petr Hodina <phodina@protonmail.com>
+;;; Copyright © 2022, 2023 Petr Hodina <phodina@protonmail.com>
 ;;; Copyright © 2022 Alexey Abramov <levenson@mmer.org>
 ;;; Copyright © 2022 Hilton Chain <hako@ultrarare.space>
 
@@ -20,6 +20,7 @@
   #:use-module (guix build-system linux-module)
   #:use-module (guix build-system copy)
   #:use-module (guix build-system gnu)
+  #:use-module (guix build-system python)
   #:use-module (guix build-system trivial)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
@@ -95,6 +96,33 @@
              version "/NVIDIA-Linux-x86_64-" version ".run"))
        (sha256
         (base32 "0i5zyvlsjnfkpfqhw6pklp0ws8nndyiwxrg4pj04jpwnxf6a38n6"))))))
+
+(define-public python-nvidia-ml-py
+  (package
+    (name "python-nvidia-ml-py")
+    (version "11.495.46")
+    (source (origin
+              (method url-fetch)
+              (uri (pypi-uri "nvidia-ml-py" version))
+              (sha256
+               (base32
+                "09cnb7xasd7brby52j70y7fqsfm9n6gvgqf769v0cmj74ypy2s4g"))))
+    (build-system python-build-system)
+    (arguments
+     (list #:phases #~(modify-phases %standard-phases
+                        (add-after 'unpack 'fix-libnvidia
+                          (lambda _
+                            (substitute* "pynvml.py"
+                              (("libnvidia-ml.so.1")
+                               (string-append #$(this-package-input
+                                                 "nvidia-driver")
+                                              "/lib/libnvidia-ml.so.1"))))))))
+    (inputs (list nvidia-driver))
+    (home-page "https://forums.developer.nvidia.com")
+    (synopsis "Python Bindings for the NVIDIA Management Library")
+    (description "This package provides official Python Bindings for the NVIDIA
+Management Library")
+    (license license-gnu:bsd-3)))
 
 (define-public nvidia-driver
   (package
