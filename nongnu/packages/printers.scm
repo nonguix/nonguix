@@ -1,16 +1,19 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2021 Petr Hodina <phodina@protonmail.com>
 ;;; Copyright © 2021 Kahka F
-;;; Copyright © 2021 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2021, 2023 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 
 (define-module (nongnu packages printers)
   #:use-module (gnu packages)
   #:use-module (gnu packages cups)
+  #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module (guix utils)
   #:use-module (srfi srfi-1)
   #:use-module (guix download)
-  #:use-module (guix build utils))
+  #:use-module (guix build utils)
+  #:use-module (nonguix build-system binary)
+  #:use-module (nonguix licenses))
 
 (define-public hplip-plugin
   (package
@@ -165,24 +168,26 @@ version=~A
   (package
     (name "samsung-unified-printer")
     (version "1.00.39_01.17")
-    (source (origin
-              (method url-fetch)
-              (uri (string-append "https://ftp.ext.hp.com/pub/softlib/software13/printers/SS/SL-C4010ND/uld_V"
-                                  version ".tar.gz"))
-              (sha256
-               (base32
-                "03jl2hw7rjcq0cpsq714yaw40v73lsm1qa5z4q2m0i36hhxj2f0c"))))
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://ftp.ext.hp.com/pub/softlib/software13/printers/SS/SL-C4010ND/uld_V"
+                           version ".tar.gz"))
+       (sha256
+        (base32
+         "03jl2hw7rjcq0cpsq714yaw40v73lsm1qa5z4q2m0i36hhxj2f0c"))))
     (build-system binary-build-system)
     (arguments
-     `(#:install-plan
-       `(("noarch/license/eula.txt" "/share/doc/samsung-unified-printer/")
-         ("noarch/share/ppd/" "/share/ppd/samsung/")
-         ("x86_64/rastertospl" "/lib/cups/filter/"))
+     (list
+       #:install-plan
+         #~'(("noarch/license/eula.txt" "/share/doc/samsung-unified-printer/")
+             ("noarch/share/ppd/" "/share/ppd/samsung/")
+             ("x86_64/rastertospl" "/lib/cups/filter/"))
        #:patchelf-plan
-       `(("x86_64/rastertospl" ("cups")))
+         #~'(("x86_64/rastertospl" ("cups-minimal")))
        #:strip-binaries? #f))
     (inputs
-     `(("cups" ,cups-minimal)))
+     (list cups-minimal))
     (synopsis "Propriatary Samsung printer drivers")
     (description "Samsung Unified Linux Driver provides propriatary printer
 drivers for laser and multifunctional printers.")
