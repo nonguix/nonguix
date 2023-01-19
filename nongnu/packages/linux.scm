@@ -587,7 +587,7 @@ network adapters.")
 
 (define-public rtl8821ce-linux-module
   (let ((commit "538c34671b391340e0ae23ff11bde77b6588496c")
-        (revision "7"))
+        (revision "9"))
     (package
       (name "rtl8821ce-linux-module")
       (version (git-version "0.0.0" revision commit))
