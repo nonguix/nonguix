@@ -22,11 +22,13 @@
 ;;; Copyright © 2023 Morgan Smith <Morgan.J.Smith@outlook.com>
 ;;; Copyright © 2023 Jelle Licht <jlicht@fsfe.org>
 ;;; Copyright © 2023 Adam Kandur <rndd@tuta.io>
+;;; Copyright © 2023 Hilton Chain <hako@ultrarare.space>
 
 (define-module (nongnu packages linux)
   #:use-module (gnu packages)
   #:use-module (gnu packages base)
   #:use-module (gnu packages compression)
+  #:use-module (gnu packages cpio)
   #:use-module (gnu packages linux)
   #:use-module (guix licenses)
   #:use-module (guix packages)
@@ -42,6 +44,12 @@
   #:use-module (nonguix licenses)
   #:use-module (srfi srfi-1)
   #:export (corrupt-linux))
+
+(define %default-extra-linux-options
+  (@@ (gnu packages linux) %default-extra-linux-options))
+
+(define config->string
+  (@@ (gnu packages linux) config->string))
 
 (define (linux-url version)
   "Return a URL for Linux VERSION."
@@ -127,6 +135,98 @@ on hardware which requires nonfree software to function."))))
 
 (define-public linux-arm64-generic
   (corrupt-linux linux-libre-arm64-generic #:name "linux-arm64-generic"))
+
+
+;;;
+;;; Linux-XanMod
+;;;
+
+(define (make-linux-xanmod-source version xanmod-revision hash-string)
+  (origin
+    (method url-fetch)
+    (uri (string-append "https://gitlab.com/xanmod/linux/-/archive/"
+                        version "-" xanmod-revision ".tar.bz2"))
+    (sha256 hash-string)))
+
+(define* (make-linux-xanmod version xanmod-revision source
+                            #:key
+                            (name "linux-xanmod")
+                            (xanmod-defconfig "config_x86-64-v1"))
+  (let ((defconfig xanmod-defconfig)    ;to be used in phases.
+        (base (customize-linux #:name name
+                               #:source source
+                               #:defconfig xanmod-defconfig
+                               ;; EXTRAVERSION is used instead.
+                               #:configs (config->string
+                                          '(("CONFIG_LOCALVERSION" . "")))
+                               #:extra-version xanmod-revision)))
+    (package
+      (inherit base)
+      (version version)
+      (arguments
+       (substitute-keyword-arguments (package-arguments base)
+         ((#:phases phases)
+          #~(modify-phases #$phases
+              ;; EXTRAVERSION is used instead.
+              (add-after 'unpack 'remove-localversion
+                (lambda _
+                  (when (file-exists? "localversion")
+                    (delete-file "localversion"))))
+              (add-before 'configure 'add-xanmod-defconfig
+                (lambda _
+                  (rename-file
+                   (string-append "CONFIGS/xanmod/gcc/" #$defconfig)
+                   ".config")
+
+                  ;; Adapted from `make-linux-libre*'.
+                  (chmod ".config" #o666)
+                  (let ((port (open-file ".config" "a"))
+                        (extra-configuration
+                         #$(config->string
+                            ;; FIXME: There might be other support missing.
+                            (append '(("CONFIG_BLK_DEV_NVME" . #t)
+                                      ("CONFIG_CRYPTO_XTS" . m)
+                                      ("CONFIG_VIRTIO_CONSOLE" . m))
+                                    %default-extra-linux-options))))
+                    (display extra-configuration port)
+                    (close-port port))
+                  (invoke "make" "oldconfig")
+
+                  (rename-file
+                   ".config"
+                   (string-append "arch/x86/configs/" #$defconfig))))))))
+      (native-inputs
+       (modify-inputs (package-native-inputs base)
+         ;; cpio is needed for CONFIG_IKHEADERS.
+         (append cpio zstd)))
+      (home-page "https://xanmod.org/")
+      (supported-systems '("x86_64-linux"))
+      (synopsis
+       "Linux kernel distribution with custom settings and new features")
+      (description
+       "This package provides XanMod kernel, a general-purpose Linux kernel
+distribution with custom settings and new features.  It's built to provide a
+stable, responsive and smooth desktop experience."))))
+
+;; Linux-XanMod sources
+(define-public linux-xanmod-version "6.3.10")
+(define-public linux-xanmod-revision "xanmod1")
+(define-public linux-xanmod-source
+  (make-linux-xanmod-source
+   linux-xanmod-version
+   linux-xanmod-revision
+   (base32 "0gnbr37cxrhw4q6bydw8xza31sgj04hj0qxlva1gycw064p7fcxc")))
+
+;; Linux-XanMod packages
+(define-public linux-xanmod
+  (make-linux-xanmod linux-xanmod-version
+                     linux-xanmod-revision
+                     linux-xanmod-source))
+
+
+;;;
+;;; Firmwares
+;;;
 
 (define-public linux-firmware
   (package
