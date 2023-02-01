@@ -103,7 +103,8 @@ WiFi/Bluetooth chip in the PinePhone.")
                   "19xmkdvlkczc6zgigy8jdbgnp37i6pc03m2cm3gilvzg8m7v18ad"))))
       (build-system copy-build-system)
       (arguments
-       `(#:install-plan '(("anx7688-fw.bin" "lib/firmware/"))))
+       `(#:substitutable? #f
+         #:install-plan '(("anx7688-fw.bin" "lib/firmware/"))))
       (synopsis "Firmware for the ANX7688")
       (description "This package provides binary firmware for the ANX7688
 HDMI to USB Type-C Bridge in the PinePhone.")
