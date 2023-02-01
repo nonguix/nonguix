@@ -53,7 +53,8 @@
                   "19xmkdvlkczc6zgigy8jdbgnp37i6pc03m2cm3gilvzg8m7v18ad"))))
       (build-system copy-build-system)
       (arguments
-       `(#:install-plan '(("ov5640_af.bin" "lib/firmware/"))))
+       `(#:substitutable? #f
+         #:install-plan '(("ov5640_af.bin" "lib/firmware/"))))
       (synopsis "Firmware for the OV5640 sensor in the PinePhone")
       (description "This package provides binary firmware for the 0V5640 sensor
 in the PinePhone.")
