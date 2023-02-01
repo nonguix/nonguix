@@ -129,7 +129,8 @@ HDMI to USB Type-C Bridge in the PinePhone.")
                   "1s52rpikw0gysph5lq7vr6b3nsxczg4ikgil9zdgmcknjnxk9kbv"))))
       (build-system copy-build-system)
       (arguments
-       `(#:install-plan '( ;Bluetooth firmware
+       `(#:substitutable? #f
+         #:install-plan '( ;Bluetooth firmware
                            ("BCM4345C5.hcd" "usr/lib/firmware/brcm/")
                           ;; WiFi firmware
                           ("fw_bcm43456c5_ag.bin" "usr/lib/firmware/brcm/")
