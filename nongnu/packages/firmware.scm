@@ -77,7 +77,8 @@ in the PinePhone.")
                   "19xmkdvlkczc6zgigy8jdbgnp37i6pc03m2cm3gilvzg8m7v18ad"))))
       (build-system copy-build-system)
       (arguments
-       `(#:install-plan '(("rtl_bt/rtl8723cs_xx_fw.bin" "lib/firmware/"))))
+       `(#:substitutable? #f
+         #:install-plan '(("rtl_bt/rtl8723cs_xx_fw.bin" "lib/firmware/"))))
       (synopsis "Firmware for the RTL8723BS/CS")
       (description "This package provides binary firmware for the RTL8723BS/CS
 WiFi/Bluetooth chip in the PinePhone.")
