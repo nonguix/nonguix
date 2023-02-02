@@ -217,11 +217,24 @@ stable, responsive and smooth desktop experience."))))
    linux-xanmod-revision
    (base32 "0gnbr37cxrhw4q6bydw8xza31sgj04hj0qxlva1gycw064p7fcxc")))
 
+(define-public linux-xanmod-lts-version "6.1.36")
+(define-public linux-xanmod-lts-revision "xanmod1")
+(define-public linux-xanmod-lts-source
+  (make-linux-xanmod-source
+   linux-xanmod-lts-version
+   linux-xanmod-lts-revision
+   (base32 "0r84dzl98hj1z2hkmvagaa26nisr0b3mms61q4z65xy4nrc4zfl2")))
+
 ;; Linux-XanMod packages
 (define-public linux-xanmod
   (make-linux-xanmod linux-xanmod-version
                      linux-xanmod-revision
                      linux-xanmod-source))
+
+(define-public linux-xanmod-lts
+  (make-linux-xanmod linux-xanmod-lts-version
+                     linux-xanmod-lts-revision
+                     linux-xanmod-lts-source))
 
 
 ;;;
