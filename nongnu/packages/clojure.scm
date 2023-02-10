@@ -85,7 +85,7 @@ lets you focus on your code.")
 (define-public clj-kondo
  (package
    (name "clj-kondo")
-   (version "2022.06.22")
+   (version "2023.01.20")
    (source (origin
              (method url-fetch/zipbomb)
              (uri (string-append
@@ -93,7 +93,7 @@ lets you focus on your code.")
                    version "/clj-kondo-" version "-linux-amd64.zip"))
              (sha256
               (base32
-               "057h48kf14pdnnyvgmbqkga1bspbr4ag22q2279s14c2c9bcinzz"))))
+               "0i91qaqjnrg7ad0rs1r4rjwi77pr16dhck9bflb4kiyggcbs4dds"))))
    (build-system binary-build-system)
    (arguments
     `(#:patchelf-plan
