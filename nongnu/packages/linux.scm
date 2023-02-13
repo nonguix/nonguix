@@ -19,6 +19,7 @@
 ;;; Copyright © 2022 Simen Endsjø <simendsjo@gmail.com>
 ;;; Copyright © 2022 Leo Famulari <leo@famulari.name>
 ;;; Copyright © 2023 Morgan Smith <Morgan.J.Smith@outlook.com>
+;;; Copyright © 2023 Jelle Licht <jlicht@fsfe.org>
 
 (define-module (nongnu packages linux)
   #:use-module (gnu packages)
@@ -37,28 +38,53 @@
   #:use-module (guix build-system trivial)
   #:use-module (ice-9 match)
   #:use-module (nonguix licenses)
+  #:use-module (srfi srfi-1)
   #:export (corrupt-linux))
 
-(define (linux-urls version)
-  "Return a list of URLS for Linux VERSION."
-  (list (string-append "https://www.kernel.org/pub/linux/kernel/v"
-                       (version-major version) ".x/linux-" version ".tar.xz")))
+(define (linux-url version)
+  "Return a URL for Linux VERSION."
+  (string-append "mirror://kernel.org"
+                       "/linux/kernel/v" (version-major version) ".x"
+                       "/linux-" version ".tar.xz"))
 
 (define* (corrupt-linux freedo #:key (name "linux"))
-  (package
-   (inherit
-    (customize-linux
-     #:name name
-     #:source (origin (inherit (package-source freedo))
-                      (method url-fetch)
-                      (uri (linux-urls (package-version freedo)))
-                      (patches '()))))
-   (version (package-version freedo))
-   (home-page "https://www.kernel.org/")
-   (synopsis "Linux kernel with nonfree binary blobs included")
-   (description
-    "The unmodified Linux kernel, including nonfree blobs, for running Guix
-System on hardware which requires nonfree software to function.")))
+
+  ;; TODO: This very directly depends on guix internals.
+  ;; Throw it all out when we manage kernel hashes.
+  (define gexp-inputs (@@ (guix gexp) gexp-inputs))
+
+  (define extract-gexp-inputs
+    (compose gexp-inputs force origin-uri))
+
+  (define (find-source-hash sources url)
+    (let ((versioned-origin
+           (find (lambda (source)
+                   (let ((uri (origin-uri source)))
+                     (and (string? uri) (string=? uri url)))) sources)))
+      (if versioned-origin
+          (origin-hash versioned-origin)
+          #f)))
+
+  (let* ((version (package-version freedo))
+         (url (linux-url version))
+         (pristine-source (package-source freedo))
+         (inputs (map gexp-input-thing (extract-gexp-inputs pristine-source)))
+         (sources (filter origin? inputs))
+         (hash (find-source-hash sources url)))
+    (package
+      (inherit
+       (customize-linux
+        #:name name
+        #:source (origin
+                   (method url-fetch)
+                   (uri url)
+                   (hash hash))))
+      (version version)
+      (home-page "https://www.kernel.org/")
+      (synopsis "Linux kernel with nonfree binary blobs included")
+      (description
+       "The unmodified Linux kernel, including nonfree blobs, for running Guix System
+on hardware which requires nonfree software to function."))))
 
 (define-public linux-6.1
   (corrupt-linux linux-libre-6.1))
