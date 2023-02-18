@@ -47,7 +47,7 @@
                        "/linux/kernel/v" (version-major version) ".x"
                        "/linux-" version ".tar.xz"))
 
-(define* (corrupt-linux freedo #:key (name "linux"))
+(define* (corrupt-linux freedo #:key (name "linux") (configs '()))
 
   ;; TODO: This very directly depends on guix internals.
   ;; Throw it all out when we manage kernel hashes.
@@ -78,7 +78,8 @@
         #:source (origin
                    (method url-fetch)
                    (uri url)
-                   (hash hash))))
+                   (hash hash))
+        #:configs configs))
       (version version)
       (home-page "https://www.kernel.org/")
       (synopsis "Linux kernel with nonfree binary blobs included")
