@@ -124,12 +124,11 @@ on hardware which requires nonfree software to function."))))
     (version "20230117")
     (source (origin
               (method url-fetch)
-              (uri (string-append "https://git.kernel.org/pub/scm/linux/kernel"
-                                  "/git/firmware/linux-firmware.git/snapshot/"
-                                  "linux-firmware-" version ".tar.gz"))
+              (uri (string-append "mirror://kernel.org/linux/kernel/firmware/"
+                                  "linux-firmware-" version ".tar.xz"))
               (sha256
                (base32
-                "1a222nxgxa2s7gkir934317nbv0ki2463x7x7qx0h1fvzv4n40xm"))))
+                "0r1xrgq512031xz1ysx2a295kvsc7dxf2mrp8x1m6kgvl9dy44fz"))))
     (build-system gnu-build-system)
     (arguments
      `(#:tests? #f
