@@ -14,7 +14,7 @@
 ;;; Copyright © 2020 Oleg Pykhalov <go.wigust@gmail.com>
 ;;; Copyright © 2020 Jakub Kądziołka <kuba@kadziolka.net>
 ;;; Copyright © 2019, 2020 Adrian Malacoda <malacoda@monarch-pass.net>
-;;; Copyright © 2020-2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2020-2023 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2020 Zhu Zihao <all_but_last@163.com>
 ;;; Copyright © 2021 pineapples <guixuser6392@protonmail.com>
 ;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
@@ -230,6 +230,22 @@ according to Unicode Standard Annex #31")
               (sha256
                (base32
                 "006rn3fn4njayjxr2vd24g1awssr9i3894nbmfzkybx07j728vav"))))))
+
+(define icu4c-72
+  (package
+    (inherit icu4c)
+    (version "72.1")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://github.com/unicode-org/icu/releases/download/release-"
+                    (string-map (lambda (x) (if (char=? x #\.) #\- x)) version)
+                    "/icu4c-"
+                    (string-map (lambda (x) (if (char=? x #\.) #\_ x)) version)
+                    "-src.tgz"))
+              (sha256
+               (base32
+                "0s0xly0ndspd4p9jl6101qvnp5rgz5kl9qrmcvapwah92y1d7lm2"))))))
 
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
