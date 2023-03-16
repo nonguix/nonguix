@@ -269,14 +269,14 @@ or iOS.")
 (define-public zoom
   (package
     (name "zoom")
-    (version "5.13.4.711")
+    (version "5.13.11.1288")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://cdn.zoom.us/prod/" version "/zoom_x86_64.tar.xz"))
        (file-name (string-append name "-" version "-x86_64.tar.xz"))
        (sha256
-        (base32 "0528ywkjl50vd0m0isxicg9mn5fv1w3lqrc10nkynb29hcqlacgv"))))
+        (base32 "1ngj15j9d7i0z4d0wraziyv75whp0digh8rg1jzfmi0ws3ir2d6b"))))
     (supported-systems '("x86_64-linux"))
     (build-system binary-build-system)
     (arguments
