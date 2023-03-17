@@ -15,10 +15,10 @@
   #:use-module (gnu packages glib)
   #:use-module (gnu packages gnome)
   #:use-module (gnu packages gtk)
+  #:use-module (gnu packages kerberos)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages nss)
   #:use-module (gnu packages pulseaudio)
-  #:use-module (gnu packages qt)
   #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xml)
   #:use-module (gnu packages xorg)
@@ -282,6 +282,8 @@ or iOS.")
     (arguments
      (list #:validate-runpath? #f ; TODO: fails on wrapped binary and included other files
            #:patchelf-plan
+           ;; Note: it seems like some (all?) of these only do anything in
+           ;; LD_LIBRARY_PATH, or at least needed there as well.
            #~(let ((libs '("alsa-lib"
                            "at-spi2-atk"
                            "at-spi2-core"
@@ -370,15 +372,21 @@ or iOS.")
                                         "gcc"
                                         "glib"
                                         "mesa"
+                                        "mit-krb5"
                                         "nspr"
+                                        "libxcb"
                                         "libxcomposite"
                                         "libxdamage"
+                                        "libxext"
                                         "libxkbcommon"
                                         "libxkbfile"
                                         "libxrandr"
                                         "libxshmfence"
                                         "pango"
                                         "pulseaudio"
+                                        "xcb-util"
+                                        "xcb-util-wm"
+                                        "xcb-util-renderutil"
                                         "zlib")))))))
                (add-after 'wrap-where-patchelf-does-not-work 'rename-binary
                  ;; IPC (for single sign-on and handling links) fails if the
@@ -452,13 +460,16 @@ or iOS.")
                   libxrender
                   libxshmfence
                   mesa
+                  mit-krb5
                   nspr
                   nss
                   pango
                   pulseaudio
-                  qtmultimedia
+                  xcb-util
                   xcb-util-image
                   xcb-util-keysyms
+                  xcb-util-renderutil
+                  xcb-util-wm
                   zlib))
     (home-page "https://zoom.us/")
     (synopsis "Video conference client")
