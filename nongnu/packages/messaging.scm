@@ -323,6 +323,8 @@ or iOS.")
                 ("lib/zoom/zoom"
                  ,libs)
                 ("lib/zoom/zopen"
+                 ,libs)
+                ("lib/zoom/aomhost"
                  ,libs)))
            #:phases
            #~(modify-phases %standard-phases
@@ -350,6 +352,49 @@ or iOS.")
                                         "libxrender"
                                         "zlib")))))
                    (wrap-program (string-append #$output "/lib/zoom/zoom")
+                     `("FONTCONFIG_PATH" ":" prefix
+                       (,(string-join
+                          (list
+                           (string-append #$(this-package-input "fontconfig-minimal") "/etc/fonts")
+                           #$output)
+                          ":")))
+                     `("LD_LIBRARY_PATH" prefix
+                       ,(list (string-append #$(this-package-input "nss") "/lib/nss")
+                              #$@(map (lambda (pkg)
+                                        (file-append (this-package-input pkg) "/lib"))
+                                      ;; TODO: Reuse this long list as it is
+                                      ;; needed for aomhost.  Or perhaps
+                                      ;; aomhost has a shorter needed list,
+                                      ;; but untested.
+                                      '("alsa-lib"
+                                        "atk"
+                                        "at-spi2-atk"
+                                        "at-spi2-core"
+                                        "cairo"
+                                        "cups"
+                                        "dbus"
+                                        "eudev"
+                                        "expat"
+                                        "gcc"
+                                        "glib"
+                                        "mesa"
+                                        "mit-krb5"
+                                        "nspr"
+                                        "libxcb"
+                                        "libxcomposite"
+                                        "libxdamage"
+                                        "libxext"
+                                        "libxkbcommon"
+                                        "libxkbfile"
+                                        "libxrandr"
+                                        "libxshmfence"
+                                        "pango"
+                                        "pulseaudio"
+                                        "xcb-util"
+                                        "xcb-util-wm"
+                                        "xcb-util-renderutil"
+                                        "zlib")))))
+                   (wrap-program (string-append #$output "/lib/zoom/aomhost")
                      `("FONTCONFIG_PATH" ":" prefix
                        (,(string-join
                           (list
@@ -402,6 +447,8 @@ or iOS.")
                  (lambda _
                    (delete-file (string-append #$output "/environment-variables"))
                    (mkdir-p (string-append #$output "/bin"))
+                   (symlink (string-append #$output "/lib/zoom/aomhost")
+                            (string-append #$output "/bin/aomhost"))
                    (symlink (string-append #$output "/lib/zoom/zoom")
                             (string-append #$output "/bin/zoom"))
                    (symlink (string-append #$output "/lib/zoom/zopen")
