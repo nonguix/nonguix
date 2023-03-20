@@ -18,6 +18,7 @@
 ;;; Copyright © 2022 Remco van 't Veer <remco@remworks.net>
 ;;; Copyright © 2022 Simen Endsjø <simendsjo@gmail.com>
 ;;; Copyright © 2022 Leo Famulari <leo@famulari.name>
+;;; Copyright © 2023 Krzysztof Baranowski <pharcosyle@gmail.com>
 ;;; Copyright © 2023 Morgan Smith <Morgan.J.Smith@outlook.com>
 ;;; Copyright © 2023 Jelle Licht <jlicht@fsfe.org>
 
@@ -728,6 +729,18 @@ giving you trouble, you can try this module.")
 
 (define broadcom-sta-version "6.30.223.271")
 
+(define (broadcom-sta-patch name commit hash)
+  (origin
+    (method url-fetch)
+    (uri (string-append "https://raw.githubusercontent.com/NixOS/nixpkgs/"
+                        commit
+                        "/pkgs/os-specific/linux/broadcom-sta/"
+                        name
+                        ".patch"))
+    (sha256
+     (base32
+      hash))))
+
 (define broadcom-sta-x86_64-source
   (origin
     (method url-fetch/tarbomb)
@@ -736,29 +749,30 @@ giving you trouble, you can try this module.")
                         (string-replace-substring broadcom-sta-version "." "_")
                         ".tar.gz"))
     (patches
-     (parameterize
-         ((%patch-path
-           (map (lambda (directory)
-                  (string-append directory "/nongnu/packages/patches"))
-                %load-path)))
-       ;; https://github.com/NixOS/nixpkgs/tree/master/pkgs/os-specific/linux/broadcom-sta
-       ;; https://git.archlinux.org/svntogit/community.git/tree/trunk?h=packages/broadcom-wl-dkms
-       (search-patches "broadcom-sta-gcc.patch"
-                       "broadcom-sta-license.patch"
-                       "broadcom-sta-null-pointer-fix.patch"
-                       "broadcom-sta-rdtscl.patch"
-                       "broadcom-sta-linux-4.7.patch"
-                       "broadcom-sta-linux-4.8.patch"
-                       "broadcom-sta-debian-fix-kernel-warnings.patch"
-                       "broadcom-sta-linux-4.11.patch"
-                       "broadcom-sta-linux-4.12.patch"
-                       "broadcom-sta-linux-4.15.patch"
-                       "broadcom-sta-fix_mac_profile_discrepancy.patch"
-                       "broadcom-sta-linux-5.1.patch"
-		       ;; source: https://github.com/NixOS/nixpkgs/commit/8ce65087c333097ab714d23800b69fc471ec48ca
-                       "broadcom-sta-linux-5.6.patch"
-                       "broadcom-sta-linux-5.9.patch"
-                       "broadcom-sta-linux-5.10.patch")))
+     ;; Keep these in sync with the list at
+     ;; https://github.com/NixOS/nixpkgs/tree/master/pkgs/os-specific/linux/broadcom-sta.
+     ;; Nixpkgs is good about keeping broadcom patches up to date so updating
+     ;; for a new kernel release should be as simple as chaging the commit to
+     ;; the newest available and adding any new patches.
+     (let ((commit "355042e2ff5933b245e804c5eaff4ec3f340e71b"))
+       (list
+        (broadcom-sta-patch "i686-build-failure" commit "1522w2gb698svlkb2b4lijbd740agvs2ibpz4g0jlv8v31cybkf4")
+        (broadcom-sta-patch "license" commit "0rwlhafcmpp97cknqwv8gwf8sbxgqavgci1ywfkdxiylh4mhcvhr")
+        (broadcom-sta-patch "linux-4.7" commit "1nn1p6j77s9zfpxy5gl6qg1kha45pc7ww0yfkn5dmhazi288wamf")
+        (broadcom-sta-patch "linux-4.8" commit "0bjx4ayi30jbdm3sh38p52d6dnb3c44mqzqi8g51hhbn1kghkmq9")
+        (broadcom-sta-patch "linux-4.11" commit "1s3n87v9cn3qicd5v4wzj20psl4gcn1ghz0fnsq60n05rriicywp")
+        (broadcom-sta-patch "linux-4.12" commit "1kj7sfnw9hxjxzqm48565vniq7fkhapaqadfpw6l9bcnpf53xld3")
+        (broadcom-sta-patch "linux-4.15" commit "0bvk7nrvqa066dpn6vvb6x00yrxa37iqv87135kay9mllmkjd70b")
+        (broadcom-sta-patch "linux-5.1" commit "1kykpzhs19dwww6grav3qxsd28kn8y84i4b4csx2y5m2j629ncn0")
+        (broadcom-sta-patch "linux-5.6" commit "0v1jkaf60jgjkrjfcmx1gin4b65cdv39glqy7l3cswkmzb60lz4l")
+        (broadcom-sta-patch "linux-5.9" commit "1sgmbaahydk4j3i1jf8q1fz3a210fmakrpz0w1n9v3dcn23ladah")
+        (broadcom-sta-patch "linux-5.17" commit "1qsllvykhs3nvjwv8d6bgsm2sc9a1lxf8yqf6fa99p60ggd253ps")
+        (broadcom-sta-patch "linux-5.18" commit "1img0a0vqnkmq4c21aywq2ajyigzcfhbbpg1hw9nx7cbj9hf6d0l")
+        (broadcom-sta-patch "linux-6.0" commit "0rv74j5giafzl19f01yvfa5rgvsdvcimxzhks2fp44wpnxq241nb")
+        (broadcom-sta-patch "linux-6.1" commit "1pvx1h7iimcbfqdc13n1980ngxk9q6iyip8svn293x4h7jn472kf")
+        (broadcom-sta-patch "pedantic-fix" commit "1kxmw1iyxnfwad75h981sak5qk16p81xy1f2qxss2d0v97vkfkl5")
+        (broadcom-sta-patch "null-pointer-fix" commit "15c2vxgf7v5wy4s8w9jk7irf3fxxghy05gxmav1ss73a2azajdx7")
+        (broadcom-sta-patch "gcc" commit "0jcqk2vapyy2pbsjv9n8b3qp6vqz17d6s07cr04cx7075q7yhz5h"))))
     (sha256
      (base32
       "1gj485qqr190idilacpxwgqyw21il03zph2rddizgj7fbd6pfyaz"))))
@@ -784,7 +798,7 @@ giving you trouble, you can try this module.")
        (_ broadcom-sta-i686-source)))
     (build-system linux-module-build-system)
     (arguments
-     `(#:linux ,linux-lts
+     `(#:linux ,linux
        #:tests? #f))
     (supported-systems '("i686-linux" "x86_64-linux"))
     (home-page "https://www.broadcom.com/support/802.11")
@@ -805,10 +819,7 @@ Linux device driver for the following chipsets:
 @item BCM4331
 @item BCM4352
 @item BCM4360
-@end itemize
-
-It is recommended that anyone who uses this package stays with Linux LTS
-releases.")
+@end itemize")
     (license (nonfree "https://www.broadcom.com/support/802.11"))))
 
 (define-public broadcom-bt-firmware
