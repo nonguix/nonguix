@@ -85,25 +85,27 @@ package.  E.g.: @code{(udev-rules-service 'sdrplay sdrplay)}")
                                      "/license.txt")))))
 
 (define-public soapysdrplay3
-  (package
-    (name "soapysdrplay3")
-    (version "0.4.0")
-    (source
-     (origin
-       (method git-fetch)
-       (uri (git-reference
-             (url "https://github.com/pothosware/SoapySDRPlay3")
-             (commit (string-append "soapy-sdrplay3-" version))))
-       (file-name (git-file-name name version))
-       (sha256
-        (base32 "0kp5gz03c29kxclaqijpyqknaijlbldrhy04mn98vnli9g1h1isq"))))
-    (build-system cmake-build-system)
-    (inputs
-     (list sdrplay soapysdr))
-    (arguments
-     `(#:tests? #f))  ; No test suite
-    (home-page "https://github.com/pothosware/SoapySDRPlay3/wiki")
-    (synopsis "SoapySDR SDRplay module")
-    (description "This package provides SDRplay devices support to the
+  (let ((commit "9e5c80c45454db56b8b10bb997369f37e750631b")
+        (revision "1"))
+    (package
+      (name "soapysdrplay3")
+      (version (git-version "0.4.1" revision commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/pothosware/SoapySDRPlay3")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32 "1sl3i1id0fily7qfm0yihxsaqy4f4gr85vl5ip05azhhbrnmnayx"))))
+      (build-system cmake-build-system)
+      (inputs
+       (list sdrplay soapysdr))
+      (arguments
+       `(#:tests? #f))  ; No test suite
+      (home-page "https://github.com/pothosware/SoapySDRPlay3/wiki")
+      (synopsis "SoapySDR SDRplay module")
+      (description "This package provides SDRplay devices support to the
 SoapySDR library.")
-    (license expat)))
+      (license expat))))
