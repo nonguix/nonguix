@@ -167,11 +167,11 @@ version=~A
 (define-public samsung-unified-printer
   (package
     (name "samsung-unified-printer")
-    (version "1.00.39_01.17")
+    (version "1.00.37")
     (source
      (origin
        (method url-fetch)
-       (uri (string-append "https://ftp.ext.hp.com/pub/softlib/software13/printers/SS/SL-C4010ND/uld_V"
+       (uri (string-append "https://www.bchemnet.com/suldr/driver/UnifiedLinuxDriver"
                            version ".tar.gz"))
        (sha256
         (base32
