@@ -16,7 +16,8 @@
   #:use-module ((guix licenses) #:prefix guix-license:)
   #:use-module (guix packages)
   #:use-module (guix utils)
-  #:use-module (nonguix licenses))
+  #:use-module (nonguix licenses)
+  #:use-module (nongnu packages compression))
 
 ;; fwupd with LVFS nonfree repositories enabled
 (define-public fwupd-nonfree
@@ -256,5 +257,50 @@ and STLC2300 Bluetooth chips.")
 @uref{https://github.com/patjak/facetimehd/wiki/Get-Started#firmware-extraction,
 patjak's facetimehd wiki} for more information.")
     (home-page "https://support.apple.com")
+    (license (nonfree "https://www.apple.com/legal"))
+    (supported-systems '("i686-linux" "x86_64-linux"))))
+
+(define-public facetimehd-calibration
+  (package
+    (name "facetimehd-calibration")
+    (version "5.1.5769")
+    (source
+     (origin
+       (method url-fetch/zipbomb)
+       (uri (string-append
+             "https://download.info.apple.com/Mac_OS_X"
+             "/031-30890-20150812-ea191174-4130-11e5-a125-930911ba098f"
+             "/bootcamp" version".zip"))
+       (sha256
+        (base32
+         "07jbh6d0djcvcgj5hhkkw7d6mvcl228yb8rp0a2qqw20ya72rpjf"))))
+    (build-system copy-build-system)
+    (arguments
+     (list
+      #:install-plan #~'(("." "/lib/firmware/facetimehd/"
+                          #:include-regexp ("[0-9]{4}_01XX\\.dat")))
+      #:phases
+      (let ((calibration-files
+             '(("1771_01XX.dat" 19040 1644880)
+               ("1871_01XX.dat" 19040 1606800)
+               ("1874_01XX.dat" 19040 1625840)
+               ("9112_01XX.dat" 33060 1663920))))
+        #~(modify-phases %standard-phases
+            (add-before 'install 'extract
+              (lambda* (#:key inputs #:allow-other-keys)
+                (invoke (search-input-file inputs "/bin/unrar")
+                        "x"
+                        "BootCamp/Drivers/Apple/AppleCamera64.exe")
+                (for-each (lambda (spec)
+                            (apply #$dump-file-chunk "AppleCamera.sys" spec))
+                          '#$calibration-files)))))))
+    (native-inputs
+     (list unrar unzip))
+    (synopsis "Calibration files for the FacetimeHD (Broadcom 1570) PCIe webcam")
+    (description "Calibration files for the FacetimeHD webcam.  These are
+optional but make the colors look much better.  See
+@uref{https://github.com/patjak/facetimehd/wiki/Extracting-the-sensor-calibration-files,
+patjak's facetimehd wiki} for more information.")
+    (home-page "https://support.apple.com/kb/DL1837")
     (license (nonfree "https://www.apple.com/legal"))
     (supported-systems '("i686-linux" "x86_64-linux"))))
