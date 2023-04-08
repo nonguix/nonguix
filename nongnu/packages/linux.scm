@@ -1032,6 +1032,40 @@ chipsets from Broadcom:
        "/b60fa04881bf8f9b9d578f57d1dfa596cae2a82e"
        "/LICENSE.broadcom_bcm20702")))))
 
+(define-public facetimehd
+  (package
+    (name "facetimehd")
+    (version "0.5.18")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/patjak/facetimehd")
+             (commit version)))
+       (file-name (git-file-name "facetimehd" version))
+       (sha256
+        (base32
+         "1598pzjnbij3knvqmk2yslj26wmqiqjqgqgcw9p9jx6z7bdjvvsh"))))
+    (build-system linux-module-build-system)
+    (arguments
+     '(#:tests? #f))
+    (synopsis "Linux driver for the FacetimeHD (Broadcom 1570) PCIe webcam")
+    (description "Linux driver for the FacetimeHD webcam.  According to Apple the
+following models contain a Facetime HD camera and should be compatible with this
+driver:
+@itemize
+@item iMac (21,5\", since mid 2011)
+@item iMac (27\", since mid 2011)
+@item MacBook Air (since mid 2011)
+@item MacBook Pro (15\", since early 2011)
+@item MacBook Pro (17\", since early 2011)
+@item MacBook Pro (13\", since early 2011)
+@item Thunderbolt display
+@end itemize")
+    (home-page "https://github.com/patjak/facetimehd")
+    (license gpl2)
+    (supported-systems '("i686-linux" "x86_64-linux"))))
+
 (define-public intel-microcode
   (package
     (name "intel-microcode")
