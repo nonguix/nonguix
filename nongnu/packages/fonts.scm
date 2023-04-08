@@ -305,3 +305,23 @@ automatically align with text labels."))
     (synopsis "Apple Color Emoji typeface by Apple.")
     (description "Color and black-and-white Apple emoji fonts.")
     (license (nonfree "https://www.apple.com"))))
+
+(define-public font-apple-symbols
+  (package
+    (name "font-apple-symbols")
+    (version "17.0d1e2")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://github.com/pharcosyle/apple-fonts"
+             "/releases/download"
+             "/Apple-Symbols-" version "/Apple.Symbols.ttf"))
+       (sha256
+        (base32 "14ivhsiszmy1ql69kpr1f33n07qgpaj7w43w2p5qnmlwcrvs3ccr"))))
+    (build-system font-build-system)
+    (home-page "https://www.apple.com")
+    (synopsis "Apple Symbols typeface by Apple.")
+    (description "An Apple system font intended to provide coverage for
+characters defined as symbols in the Unicode Standard.")
+    (license (nonfree "https://www.apple.com"))))
