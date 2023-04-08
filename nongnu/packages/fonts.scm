@@ -286,3 +286,22 @@ graphic display face at larger sizes."))
 iconography designed to integrate seamlessly with San Francisco, the system
 font for Apple platforms.  Symbols come in nine weights and three scales, and
 automatically align with text labels."))
+
+(define-public font-apple-color-emoji
+  (package
+    (name "font-apple-color-emoji")
+    (version "18.0d4e1")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://github.com/pharcosyle/apple-fonts"
+             "/releases/download"
+             "/Apple-Color-Emoji-" version "/Apple.Color.Emoji.ttc"))
+       (sha256
+        (base32 "06i1ady7b2g1i2hl3f8yxn64g2i82c2ni9vdw25gpdqdj28vyqw3"))))
+    (build-system font-build-system)
+    (home-page "https://www.apple.com")
+    (synopsis "Apple Color Emoji typeface by Apple.")
+    (description "Color and black-and-white Apple emoji fonts.")
+    (license (nonfree "https://www.apple.com"))))
