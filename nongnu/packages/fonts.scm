@@ -1,12 +1,14 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2021 Korytov Pavel <thexcloud@gmail.com>
 ;;; Copyright © 2021 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2023 Krzysztof Baranowski <pharcosyle@gmail.com>
 
 (define-module (nongnu packages fonts)
   #:use-module (ice-9 string-fun)
   #:use-module (gnu packages compression)
   #:use-module (guix deprecation)
   #:use-module (guix download)
+  #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module (guix build-system font)
   #:use-module (guix build-system copy)
@@ -163,3 +165,124 @@ Included fonts:
        ("font-microsoft-trebuchet-ms" ,font-microsoft-trebuchet-ms)
        ("font-microsoft-verdana" ,font-microsoft-verdana)
        ("font-microsoft-webdings" ,font-microsoft-webdings)))))
+
+(define* (apple-font #:key
+                     font-name
+                     archive-timestamp
+                     version
+                     file
+                     hash
+                     synopsis
+                     description)
+  (package
+    (name (string-append "font-apple-"
+                         (string-replace-substring
+                          (string-downcase font-name)
+                          " " "-")))
+    (version version)
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             ;; Download link is unversioned, use a stable snapshot.
+             "https://web.archive.org/web/" archive-timestamp "/"
+             "https://devimages-cdn.apple.com/design/resources/download/"
+             file ".dmg"))
+       (sha256
+        (base32 hash))))
+    (build-system font-build-system)
+    (arguments
+     (list
+      #:phases
+      #~(modify-phases %standard-phases
+          (replace 'unpack
+            (lambda* (#:key source inputs #:allow-other-keys)
+              (let ((7z-exe (search-input-file inputs "/bin/7z")))
+                (invoke 7z-exe "x" source)
+                (invoke 7z-exe "x" (car (find-files "." "\\.pkg$")))
+                (invoke 7z-exe "x" "Payload~")))))))
+    (native-inputs (list p7zip))
+    (home-page "https://developer.apple.com/fonts")
+    (synopsis (string-append font-name " typeface by Apple."))
+    (description description)
+    (license
+     (nonfree
+      "https://www.apple.com"
+      "Specific license information is embedded in the font files."))))
+
+(define-public font-apple-sf-pro
+  (apple-font
+   #:font-name "SF Pro"
+   #:archive-timestamp "20230710073336"
+   #:file "SF-Pro"
+   #:version "19.0d6e1"
+   #:hash "19qa6fs6x5614sqw9a6idlizzsssw8256crz1ps2p2n6gwp2fvaq"
+   #:description "This neutral, flexible, sans-serif typeface is the system
+font for iOS, iPad OS, macOS and tvOS.  SF Pro features nine weights, variable
+optical sizes for optimal legibility, four widths, and includes a rounded
+variant.  SF Pro supports over 150 languages across Latin, Greek, and Cyrillic
+scripts."))
+
+(define-public font-apple-sf-compact
+  (apple-font
+   #:font-name "SF Compact"
+   #:archive-timestamp "20230710073418"
+   #:file "SF-Compact"
+   #:version "19.0d6e1"
+   #:hash "02127drlqvwscq6vaphmvsp85cn8j4zfhi0kb9a3fzc0z8b95hdq"
+   #:description "Sharing many features with SF Pro, SF Compact features an
+efficient, compact design that is optimized for small sizes and narrow columns.
+SF Compact is the system font for watchOS and includes a rounded variant."))
+
+(define-public font-apple-sf-mono
+  (apple-font
+   #:font-name "SF Mono"
+   #:archive-timestamp "20230710073457"
+   #:file "SF-Mono"
+   #:version "19.0d6e1"
+   #:hash "0vjdpl3xyxl2rmfrnjsxpxdizpdr4canqa1nm63s5d3djs01iad6"
+   #:description "This monospaced variant of San Francisco enables alignment
+between rows and columns of text, and is used in coding environments like Xcode.
+SF Mono features six weights and supports Latin, Greek, and Cyrillic scripts."))
+
+(define-public font-apple-sf-arabic
+  (apple-font
+   #:font-name "SF Arabic"
+   #:archive-timestamp "20230710073501"
+   #:file "SF-Arabic"
+   #:version "19.0d6e1"
+   #:hash "0phl3wi0lq7djcg8nqg1ml1f73bsfjzmvd2n8hkl6dbprmw614jp"
+   #:description "A contemporary interpretation of the Naskh style with a
+rational and flexible design, this extension of San Francisco is the Arabic
+system font on Apple platforms.  Like San Francisco, SF Arabic features nine
+weights, variable optical sizes that automatically adjust spacing and contrast
+based on the point size, and includes a rounded variant."))
+
+(define-public font-apple-new-york
+  (apple-font
+   #:font-name "New York"
+   #:archive-timestamp "20230710073506"
+   #:file "NY"
+   #:version "17.0d5e1"
+   #:hash "1hgxyizpgam7y1xh36fsypd3a1nn417wdnnfk1zahq9vhxrrds2w"
+   #:description "A companion to San Francisco, this serif typeface is based on
+essential aspects of historical type styles.  New York features six weights,
+supports Latin, Greek and Cyrillic scripts, and features variable optical sizes
+allowing it to perform as a traditional reading face at small sizes and a
+graphic display face at larger sizes."))
+
+;; At the time of this writing, `sf-symbols' is just `sf-pro' and `sf-compact'
+;; together plus one extra file, SFSymbolsFallback.otf. This package is
+;; probably of limited use on non-macOS but we'll include it for completeness
+;; and in case the situation changes in the future.
+(define-public font-apple-sf-symbols
+  (apple-font
+   #:font-name "SF Symbols"
+   #:archive-timestamp "20230710073513"
+   #:file "SF-Symbols-5"
+   #:version "5"
+   #:hash "1bwlq1nf75bv0x36qdk371r2pd5slf3jlv50wgsl0kpj1dds22sf"
+   #:description "With over 5,000 symbols, SF Symbols is a library of
+iconography designed to integrate seamlessly with San Francisco, the system
+font for Apple platforms.  Symbols come in nine weights and three scales, and
+automatically align with text labels."))
