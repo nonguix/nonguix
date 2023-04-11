@@ -170,20 +170,6 @@
                     (patches (delete (car (search-patches "glibc-dl-cache.patch"))
                                      (origin-patches (package-source glibc))))))))
 
-;; After guix commit to add a replacement for expat (security fixes),
-;; https://git.savannah.gnu.org/cgit/guix.git/commit/?id=2045852b096131a714409aa0cc4fe17938f60b15
-;; a profile collision happens with the propagated expat (now grafted) from
-;; fontconfig.  See upstream report https://issues.guix.gnu.org/53406
-;; So we define a fontconfig variation that explicitly does the expat replacement
-;; which works around this bug for now, at the cost of building fontconfig.
-;; TODO: remove once upstream bug is fixed
-(define fontconfig-fixed
-  (package
-    (inherit fontconfig)
-    (propagated-inputs
-     (modify-inputs (package-propagated-inputs fontconfig)
-       (replace "expat" (@@ (gnu packages xml) expat/fixed))))))
-
 (define fhs-min-libs
   `(("glibc" ,glibc-for-fhs)
     ("glibc-locales" ,glibc-locales)))
@@ -195,8 +181,7 @@
     ("dbus-glib" ,dbus-glib)            ; Required for steam browser.
     ("elfutils" ,elfutils)              ; Required for capturing library dependencies in pv.
     ("eudev" ,eudev)                    ; Required for steamwebhelper/heavy runtime.
-    ;; TODO: set back to ,fontconfig once https://issues.guix.gnu.org/53406 is fixed
-    ("fontconfig" ,fontconfig-fixed)    ; Required for steam client.
+    ("fontconfig" ,fontconfig)          ; Required for steam client.
     ("file" ,file)                      ; Used for steam installation.
     ("find" ,findutils)                 ; Required at least for some logging.
     ("freetype" ,freetype)              ; Required for steam login.
