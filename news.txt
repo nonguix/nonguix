@@ -1,5 +1,6 @@
 ;;; Copyright © 2020 Alex Griffin <a@ajgrf.com>
 ;;; Copyright © 2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2023 Wolf <wolf@wolfsden.cz>
 ;;
 ;; Copying and distribution of this file, with or without modification, are
 ;; permitted in any medium without royalty provided the copyright notice and
@@ -7,6 +8,16 @@
 
 (channel-news
  (version 0)
+
+ (entry (commit "9456c59cfa580399ab450ca0057321e2d81f3319")
+        (title
+         (en "Linux LTS kernel updated to 6.1")
+         (de "Linux LTS Kernel wird auf 6.1 aktualisiert"))
+        (body
+         (en "The default version of the @code{linux-lts} kernel has been
+             updated to the 6.1 longterm release series.")
+         (de "Der standardmäßig verwendete @code{linux-lts}-Kernel basiert
+             jetzt auf der 6.1-Versionsreihe (Langzeitunterstützung).")))
 
  (entry (commit "7d4c49eace0d3f074aa34ebbbf880236b6b0fab1")
         (title
