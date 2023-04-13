@@ -114,7 +114,7 @@ on hardware which requires nonfree software to function."))))
 
 (define-public linux linux-6.2)
 ;; linux-lts points to the *newest* released long-term support version.
-(define-public linux-lts linux-5.15)
+(define-public linux-lts linux-6.1)
 
 (define-public linux-arm64-generic-6.0
   (corrupt-linux linux-libre-arm64-generic #:name "linux-arm64-generic"))
@@ -124,7 +124,7 @@ on hardware which requires nonfree software to function."))))
 
 (define-public linux-arm64-generic linux-arm64-generic-6.0)
 
-(define-public linux-arm64-generic-lts linux-arm64-generic-5.15)
+(define-public linux-arm64-generic-lts linux-arm64-generic-6.1)
 
 (define-public linux-firmware
   (package
