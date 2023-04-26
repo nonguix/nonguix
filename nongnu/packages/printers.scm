@@ -35,7 +35,7 @@
             (package-version hplip) "-plugin.run"))
     (sha256
      (base32
-            "1ffqnmmghxqclv66qq14wypfha2xalcrbrjw0dqkmpvbnzwbn49g")))))
+            "100zyvmqlp71v8691s9wfzrllqq8aaqj9a4pki36gqs1bn4429h3")))))
      (package-native-inputs hplip)))
    (arguments
     (substitute-keyword-arguments
