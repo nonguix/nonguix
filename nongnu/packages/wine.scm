@@ -21,7 +21,7 @@
 (define-public winetricks
   (package
     (name "winetricks")
-    (version "20220411")
+    (version "20230212")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -30,7 +30,7 @@
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "09bv6wsm3y9p6jhlcmnjlnczdyr996b2mvxg4fbvlqa3fv9gac8n"))))
+                "15glm6ws0zihcks93l39mli8wf5b5vkijb0vaid9cqra6x0zppd5"))))
     (build-system gnu-build-system)
     (inputs
      `(("cabextract" ,cabextract)
