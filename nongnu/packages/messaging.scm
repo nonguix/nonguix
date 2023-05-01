@@ -215,7 +215,8 @@ its core.")
                           (list
                            (string-append #$(this-package-input "nss") "/lib/nss")
                            (string-append #$(this-package-input "eudev") "/lib")
-                           (string-append #$(this-package-input "gcc") "/lib")
+                           (string-append #$(this-package-input "libgccjit") "/lib")
+                           (string-append #$(this-package-input "libstdc++") "/lib")
                            (string-append #$(this-package-input "mesa") "/lib")
                            (string-append #$(this-package-input "libxkbfile") "/lib")
                            (string-append #$(this-package-input "pulseaudio") "/lib")
@@ -235,10 +236,10 @@ its core.")
                   eudev
                   expat
                   fontconfig
-                  `(,gcc "lib")
                   glib
                   gtk+
                   libdrm
+                  libgccjit
                   librsvg
                   libsecret
                   libx11
@@ -251,6 +252,7 @@ its core.")
                   libxkbfile
                   libxrandr
                   libxshmfence
+                  (make-libstdc++ gcc)
                   mesa
                   nspr
                   nss
