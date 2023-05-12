@@ -6,6 +6,7 @@
 (define-module (nongnu packages printers)
   #:use-module (gnu packages)
   #:use-module (gnu packages cups)
+  #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module (guix utils)
   #:use-module (srfi srfi-1)
@@ -40,9 +41,9 @@
     (arguments
      (substitute-keyword-arguments (package-arguments hplip)
        ((#:configure-flags cf)
-        `(delete "--enable-qt5" ,cf))
+        #~(delete "--enable-qt5" #$cf))
        ((#:phases ph)
-        `(modify-phases ,ph
+        #~(modify-phases #$ph
            (replace 'fix-hard-coded-file-names
              (lambda* (#:key inputs outputs #:allow-other-keys)
                (let ((out (assoc-ref outputs "out"))
@@ -150,7 +151,7 @@
 installed=1
 eula=1
 version=~A
-" ,(package-version hplip))))
+" #$(package-version hplip))))
 
                  (substitute* (string-append out "/etc/hp/hplip.conf")
                    (("/usr") out)))))))))))
