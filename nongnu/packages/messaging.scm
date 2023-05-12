@@ -154,7 +154,7 @@ its core.")
 (define-public signal-desktop
   (package
     (name "signal-desktop")
-    (version "6.16.0")
+    (version "6.17.1")
     (source
      (origin
        (method url-fetch)
@@ -163,7 +163,7 @@ its core.")
          "https://updates.signal.org/desktop/apt/pool/main/s/" name "/" name "_" version
          "_amd64.deb"))
        (sha256
-        (base32 "16zm1kw0vxdbqqsx7pa3hzhalvfyhm4h82a3di7y8i3s5m6zpg5b"))))
+        (base32 "0q7pi24fcnf94gkaaybc90ya1ynwb13f3p9yxlzhjh90lk0pwvzn"))))
     (supported-systems '("x86_64-linux"))
     (build-system binary-build-system)
     (arguments
