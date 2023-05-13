@@ -931,12 +931,12 @@ chipsets from Broadcom:
         (base32 "1g6npglsvpjycg3qwrkz3kjw3h0drs22ps472gjy4kyvqpnp8bq3"))))
     (build-system copy-build-system)
     (arguments
-     `(#:install-plan
-       (let ((doc (string-append "share/doc/" ,name "-" ,version "/")))
-         `(("intel-ucode" "lib/firmware/")
-           ("README.md" ,doc)
-           ("releasenote.md" ,doc)
-           ("security.md" ,doc)))))
+     (list #:install-plan
+           #~(let ((doc (string-append "share/doc/" #$name "-" #$version "/")))
+               `(("intel-ucode" "lib/firmware/")
+                 ("README.md" ,doc)
+                 ("releasenote.md" ,doc)
+                 ("security.md" ,doc)))))
     (home-page
      "https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files")
     (synopsis "Processor microcode firmware for Intel CPUs")
