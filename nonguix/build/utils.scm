@@ -1,15 +1,18 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2019 Pierre Neidhardt <mail@ambrevar.xyz>
 ;;; Copyright © 2020 Alex Griffin <a@ajgrf.com>
+;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 
 (define-module (nonguix build utils)
   #:use-module (ice-9 match)
   #:use-module (ice-9 binary-ports)
   #:use-module (guix build utils)
+  #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:export (64-bit?
             make-wrapper
-            concatenate-files))
+            concatenate-files
+            build-paths-from-inputs))
 
 (define (64-bit? file)
   "Return true if ELF file is in 64-bit format, false otherwise.
@@ -94,3 +97,23 @@ contents:
   (call-with-output-file result
     (lambda (port)
       (for-each (cut dump <> port) files))))
+
+(define build-paths-for-input
+  (lambda (dirs input)
+    (filter-map
+     (lambda (sub-directory)
+       (let ((directory
+              (string-append
+               input "/" sub-directory)))
+         (and
+          (directory-exists? directory)
+          directory)))
+     dirs)))
+
+(define build-paths-from-inputs
+  (lambda (dirs inputs)
+    (reduce append '()
+            (map
+             (lambda (input)
+               (build-paths-for-input dirs input))
+             inputs))))
