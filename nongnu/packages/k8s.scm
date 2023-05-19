@@ -110,3 +110,37 @@ Helm Chart for Kubernetes.")
 use kubectl to deploy applications, inspect and manage cluster resources, and
 view logs.")
     (license license:asl2.0)))
+
+(define-public kompose
+  (package
+    (name "kompose")
+    (version "1.30.0")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://github.com/kubernetes/kompose/releases/download/v"
+                    version "/kompose-linux-amd64"))
+              (sha256
+               (base32
+                "0sy3ci7s2dkjigasyv01nm1vg30wwhmdc0cmglzb23ws8bfrfjlh"))))
+    (build-system copy-build-system)
+    (arguments
+     (list
+      #:substitutable? #f
+      #:install-plan
+      #~'(("kompose" "bin/"))
+      #:phases
+      #~(modify-phases %standard-phases
+          (replace 'unpack
+            (lambda _
+              (copy-file #$source "./kompose")))
+          (add-before 'install 'chmod
+            (lambda _
+              (chmod "kompose" #o555))))))
+    (home-page "https://kompose.io")
+    (supported-systems '("x86_64-linux"))
+    (synopsis "Go from Docker Compose to Kubernetes")
+    (description
+     "Kompose is a conversion tool for Docker Compose to container orchestrators
+such as Kubernetes (or OpenShift).")
+    (license license:expat)))
