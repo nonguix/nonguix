@@ -144,3 +144,36 @@ view logs.")
      "Kompose is a conversion tool for Docker Compose to container orchestrators
 such as Kubernetes (or OpenShift).")
     (license license:expat)))
+
+(define-public helm
+  (package
+    (name "helm")
+    (version "3.12.3")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://get.helm.sh/helm-v" version "-linux-amd64.tar.gz"))
+              (sha256
+               (base32
+                "1d99c506shnz5cr9xhkrla5r82nan7v3hz631jqflicd376i68qv"))))
+    (build-system copy-build-system)
+    (arguments
+     (list
+      #:substitutable? #f
+      #:install-plan
+      #~'(("linux-amd64/helm" "bin/"))
+      #:phases
+      #~(modify-phases %standard-phases
+          (replace 'unpack
+            (lambda _
+              (invoke "tar" "-xvf" #$source)))
+          (add-before 'install 'chmod
+            (lambda _
+              (chmod "linux-amd64/helm" #o555))))))
+    (home-page "https://helm.sh")
+    (supported-systems '("x86_64-linux"))
+    (synopsis "The package manager for Kubernetes")
+    (description
+     "Helm helps you manage Kubernetes applications - Helm Charts help you
+define, install, and upgrade Kubernetes applications.")
+    (license license:asl2.0)))
