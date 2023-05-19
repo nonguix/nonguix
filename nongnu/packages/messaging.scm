@@ -2,6 +2,7 @@
 ;;; Copyright © 2021, 2022 PantherX OS Team <team@pantherx.org>
 ;;; Copyright © 2022, 2023 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2022 Evgenii Lepikhin <johnlepikhin@gmail.com>
+;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 
 (define-module (nongnu packages messaging)
   #:use-module (gnu packages base)
@@ -28,6 +29,7 @@
   #:use-module (guix utils)
   #:use-module ((guix licenses) :prefix license:)
   #:use-module (nonguix build-system binary)
+  #:use-module (nonguix build-system chromium-binary)
   #:use-module ((nonguix licenses) :prefix license:)
   #:use-module (ice-9 match))
 
@@ -45,17 +47,11 @@
        (sha256
         (base32 "1ijag6ppkswvbv4zhxpm1vdk929mwjhy2cg92hm85a2ykp3x0lp9"))))
     (supported-systems '("x86_64-linux"))
-    (build-system binary-build-system)
+    (build-system chromium-binary-build-system)
     (arguments
      (list #:validate-runpath? #f ; TODO: fails on wrapped binary and included other files
-           #:patchelf-plan
-           #~'(("lib/Element/element-desktop"
-                ("alsa-lib" "at-spi2-atk" "at-spi2-core" "atk" "cairo" "cups"
-                 "dbus" "expat" "fontconfig-minimal" "gcc" "gdk-pixbuf" "glib"
-                 "gtk+" "libdrm" "libnotify" "libsecret" "libx11" "libxcb"
-                 "libxcomposite" "libxcursor" "libxdamage" "libxext" "libxfixes"
-                 "libxi" "libxkbcommon" "libxkbfile" "libxrandr" "libxrender"
-                 "libxtst" "mesa" "nspr" "pango" "zlib")))
+           #:wrapper-plan
+           #~'("lib/Element/element-desktop")
            #:phases
            #~(modify-phases %standard-phases
                (replace 'unpack
@@ -80,68 +76,16 @@
                    (mkdir-p (string-append #$output "/bin"))
                    (symlink (string-append #$output "/lib/Element/element-desktop")
                             (string-append #$output "/bin/element-desktop"))))
-               (add-after 'install 'wrap-where-patchelf-does-not-work
+               (add-after 'install-wrapper 'wrap-where-patchelf-does-not-work
                  (lambda _
                    (wrap-program (string-append #$output "/lib/Element/element-desktop")
-                     `("FONTCONFIG_PATH" ":" prefix
-                       (,(string-join
-                          (list
-                           (string-append #$(this-package-input "fontconfig-minimal") "/etc/fonts")
-                           #$output)
-                          ":")))
                      `("LD_LIBRARY_PATH" ":" prefix
                        (,(string-join
                           (list
-                           (string-append #$(this-package-input "nss") "/lib/nss")
-                           (string-append #$(this-package-input "eudev") "/lib")
-                           (string-append #$(this-package-input "gcc") "/lib")
-                           (string-append #$(this-package-input "mesa") "/lib")
-                           (string-append #$(this-package-input "libxkbfile") "/lib")
-                           (string-append #$(this-package-input "zlib") "/lib")
-                           (string-append #$(this-package-input "libsecret") "/lib")
-                           (string-append #$(this-package-input "sqlcipher") "/lib")
-                           (string-append #$(this-package-input "libnotify") "/lib")
-                           (string-append #$output "/lib/Element")
-                           #$output)
+                           (string-append #$output "/lib/Element"))
                           ":")))))))))
+
     (native-inputs (list tar))
-    (inputs
-     (list alsa-lib
-           at-spi2-atk
-           at-spi2-core
-           atk
-           cairo
-           cups
-           dbus
-           eudev
-           expat
-           fontconfig
-           `(,gcc "lib")
-           glib
-           gtk+
-           libdrm
-           libnotify
-           librsvg
-           libsecret
-           libx11
-           libxcb
-           libxcomposite
-           libxcursor
-           libxdamage
-           libxext
-           libxfixes
-           libxi
-           libxkbcommon
-           libxkbfile
-           libxrandr
-           libxrender
-           libxtst
-           mesa
-           nspr
-           nss
-           pango
-           sqlcipher
-           zlib))
     (home-page "https://github.com/vector-im/element-desktop")
     (synopsis "Matrix collaboration client for desktop")
     (description "Element Desktop is a Matrix client for desktop with Element Web at
