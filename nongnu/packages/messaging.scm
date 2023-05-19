@@ -109,17 +109,11 @@ its core.")
        (sha256
         (base32 "0q7pi24fcnf94gkaaybc90ya1ynwb13f3p9yxlzhjh90lk0pwvzn"))))
     (supported-systems '("x86_64-linux"))
-    (build-system binary-build-system)
+    (build-system chromium-binary-build-system)
     (arguments
      (list #:validate-runpath? #f ; TODO: fails on wrapped binary and included other files
-           #:patchelf-plan
-           #~'(("lib/Signal/signal-desktop"
-                ("alsa-lib" "at-spi2-atk" "at-spi2-core" "atk" "cairo" "cups"
-                 "dbus" "expat" "fontconfig-minimal" "gcc" "gdk-pixbuf" "glib"
-                 "gtk+" "libdrm" "libsecret" "libx11" "libxcb" "libxcomposite"
-                 "libxcursor" "libxdamage" "libxext" "libxfixes" "libxi"
-                 "libxkbcommon" "libxkbfile" "libxrandr" "libxshmfence" "libxtst"
-                 "mesa" "nspr" "pango" "pulseaudio" "zlib")))
+           #:wrapper-plan
+           #~'("lib/Signal/signal-desktop")
            #:phases
            #~(modify-phases %standard-phases
                (replace 'unpack
@@ -145,64 +139,15 @@ its core.")
                    (mkdir-p (string-append #$output "/bin"))
                    (symlink (string-append #$output "/lib/Signal/signal-desktop")
                             (string-append #$output "/bin/signal-desktop"))))
-               (add-after 'install 'wrap-where-patchelf-does-not-work
+               (add-after 'install-wrapper 'wrap-where-patchelf-does-not-work
                  (lambda _
                    (wrap-program (string-append #$output "/lib/Signal/signal-desktop")
-                     `("FONTCONFIG_PATH" ":" prefix
-                       (,(string-join
-                          (list
-                           (string-append #$(this-package-input "fontconfig-minimal") "/etc/fonts")
-                           #$output)
-                          ":")))
                      `("LD_LIBRARY_PATH" ":" prefix
                        (,(string-join
                           (list
-                           (string-append #$(this-package-input "nss") "/lib/nss")
-                           (string-append #$(this-package-input "eudev") "/lib")
-                           (string-append #$(this-package-input "libgccjit") "/lib")
-                           (string-append #$(this-package-input "libstdc++") "/lib")
-                           (string-append #$(this-package-input "mesa") "/lib")
-                           (string-append #$(this-package-input "libxkbfile") "/lib")
-                           (string-append #$(this-package-input "pulseaudio") "/lib")
-                           (string-append #$(this-package-input "zlib") "/lib")
-                           (string-append #$(this-package-input "libsecret") "/lib")
-                           (string-append #$output "/lib/Signal")
-                           #$output)
+                           (string-append #$output "/lib/Signal"))
                           ":")))))))))
     (native-inputs (list tar))
-    (inputs (list alsa-lib
-                  at-spi2-atk
-                  at-spi2-core
-                  atk
-                  cairo
-                  cups
-                  dbus
-                  eudev
-                  expat
-                  fontconfig
-                  glib
-                  gtk+
-                  libdrm
-                  libgccjit
-                  librsvg
-                  libsecret
-                  libx11
-                  libxcb
-                  libxcomposite
-                  libxdamage
-                  libxext
-                  libxfixes
-                  libxkbcommon
-                  libxkbfile
-                  libxrandr
-                  libxshmfence
-                  (make-libstdc++ gcc)
-                  mesa
-                  nspr
-                  nss
-                  pango
-                  pulseaudio
-                  zlib))
     (home-page "https://signal.org/")
     (synopsis "Private messenger using the Signal protocol")
     (description "Signal Desktop is an Electron application that links with Signal on Android
