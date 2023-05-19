@@ -75,3 +75,38 @@ offers subsequent commands to interact with your observed resources.")
      "Katenary is a tool to help to transform docker-compose files to a working
 Helm Chart for Kubernetes.")
     (license license:expat)))
+
+(define-public kubectl
+  (package
+    (name "kubectl")
+    (version "1.28.1")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://dl.k8s.io/release/v" version "/bin/linux/amd64/kubectl"))
+              (sha256
+               (base32
+                "1qbl4a2xv795apvbwahdb9kzcm2wys0am1c72as3iavgs3wxd9z7"))))
+    (build-system copy-build-system)
+    (arguments
+     (list
+      #:substitutable? #f
+      #:install-plan
+      #~'(("kubectl" "bin/"))
+      #:phases
+      #~(modify-phases %standard-phases
+          (replace 'unpack
+            (lambda _
+              (copy-file #$source "./kubectl")
+              (chmod "kubectl" #o644)))
+          (add-before 'install 'chmod
+            (lambda _
+              (chmod "kubectl" #o555))))))
+    (home-page "https://github.com/kubernetes/kubectl")
+    (supported-systems '("x86_64-linux"))
+    (synopsis "Kubernetes command line tool")
+    (description
+     "kubectl allows you to run commands against Kubernetes clusters. You can
+use kubectl to deploy applications, inspect and manage cluster resources, and
+view logs.")
+    (license license:asl2.0)))
