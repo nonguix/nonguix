@@ -40,3 +40,38 @@ aim of this project is to make it easier to navigate, observe and manage your
 applications in the wild.  K9s continually watches Kubernetes for changes and
 offers subsequent commands to interact with your observed resources.")
     (license license:asl2.0)))
+
+(define-public katenary
+  (package
+    (name "katenary")
+    (version "2.0.0-beta2")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://github.com/metal3d/katenary/releases/download/"
+                    version "/katenary-linux-amd64"))
+              (sha256
+               (base32
+                "0vk5c82bf5aasrgz2b7qdjlbmlcjha0r3swmrbs9y5mms18y7m3i"))))
+    (build-system copy-build-system)
+    (arguments
+     (list
+      #:substitutable? #f
+      #:install-plan
+      #~'(("katenary" "bin/"))
+      #:phases
+      #~(modify-phases %standard-phases
+          (replace 'unpack
+            (lambda _
+              (copy-file #$source "./katenary")
+              (chmod "katenary" #o644)))
+          (add-before 'install 'chmod
+            (lambda _
+              (chmod "katenary" #o555))))))
+    (home-page "https://github.com/metal3d/katenary")
+    (supported-systems '("x86_64-linux"))
+    (synopsis "Convert docker-compose to a configurable helm chart")
+    (description
+     "Katenary is a tool to help to transform docker-compose files to a working
+Helm Chart for Kubernetes.")
+    (license license:expat)))
