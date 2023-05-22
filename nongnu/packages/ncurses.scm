@@ -8,11 +8,13 @@
 ;;; Copyright © 2017, 2019, 2020, 2021 Marius Bakke <marius@gnu.org>
 ;;; Copyright © 2018, 2019 Tobias Geerinckx-Rice <me@tobias.gr>
 ;;; Copyright © 2020 Michael Rohleder <mike@rohleder.de>
-;;; Copyright © 2022 B. Wilson <x@wilsonb.com>
+;;; Copyright © 2022-2023 B. Wilson <x@wilsonb.com>
 
 (define-module (nongnu packages ncurses)
   #:use-module (gnu packages)
+  #:use-module (guix gexp)
   #:use-module (guix licenses)
+  #:use-module (guix memoization)
   #:use-module (guix packages)
   #:use-module (guix download)
   #:use-module (guix build-system gnu)
@@ -24,6 +26,17 @@
   #:use-module (gnu packages linux)
   #:use-module (guix utils)
   #:use-module (ice-9 match))
+
+(define ncurses-rollup-patch
+  (mlambda (version hash)
+    (origin
+      (method url-fetch)
+      (uri (match (string-split (version-major+minor+point version) #\.)
+             ((major minor point)
+              (string-append "https://invisible-mirror.net/archives"
+                             "/ncurses/" major "." minor "/ncurses-"
+                             major "." minor "-" point "-patch.sh.bz2"))))
+      (sha256 (base32 hash)))))
 
 (define-public ncurses-5
   (package
@@ -42,172 +55,157 @@
                "doc"))                ;1 MiB of man pages
     (arguments
      (let ((patch-makefile-phase
-            '(lambda _
-               (for-each patch-makefile-SHELL
-                         (find-files "." "Makefile.in"))))
+            #~(lambda _
+                (for-each patch-makefile-SHELL
+                          (find-files "." "Makefile.in"))))
            (configure-phase
             ;; The 'configure' script does not understand '--docdir', so we must
             ;; override that and use '--mandir' instead.
-            '(lambda* (#:key build target outputs configure-flags
-                       #:allow-other-keys)
-               (let ((out (assoc-ref outputs "out"))
-                     (doc (assoc-ref outputs "doc")))
-                 (apply invoke "./configure"
-                        (string-append "SHELL=" (which "sh"))
-                        (string-append "--build=" build)
-                        (string-append "--prefix=" out)
-                        (string-append "--mandir=" doc "/share/man")
-                        (if target
-                            (cons (string-append "--host=" target)
-                                  configure-flags)
-                            configure-flags)))))
+            #~(lambda* (#:key build target outputs configure-flags
+                        #:allow-other-keys)
+                (let ((out (assoc-ref outputs "out"))
+                      (doc (assoc-ref outputs "doc")))
+                  (apply invoke "./configure"
+                         (string-append "SHELL=" (which "sh"))
+                         (string-append "--build=" build)
+                         (string-append "--prefix=" out)
+                         (string-append "--mandir=" doc "/share/man")
+                         (if target
+                             (cons (string-append "--host=" target)
+                                   configure-flags)
+                             configure-flags)))))
            (apply-rollup-patch-phase
             ;; Ncurses distributes "stable" patchsets to be applied on top
             ;; of the release tarball.  These are only available as shell
             ;; scripts(!) so we decompress and apply them in a phase.
             ;; See <https://invisible-mirror.net/archives/ncurses/6.1/README>.
-            '(lambda* (#:key inputs native-inputs #:allow-other-keys)
-               (let ((rollup-patch (assoc-ref (or native-inputs inputs)
-                                              "rollup-patch")))
-                 (when rollup-patch
-                   (copy-file rollup-patch
-                              (string-append (getcwd) "/rollup-patch.sh.bz2"))
-                   (invoke "bzip2" "-d" "rollup-patch.sh.bz2")
-                   (invoke "sh" "rollup-patch.sh")))))
+            #~(lambda* (#:key inputs native-inputs #:allow-other-keys)
+                (let ((rollup-patch #$(ncurses-rollup-patch
+                                       (package-version this-package)
+                                       "16ny892yhimy6r4mmsgw3rcl0i15570ifn9c54g1ndyrk7kpmlgs")))
+                  (copy-file rollup-patch
+                             (string-append (getcwd) "/rollup-patch.sh.bz2"))
+                  (invoke "bzip2" "-d" "rollup-patch.sh.bz2")
+                  (invoke "sh" "rollup-patch.sh"))))
            (remove-shebang-phase
-            '(lambda _
-               ;; To avoid retaining a reference to the bootstrap Bash via the
-               ;; shebang of the 'ncursesw6-config' script, simply remove that
-               ;; shebang: it'll work just as well without it.  Likewise, do not
-               ;; retain a reference to the "doc" output.
-               (substitute* "misc/ncurses-config.in"
-                 (("#!@SHELL@")
-                  "# No shebang here, use /bin/sh!\n")
-                 (("@SHELL@ \\$0")
-                  "$0")
-                 (("mandir=.*$")
-                  "mandir=share/man"))))
+            #~(lambda _
+                ;; To avoid retaining a reference to the bootstrap Bash via the
+                ;; shebang of the 'ncursesw6-config' script, simply remove that
+                ;; shebang: it'll work just as well without it.  Likewise, do not
+                ;; retain a reference to the "doc" output.
+                (substitute* "misc/ncurses-config.in"
+                  (("#!@SHELL@")
+                   "# No shebang here, use /bin/sh!\n")
+                  (("@SHELL@ \\$0")
+                   "$0")
+                  (("mandir=.*$")
+                   "mandir=share/man"))))
            (post-install-phase
-            `(lambda* (#:key outputs #:allow-other-keys)
-               (let ((out (assoc-ref outputs "out")))
-                 ;; When building a wide-character (Unicode) build, create backward
-                 ;; compatibility links from the the "normal" libraries to the
-                 ;; wide-character ones (e.g. libncurses.so to libncursesw.so).
-                 ,@(if (target-mingw?)
-                       '( ;; TODO: create .la files to link to the .dll?
-                         (with-directory-excursion (string-append out "/bin")
-                           (for-each
-                            (lambda (lib)
-                              (define lib.dll
-                                (string-append "lib" lib ".dll"))
-                              (define libw6.dll
-                                (string-append "lib" lib "w6.dll"))
+            #~(lambda* (#:key outputs #:allow-other-keys)
+                (let ((out (assoc-ref outputs "out")))
+                  ;; When building a wide-character (Unicode) build, create backward
+                  ;; compatibility links from the the "normal" libraries to the
+                  ;; wide-character ones (e.g. libncurses.so to libncursesw.so).
+                  #$@(if (target-mingw?)
+                         `( ;; TODO: create .la files to link to the .dll?
+                           (with-directory-excursion (string-append out "/bin")
+                             (for-each
+                              (lambda (lib)
+                                (define lib.dll
+                                  (string-append "lib" lib ".dll"))
+                                (define libwx.dll
+                                  (string-append "lib" lib "w"
+                                                 ,(version-major version) ".dll"))
 
-                              (when (file-exists? libw6.dll)
-                                (format #t "creating symlinks for `lib~a'~%" lib)
-                                (symlink libw6.dll lib.dll)))
-                            '("curses" "ncurses" "form" "panel" "menu"))))
-                       '())
-                 (with-directory-excursion (string-append out "/lib")
-                   (for-each (lambda (lib)
-                               (define libw.a
-                                 (string-append "lib" lib "w.a"))
-                               (define lib.a
-                                 (string-append "lib" lib ".a"))
+                                (when (file-exists? libwx.dll)
+                                  (format #t "creating symlinks for `lib~a'~%" lib)
+                                  (symlink libw6.dll lib.dll)))
+                              '("curses" "ncurses" "form" "panel" "menu"))))
+                         #~())
+                  (with-directory-excursion (string-append out "/lib")
+                    (for-each (lambda (lib)
+                                (define libw.a
+                                  (string-append "lib" lib "w.a"))
+                                (define lib.a
+                                  (string-append "lib" lib ".a"))
 
-                               ,@(if (not (target-mingw?))
-                                     `((define libw.so.x
-                                         (string-append "lib" lib "w.so."
-                                                        ,(version-major version)))
-                                       (define lib.so.x
-                                         (string-append "lib" lib ".so."
-                                                        ,(version-major version)))
-                                       (define lib.so
-                                         (string-append "lib" lib ".so"))
-                                       (define packagew.pc
-                                         (string-append lib "w.pc"))
-                                       (define package.pc
-                                         (string-append lib ".pc")))
-                                     '())
+                                #$@(if (not (target-mingw?))
+                                       #~((define libw.so.x
+                                            (string-append "lib" lib "w.so."
+                                                           #$(version-major version)))
+                                          (define lib.so.x
+                                            (string-append "lib" lib ".so."
+                                                           #$(version-major version)))
+                                          (define lib.so
+                                            (string-append "lib" lib ".so"))
+                                          (define packagew.pc
+                                            (string-append lib "w.pc"))
+                                          (define package.pc
+                                            (string-append lib ".pc")))
+                                       #~())
 
-                               (when (file-exists? libw.a)
-                                 (format #t "creating symlinks for `lib~a'~%" lib)
-                                 (symlink libw.a lib.a)
-                                 ,@(if (not (target-mingw?))
-                                       '((symlink libw.so.x lib.so.x)
-                                         (false-if-exception (delete-file lib.so))
-                                         (call-with-output-file lib.so
-                                           (lambda (p)
-                                             (format p "INPUT (-l~aw)~%" lib)))
-                                         (with-directory-excursion "pkgconfig"
-                                           (format #t "creating symlink for `~a'~%"
-                                                   package.pc)
-                                           (when (file-exists? packagew.pc)
-                                             (symlink packagew.pc package.pc))))
-                                       '())))
-                             '("curses" "ncurses" "form" "panel" "menu")))))))
-       `(#:configure-flags
-         ,(cons*
-           'quasiquote
-           `(("--with-shared" "--without-debug" "--enable-widec"
+                                (when (file-exists? libw.a)
+                                  (format #t "creating symlinks for `lib~a'~%" lib)
+                                  (symlink libw.a lib.a)
+                                  #$@(if (not (target-mingw?))
+                                         '((symlink libw.so.x lib.so.x)
+                                           (false-if-exception (delete-file lib.so))
+                                           (call-with-output-file lib.so
+                                             (lambda (p)
+                                               (format p "INPUT (-l~aw)~%" lib)))
+                                           (with-directory-excursion "pkgconfig"
+                                             (format #t "creating symlink for `~a'~%"
+                                                     package.pc)
+                                             (when (file-exists? packagew.pc)
+                                               (symlink packagew.pc package.pc))))
+                                         #~())))
+                              '("curses" "ncurses" "form" "panel" "menu")))))))
+       (list #:configure-flags
+             #~`("--with-shared" "--without-debug" "--enable-widec"
 
-              "--enable-pc-files" "--with-versioned-syms=yes"
-              ,(list 'unquote '(string-append "--with-pkg-config-libdir="
-                                              (assoc-ref %outputs "out")
-                                              "/lib/pkgconfig"))
+                 "--enable-pc-files" "--with-versioned-syms=yes"
+                 ,(string-append "--with-pkg-config-libdir="
+                                 #$output "/lib/pkgconfig")
 
-              ;; By default headers land in an `ncursesw' subdir, which is not
-              ;; what users expect.
-              ,(list 'unquote '(string-append "--includedir=" (assoc-ref %outputs "out")
-                                              "/include"))
-              "--enable-overwrite"      ;really honor --includedir
+                 ;; By default headers land in an `ncursesw' subdir, which is not
+                 ;; what users expect.
+                 ,(string-append "--includedir=" #$output "/include")
+                 "--enable-overwrite"                ;really honor --includedir
 
-              ;; Make sure programs like 'tic', 'reset', and 'clear' have a
-              ;; correct RUNPATH.
-              ,(list 'unquote '(string-append "LDFLAGS=-Wl,-rpath=" (assoc-ref %outputs "out")
-                                              "/lib"))
+                 ;; Make sure programs like 'tic', 'reset', and 'clear' have a
+                 ;; correct RUNPATH.
+                 ,(string-append "LDFLAGS=-Wl,-rpath=" #$output "/lib")
 
-              ;; Starting from ncurses 6.1, "make install" runs "install -s"
-              ;; by default, which doesn't work for cross-compiled binaries
-              ;; because it invokes 'strip' instead of 'TRIPLET-strip'.  Work
-              ;; around this.
-              ,@(if (%current-target-system) '("--disable-stripping") '())
+                 ;; Starting from ncurses 6.1, "make install" runs "install -s"
+                 ;; by default, which doesn't work for cross-compiled binaries
+                 ;; because it invokes 'strip' instead of 'TRIPLET-strip'.  Work
+                 ;; around this.
+                 #$@(if (%current-target-system) #~("--disable-stripping") #~())
 
-              ;; Do not assume a default search path in ld, even if it is only to
-              ;; filter it out in ncurses-config.  Mainly because otherwise it ends
-              ;; up using the libdir from binutils, which makes little sense and
-              ;; causes an unnecessary runtime dependency.
-              "cf_cv_ld_searchpath=/no-ld-searchpath"
+                 ;; Do not assume a default search path in ld, even if it is only to
+                 ;; filter it out in ncurses-config.  Mainly because otherwise it ends
+                 ;; up using the libdir from binutils, which makes little sense and
+                 ;; causes an unnecessary runtime dependency.
+                 "cf_cv_ld_searchpath=/no-ld-searchpath"
 
-              ;; MinGW: Use term-driver created for the MinGW port.
-              ,@(if (target-mingw?) '("--enable-term-driver") '()))))
-         #:tests? #f                  ; no "check" target
-         #:phases (modify-phases %standard-phases
-                    (add-after 'unpack 'apply-rollup-patch
-                      ,apply-rollup-patch-phase)
-                    (replace 'configure ,configure-phase)
-                    (add-after 'install 'post-install
-                      ,post-install-phase)
-                    (add-before 'configure 'patch-makefile-SHELL
-                      ,patch-makefile-phase)
-                    (add-before 'patch-source-shebangs 'remove-unneeded-shebang
-                      ,remove-shebang-phase)))))
+                 ;; MinGW: Use term-driver created for the MinGW port.
+                 #$@(if (target-mingw?) #~("--enable-term-driver") #~())
+                 "CXXFLAGS=-std=c++11")
+             #:tests? #f                          ; no "check" target
+             #:phases #~(modify-phases %standard-phases
+                          (add-after 'unpack 'apply-rollup-patch
+                            #$apply-rollup-patch-phase)
+                          (replace 'configure #$configure-phase)
+                          (add-after 'install 'post-install
+                            #$post-install-phase)
+                          (add-before 'configure 'patch-makefile-SHELL
+                            #$patch-makefile-phase)
+                          (add-before 'patch-source-shebangs 'remove-unneeded-shebang
+                            #$remove-shebang-phase)))))
     (native-inputs
-     `(,@(if (%current-target-system)
-             `(("self" ,this-package))            ;for `tic'
-             '())
-       ("rollup-patch"
-        ,(origin
-           (method url-fetch)
-           (uri (match (string-split (version-major+minor+point version) #\.)
-                  ((major minor point)
-                   (string-append "https://invisible-mirror.net/archives"
-                                  "/ncurses/" major "." minor "/ncurses-"
-                                  major "." minor "-" point "-patch.sh.bz2"))))
-           (sha256
-            (base32
-             "16ny892yhimy6r4mmsgw3rcl0i15570ifn9c54g1ndyrk7kpmlgs"))))
-       ("pkg-config" ,pkg-config)))
+     (if (%current-target-system)
+         (list pkg-config this-package)           ;for 'tic'
+         (list pkg-config)))
     (native-search-paths
      (list (search-path-specification
             (variable "TERMINFO_DIRS")
@@ -222,13 +220,10 @@ ncursesw library provides wide character support.")
     (license x11)
     (home-page "https://www.gnu.org/software/ncurses/")))
 
-;; Needed by u-boot 2022.04+
-;; Consider merging into ncurses for next core-updates cycle.
 (define-public ncurses/tinfo-5
   (package/inherit ncurses-5
     (name "ncurses-with-tinfo")
     (arguments
      (substitute-keyword-arguments (package-arguments ncurses-5)
        ((#:configure-flags cf)
-        `(cons "--with-termlib=tinfo"
-               ,cf))))))
+        #~(cons "--with-termlib=tinfo" #$cf))))))
