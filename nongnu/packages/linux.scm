@@ -662,8 +662,8 @@ network adapters.")
       (license gpl2))))
 
 (define-public rtl8812au-aircrack-ng-linux-module
-  (let ((commit "08589e2f8c18d4de18a28d92c74d0a2191bb86b9")
-        (revision "10"))
+  (let ((commit "35308f4dd73e77fa572c48867cce737449dd8548")
+        (revision "11"))
     (package
       (inherit rtl8821ce-linux-module)
       (name "rtl8812au-aircrack-ng-linux-module")
@@ -676,7 +676,7 @@ network adapters.")
                (commit commit)))
          (file-name (git-file-name name version))
          (sha256
-          (base32 "07yiya5ckm578pwxdm5nnyq45vnw4zjbd31a5365l9cwbpfji67s"))
+          (base32 "1clqrgmq5fhzybbiapmdbhg5qfx9k21r0hqa9pqmyinaqhvfnhfj"))
          (modules '((guix build utils)))
          (snippet
           #~(begin
