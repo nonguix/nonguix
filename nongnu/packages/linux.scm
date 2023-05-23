@@ -88,6 +88,9 @@
        "The unmodified Linux kernel, including nonfree blobs, for running Guix System
 on hardware which requires nonfree software to function."))))
 
+(define-public linux-6.3
+  (corrupt-linux linux-libre-6.3))
+
 (define-public linux-6.2
   (corrupt-linux linux-libre-6.2))
 
