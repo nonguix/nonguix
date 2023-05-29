@@ -21,6 +21,7 @@
 ;;; Copyright © 2023 Krzysztof Baranowski <pharcosyle@gmail.com>
 ;;; Copyright © 2023 Morgan Smith <Morgan.J.Smith@outlook.com>
 ;;; Copyright © 2023 Jelle Licht <jlicht@fsfe.org>
+;;; Copyright © 2023 Adam Kandur <rndd@tuta.io>
 
 (define-module (nongnu packages linux)
   #:use-module (gnu packages)
@@ -48,7 +49,11 @@
                        "/linux/kernel/v" (version-major version) ".x"
                        "/linux-" version ".tar.xz"))
 
-(define* (corrupt-linux freedo #:key (name "linux") (configs '()))
+(define* (corrupt-linux freedo
+                        #:key
+                        (name "linux")
+                        (configs '())
+                        (defconfig #f))
 
   ;; TODO: This very directly depends on guix internals.
   ;; Throw it all out when we manage kernel hashes.
@@ -80,7 +85,8 @@
                    (method url-fetch)
                    (uri url)
                    (hash hash))
-        #:configs configs))
+        #:configs configs
+        #:defconfig defconfig))
       (version version)
       (home-page "https://www.kernel.org/")
       (synopsis "Linux kernel with nonfree binary blobs included")
