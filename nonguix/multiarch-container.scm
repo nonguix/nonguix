@@ -6,6 +6,7 @@
 ;;; Copyright © 2021 Kozo <kozodev@runbox.com>
 ;;; Copyright © 2021, 2022 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
+;;; Copyright © 2023 Attila Lendvai <attila@lendvai.name>
 
 ;;; The script provided by this package may optionally be started as
 ;;; a shell instead of automatically launching the wrapped entrypoint by setting
@@ -161,30 +162,25 @@
 in the Guix store"
   (computed-file
    "ld.so.conf"
-   (with-imported-modules
-       `((guix build union)
-         (guix build utils))
-     #~(begin
-         (use-modules (guix build union)
-                      (guix build utils))
-         ;; Need to quote "#$packages" as #$packages tries to "apply" the first item to the rest, like a procedure.
-         (let* ((packages '#$packages)
-                ;; Add "/lib" to each package.
-                ;; TODO Make this more general for other needed directories.
-                (dirs-lib
-                 (lambda (packages)
-                   (map (lambda (package)
-                          (string-append package "/lib"))
-                        packages)))
-                (fhs-lib-dirs
-                 (dirs-lib packages)))
-           (call-with-output-file #$output
-               (lambda (port)
-                 (for-each (lambda (directory)
-                             (display directory port)
-                             (newline port))
-                           fhs-lib-dirs)))
-           #$output)))))
+   #~(begin
+       ;; Need to quote "#$packages" as #$packages tries to "apply" the first item to the rest, like a procedure.
+       (let* ((packages '#$packages)
+              ;; Add "/lib" to each package.
+              ;; TODO Make this more general for other needed directories.
+              (dirs-lib
+               (lambda (packages)
+                 (map (lambda (package)
+                        (string-append package "/lib"))
+                      packages)))
+              (fhs-lib-dirs
+               (dirs-lib packages)))
+         (call-with-output-file #$output
+           (lambda (port)
+             (for-each (lambda (directory)
+                         (display directory port)
+                         (newline port))
+                       fhs-lib-dirs)))
+         #$output))))
 
 (define (nonguix-container->package container)
   "Return a package with wrapper script to launch the supplied container object
@@ -250,112 +246,110 @@ in a sandboxed FHS environment."
 in a sandboxed FHS environment."
   (program-file
    (ngc-wrapper-name container)
-   (with-imported-modules
-       `((guix build utils))
-     #~(begin
-         (use-modules (guix build utils))
-         (define (preserve-var var)
-           (string-append "--preserve=" var))
-         (define* (add-path path #:key writable?)
-           (let ((opt (if writable?
-                          "--share="
-                          "--expose=")))
-             (if (pair? path)
-                 (string-append opt (car path) "=" (cdr path))
-                 (string-append opt path))))
-         (define (exists-> file)
-           (if (and file (file-exists? file))
-               `(,file) '()))
-         (let* ((run #$(file-append fhs-internal "/bin/" (ngc-internal-name container)))
-                (manifest-file #$(file-append fhs-manifest))
-                (xdg-runtime (getenv "XDG_RUNTIME_DIR"))
-                (home (getenv "HOME"))
-                (sandbox-home (or (getenv "GUIX_SANDBOX_HOME")
-                                  (string-append home "/" #$(ngc-sandbox-home container))))
-                (preserved-env '("^DBUS_"
-                                 "^DISPLAY$"
-                                 "^DRI_PRIME$"
-                                 "^GDK_SCALE$" ; For UI scaling.
-                                 "^PRESSURE_VESSEL_" ; For pressure vessel options.
-                                 "_PROXY$"
-                                 "_proxy$"
-                                 "^SDL_"
-                                 "^STEAM_"
-                                 "^VDPAU_DRIVER_PATH$" ; For VDPAU drivers.
-                                 "^XAUTHORITY$"
-                                 ;; Matching all ^XDG_ vars causes issues
-                                 ;; discussed in 80decf05.
-                                 "^XDG_DATA_HOME$"
-                                 "^XDG_RUNTIME_DIR$"
-                                 ;; The following are useful for debugging.
-                                 "^CAPSULE_DEBUG$"
-                                 "^G_MESSAGES_DEBUG$"
-                                 "^LD_DEBUG$"
-                                 "^LIBGL_DEBUG$"))
-                (expose `("/dev/bus/usb" ; Needed for libusb.
-                          "/dev/dri"
-                          "/dev/input"  ; Needed for controller input.
-                          "/dev/uinput" ; Needed for Steam Input.
-                          ,@(exists-> "/dev/nvidia0") ; needed for nvidia proprietary driver
-                          ,@(exists-> "/dev/nvidiactl")
-                          ,@(exists-> "/dev/nvidia-modeset")
-                          ,@(exists-> "/etc/machine-id")
-                          "/etc/localtime" ; Needed for correct time zone.
-                          "/sys/class/drm" ; Needed for hw monitoring like MangoHud.
-                          "/sys/class/hwmon" ; Needed for hw monitoring like MangoHud.
-                          "/sys/class/hidraw" ; Needed for devices like the Valve Index.
-                          "/sys/class/input" ; Needed for controller input.
-                          ,@(exists-> "/sys/class/power_supply") ; Needed for power monitoring like MangoHud.
-                          ,@(exists-> "/sys/class/powercap") ; Needed for power monitoring like MangoHud.
-                          "/sys/dev"
-                          "/sys/devices"
-                          ,@(exists-> "/var/run/dbus")))
-                ;; /dev/hidraw is needed for SteamVR to access the HMD, although here we
-                ;; share all hidraw devices. Instead we could filter to only share specific
-                ;; device. See, for example, this script:
-                ;; https://arvchristos.github.io/post/matching-dev-hidraw-devices-with-physical-devices/
-                (share `(,@(find-files "/dev" "hidraw")
-                         "/dev/shm"
-                         ;; "/tmp/.X11-unix" is needed for bwrap, and "/tmp" more generally
-                         ;; for writing things like crash dumps and "steam_chrome_shm".
-                         "/tmp"
-                         ,(string-append sandbox-home "=" home)
-                         ,@(exists-> (string-append home "/.config/pulse"))
-                         ,@(exists-> (string-append xdg-runtime "/pulse"))
-                         ,@(exists-> (string-append xdg-runtime "/bus"))
-                         ,@(exists-> (getenv "XAUTHORITY"))))
-                (DEBUG (equal? (getenv "DEBUG") "1"))
-                (args (cdr (command-line)))
-                (command (if DEBUG '()
-                             `("--" ,run ,@args))))
-           ;; TODO: Remove once upstream change is merged and in stable pressure-vessel
-           ;; (although may want to hold off for anyone using older pressure-vessel versions
-           ;; for whatever reason), see:
-           ;; https://gitlab.steamos.cloud/steamrt/steam-runtime-tools/-/merge_requests/406
-           (setenv "PRESSURE_VESSEL_FILESYSTEMS_RO" "/gnu/store")
-           ;; By default VDPAU drivers are searched for in libvdpau's store
-           ;; path, so set this path to where the drivers will actually be
-           ;; located in the container.
-           (setenv "VDPAU_DRIVER_PATH" "/lib64/vdpau")
-           (format #t "\n* Launching ~a in sandbox: ~a.\n\n"
-                   #$(package-name (ngc-wrap-package container)) sandbox-home)
-           (when DEBUG
-             (format #t "* DEBUG set to 1: Starting shell. Launch application manually with: ~a.\n\n"
-                     #$(ngc-internal-name container)))
-           (mkdir-p sandbox-home)
-           (invoke #$(file-append pulseaudio "/bin/pulseaudio")
-                   "--start"
-                   "--exit-idle-time=60")
-           (apply invoke
-                  `("guix" "shell"
-                    "--container" "--no-cwd" "--network"
-                    ,@(map preserve-var preserved-env)
-                    ,@(map add-path expose)
-                    ,@(map (lambda (item)
-                             (add-path item #:writable? #t))
-                           share)
-                    "-m" ,manifest-file
-                    ,@command)))))))
+   #~(begin
+       (use-modules (guix build utils))
+       (define (preserve-var var)
+         (string-append "--preserve=" var))
+       (define* (add-path path #:key writable?)
+         (let ((opt (if writable?
+                        "--share="
+                        "--expose=")))
+           (if (pair? path)
+               (string-append opt (car path) "=" (cdr path))
+               (string-append opt path))))
+       (define (exists-> file)
+         (if (and file (file-exists? file))
+             `(,file) '()))
+       (let* ((run #$(file-append fhs-internal "/bin/" (ngc-internal-name container)))
+              (manifest-file #$(file-append fhs-manifest))
+              (xdg-runtime (getenv "XDG_RUNTIME_DIR"))
+              (home (getenv "HOME"))
+              (sandbox-home (or (getenv "GUIX_SANDBOX_HOME")
+                                (string-append home "/" #$(ngc-sandbox-home container))))
+              (preserved-env '("^DBUS_"
+                               "^DISPLAY$"
+                               "^DRI_PRIME$"
+                               "^GDK_SCALE$" ; For UI scaling.
+                               "^PRESSURE_VESSEL_" ; For pressure vessel options.
+                               "_PROXY$"
+                               "_proxy$"
+                               "^SDL_"
+                               "^STEAM_"
+                               "^VDPAU_DRIVER_PATH$" ; For VDPAU drivers.
+                               "^XAUTHORITY$"
+                               ;; Matching all ^XDG_ vars causes issues
+                               ;; discussed in 80decf05.
+                               "^XDG_DATA_HOME$"
+                               "^XDG_RUNTIME_DIR$"
+                               ;; The following are useful for debugging.
+                               "^CAPSULE_DEBUG$"
+                               "^G_MESSAGES_DEBUG$"
+                               "^LD_DEBUG$"
+                               "^LIBGL_DEBUG$"))
+              (expose `("/dev/bus/usb" ; Needed for libusb.
+                        "/dev/dri"
+                        "/dev/input"  ; Needed for controller input.
+                        "/dev/uinput" ; Needed for Steam Input.
+                        ,@(exists-> "/dev/nvidia0") ; needed for nvidia proprietary driver
+                        ,@(exists-> "/dev/nvidiactl")
+                        ,@(exists-> "/dev/nvidia-modeset")
+                        ,@(exists-> "/etc/machine-id")
+                        "/etc/localtime" ; Needed for correct time zone.
+                        "/sys/class/drm" ; Needed for hw monitoring like MangoHud.
+                        "/sys/class/hwmon" ; Needed for hw monitoring like MangoHud.
+                        "/sys/class/hidraw" ; Needed for devices like the Valve Index.
+                        "/sys/class/input" ; Needed for controller input.
+                        ,@(exists-> "/sys/class/power_supply") ; Needed for power monitoring like MangoHud.
+                        ,@(exists-> "/sys/class/powercap") ; Needed for power monitoring like MangoHud.
+                        "/sys/dev"
+                        "/sys/devices"
+                        ,@(exists-> "/var/run/dbus")))
+              ;; /dev/hidraw is needed for SteamVR to access the HMD, although here we
+              ;; share all hidraw devices. Instead we could filter to only share specific
+              ;; device. See, for example, this script:
+              ;; https://arvchristos.github.io/post/matching-dev-hidraw-devices-with-physical-devices/
+              (share `(,@(find-files "/dev" "hidraw")
+                       "/dev/shm"
+                       ;; "/tmp/.X11-unix" is needed for bwrap, and "/tmp" more generally
+                       ;; for writing things like crash dumps and "steam_chrome_shm".
+                       "/tmp"
+                       ,(string-append sandbox-home "=" home)
+                       ,@(exists-> (string-append home "/.config/pulse"))
+                       ,@(exists-> (string-append xdg-runtime "/pulse"))
+                       ,@(exists-> (string-append xdg-runtime "/bus"))
+                       ,@(exists-> (getenv "XAUTHORITY"))))
+              (DEBUG (equal? (getenv "DEBUG") "1"))
+              (args (cdr (command-line)))
+              (command (if DEBUG '()
+                           `("--" ,run ,@args))))
+         ;; TODO: Remove once upstream change is merged and in stable pressure-vessel
+         ;; (although may want to hold off for anyone using older pressure-vessel versions
+         ;; for whatever reason), see:
+         ;; https://gitlab.steamos.cloud/steamrt/steam-runtime-tools/-/merge_requests/406
+         (setenv "PRESSURE_VESSEL_FILESYSTEMS_RO" "/gnu/store")
+         ;; By default VDPAU drivers are searched for in libvdpau's store
+         ;; path, so set this path to where the drivers will actually be
+         ;; located in the container.
+         (setenv "VDPAU_DRIVER_PATH" "/lib64/vdpau")
+         (format #t "\n* Launching ~a in sandbox: ~a.\n\n"
+                 #$(package-name (ngc-wrap-package container)) sandbox-home)
+         (when DEBUG
+           (format #t "* DEBUG set to 1: Starting shell. Launch application manually with: ~a.\n\n"
+                   #$(ngc-internal-name container)))
+         (mkdir-p sandbox-home)
+         (invoke #$(file-append pulseaudio "/bin/pulseaudio")
+                 "--start"
+                 "--exit-idle-time=60")
+         (apply invoke
+                `("guix" "shell"
+                  "--container" "--no-cwd" "--network"
+                  ,@(map preserve-var preserved-env)
+                  ,@(map add-path expose)
+                  ,@(map (lambda (item)
+                           (add-path item #:writable? #t))
+                         share)
+                  "-m" ,manifest-file
+                  ,@command))))))
 
 (define (make-container-manifest container fhs-internal)
   "Return a scheme file-like object to be used as package manifest for FHS
