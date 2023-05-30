@@ -38,7 +38,7 @@
                                 "/acl" version "express-" arch2 ".tbz2")))
               (sha256
                (base32
-                "0ir1irpq5hhcmy0yp5p2jpnq5if1gr1fgxybqyvppx1j1jdfkcsp"))))
+                "1zxajn238aibsv0qknm5kiqjiplb4ggynjsxar390rwznh57qc46"))))
     (build-system binary-build-system)
     (inputs (list bash-minimal zlib openssl))
     (arguments
@@ -60,6 +60,16 @@
                      "--directory=source" "-xvf" (assoc-ref inputs "source")
                      "--strip-components" "1")
              (chdir "source")))
+         (add-after 'install 'update-license
+           (lambda* (#:key outputs #:allow-other-keys)
+             (substitute*
+                 (string-append (assoc-ref outputs "out")
+                                "/share/allegro-cl/devel.lic")
+               ((";; License created on January 25, 2021, 8:32:19\\.")
+                ";; License created on January 17, 2023, 10:42:54.")
+               ((";; Expiration date: 2023-1-31 00:00:00")
+                ";; Expiration date: 2024-1-31 00:00:00"))
+             #t))
          (add-after 'install 'wrap-program
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let* ((out (assoc-ref outputs "out"))
