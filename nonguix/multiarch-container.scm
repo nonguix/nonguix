@@ -7,6 +7,7 @@
 ;;; Copyright © 2021, 2022 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2023 Attila Lendvai <attila@lendvai.name>
+;;; Copyright © 2023 Elijah Malaby
 
 ;;; The script provided by this package may optionally be started as
 ;;; a shell instead of automatically launching the wrapped entrypoint by setting
@@ -303,7 +304,8 @@ in a sandboxed FHS environment."
                         ,@(exists-> "/sys/class/powercap") ; Needed for power monitoring like MangoHud.
                         "/sys/dev"
                         "/sys/devices"
-                        ,@(exists-> "/var/run/dbus")))
+                        ,@(exists-> "/var/run/dbus")
+                        #$@(ngc-exposed container)))
               ;; /dev/hidraw is needed for SteamVR to access the HMD, although here we
               ;; share all hidraw devices. Instead we could filter to only share specific
               ;; device. See, for example, this script:
@@ -317,7 +319,8 @@ in a sandboxed FHS environment."
                        ,@(exists-> (string-append home "/.config/pulse"))
                        ,@(exists-> (string-append xdg-runtime "/pulse"))
                        ,@(exists-> (string-append xdg-runtime "/bus"))
-                       ,@(exists-> (getenv "XAUTHORITY"))))
+                       ,@(exists-> (getenv "XAUTHORITY"))
+                       #$@(ngc-shared container)))
               (DEBUG (equal? (getenv "DEBUG") "1"))
               (args (cdr (command-line)))
               (command (if DEBUG '()

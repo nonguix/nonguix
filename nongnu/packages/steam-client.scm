@@ -6,6 +6,7 @@
 ;;; Copyright © 2021 Kozo <kozodev@runbox.com>
 ;;; Copyright © 2021, 2022 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
+;;; Copyright © 2023 Elijah Malaby
 
 (define-module (nongnu packages steam-client)
   #:use-module ((guix licenses) #:prefix license:)
@@ -163,59 +164,40 @@
 (define steam-ld.so.cache
   (ld.so.conf->ld.so.cache steam-ld.so.conf))
 
-(define-public steam
-  (nonguix-container->package
-   (nonguix-container
-    (name "steam")
-    (wrap-package steam-client)
-    (run "/bin/steam")
-    (ld.so.conf steam-ld.so.conf)
-    (ld.so.cache steam-ld.so.cache)
-    (union64
-     (fhs-union `(,@steam-client-libs
-                  ,@steam-gameruntime-libs
-                  ,@fhs-min-libs)
-                #:name "fhs-union-64"))
-    (union32
-     (fhs-union `(,@steam-client-libs
-                  ,@steam-gameruntime-libs
-                  ,@fhs-min-libs)
-                #:name "fhs-union-32"
-                #:system "i686-linux"))
-    (link-files '("share/applications/steam.desktop"
-                  "share/applications/steam-asound32.desktop"))
-    (description "Steam is a digital software distribution platform created by
+(define-public steam-container
+  (nonguix-container
+   (name "steam")
+   (wrap-package steam-client)
+   (run "/bin/steam")
+   (ld.so.conf steam-ld.so.conf)
+   (ld.so.cache steam-ld.so.cache)
+   (union64
+    (fhs-union `(,@steam-client-libs
+                 ,@steam-gameruntime-libs
+                 ,@fhs-min-libs)
+               #:name "fhs-union-64"))
+   (union32
+    (fhs-union `(,@steam-client-libs
+                 ,@steam-gameruntime-libs
+                 ,@fhs-min-libs)
+               #:name "fhs-union-32"
+               #:system "i686-linux"))
+   (link-files '("share/applications/steam.desktop"
+                 "share/applications/steam-asound32.desktop"))
+   (description "Steam is a digital software distribution platform created by
 Valve.  This package provides a script for launching Steam in a Guix container
 which will use the directory @file{$HOME/.local/share/guix-sandbox-home} where
-all games will be installed."))))
+all games will be installed.")))
 
-(define-public steam-nvidia
-  (nonguix-container->package
-   (nonguix-container
-    (name "steam-nvidia")
-    (wrap-package steam-client)
-    (run "/bin/steam")
-    (ld.so.conf steam-ld.so.conf)
-    (ld.so.cache steam-ld.so.cache)
-    (union64
-     (replace-mesa
-      (fhs-union `(,@steam-client-libs
-                  ,@steam-gameruntime-libs
-                  ,@fhs-min-libs)
-                #:name "fhs-union-64")))
-    (union32
-     (replace-mesa
-      (fhs-union `(,@steam-client-libs
-                  ,@steam-gameruntime-libs
-                  ,@fhs-min-libs)
-                #:name "fhs-union-32"
-                #:system "i686-linux")))
-    (link-files '("share/applications/steam.desktop"
-                  "share/applications/steam-asound32.desktop"))
-    (description "Steam is a digital software distribution platform created by
-Valve.  This package provides a script for launching Steam in a Guix container
-which will use the directory @file{$HOME/.local/share/guix-sandbox-home} where
-all games will be installed."))))
+(define-public steam-nvidia-container
+  (nonguix-container
+   (inherit steam-container)
+   (name "steam-nvidia")
+   (union64 (replace-mesa (ngc-union64 steam-container)))
+   (union32 (replace-mesa (ngc-union32 steam-container)))))
+
+(define-public steam (nonguix-container->package steam-container))
+(define-public steam-nvidia (nonguix-container->package steam-nvidia-container))
 
 (define-public protonup-ng
   (package
