@@ -1,16 +1,25 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2022 Pierre Neidhardt <mail@ambrevar.xyz>
+;;; Copyright © 2023 André A. Gomes <andremegafone@gmail.com>
 
 (define-module (nongnu packages lisp)
   #:use-module (ice-9 match)
   #:use-module (gnu packages bash)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages tls)
+  #:use-module (gnu packages node)
+  #:use-module (gnu packages lisp)
+  #:use-module (gnu packages lisp-xyz)
+  ;; #:use-module (gnu packages lisp-check)
+  #:use-module (nongnu packages electron)
   #:use-module (guix build-system copy)
   #:use-module (guix build-system gnu)
+  #:use-module (guix build-system asdf)
   #:use-module (guix download)
+  #:use-module (guix git-download)
   #:use-module (guix packages)
   #:use-module (nonguix build-system binary)
+  #:use-module ((guix licenses) #:prefix license:)
   #:use-module ((nonguix licenses) #:prefix license:))
 
 ;; TODO: Split into differents outputs:
@@ -114,3 +123,35 @@ then open a browser at http://localhost:PORT, where PORT is the indicated port."
     (home-page "https://franz.com/products/allegrocl/")
     (license (license:nonfree
               "https://franz.com/ftp/pub/legal/ACL-Express-20170301.pdf"))))
+
+(define-public sbcl-cl-electron
+  (let ((commit "f2b8615ec398c88a35c2d4e01dc41381e1e59586")
+        (revision "0"))
+    (package
+      (name "sbcl-cl-electron")
+      (version (git-version "0.0.0" revision commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/atlas-engineer/cl-electron")
+               (commit commit)))
+         (file-name (git-file-name "cl-electron" version))
+         (sha256
+          (base32 "081gcfr8cn9cdyqh81pcks6s7nfmhwy5a5s8xq9k3kx61w5mk2b2"))))
+      (build-system asdf-build-system/sbcl)
+      (native-inputs (list ;; sbcl-lisp-unit2
+                           sbcl))
+      (inputs (list electron node
+                    sbcl-cl-json sbcl-usocket sbcl-parenscript sbcl-bordeaux-threads))
+      (synopsis "Common Lisp interface to Electron")
+      (home-page "https://github.com/atlas-engineer/cl-electron")
+      (description "@command{cl-electron} is a binding to Electron for
+Common Lisp.")
+      (license license:bsd-3))))
+
+(define-public cl-electron
+  (sbcl-package->cl-source-package sbcl-cl-electron))
+
+(define-public ecl-cl-electron
+  (sbcl-package->ecl-package sbcl-cl-electron))
