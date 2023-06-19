@@ -131,14 +131,14 @@ on hardware which requires nonfree software to function."))))
 (define-public linux-firmware
   (package
     (name "linux-firmware")
-    (version "20230404")
+    (version "20230515")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://kernel.org/linux/kernel/firmware/"
                                   "linux-firmware-" version ".tar.xz"))
               (sha256
                (base32
-                "01znf4gnymxn8q189gda6rlksw1nz1980ypkj0jcw71inlmsvyf3"))))
+                "0lg9l42bwyr0xn4vss0hy4xgap43djfhvddclqr4gs8ydyhwy6lb"))))
     (build-system gnu-build-system)
     (arguments
      `(#:tests? #f
