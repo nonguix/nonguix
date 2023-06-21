@@ -224,12 +224,14 @@ NVIDIA Management Library")
                        (ice-9 regex)
                        (ice-9 textual-ports))
            #:install-plan
-           #~`(("." "lib/" #:include-regexp ("^./[^/]+\\.so") #:exclude-regexp ("nvidia_drv\\.so" "libglxserver_nvidia\\.so\\..*"))
+           #~`((,#$(match (or (%current-target-system) (%current-system))
+                     ("i686-linux" "32")
+                     ("x86_64-linux" "."))
+                "lib/" #:include-regexp ("^./[^/]+\\.so") #:exclude-regexp ("nvidia_drv\\.so" "libglxserver_nvidia\\.so\\..*"))
                ("." "share/nvidia/" #:include-regexp ("nvidia-application-profiles.*"))
                ("." "share/egl/egl_external_platform.d/" #:include-regexp (".*_nvidia_.*\\.json"))
                ("90-nvidia.rules" "lib/udev/rules.d/")
                ("nvidia-drm-outputclass.conf" "share/x11/xorg.conf.d/")
-               ("nvidia-smi" "bin/")
                ("nvidia-dbus.conf" "share/dbus-1/system.d/")
                ("nvidia-smi.1.gz" "share/man/man1/")
                ("nvidia.icd" "etc/OpenCL/vendors/")
@@ -301,6 +303,11 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                                    (patch-elf file)))
                                (append (find-files #$output  ".*\\.so")
                                        (find-files (string-append #$output "/bin")))))))
+               (add-before 'patch-elf 'install-nvidia-smi
+                 (lambda _
+                   (if (string-match "x86_64-linux"
+                        (or #$(%current-target-system) #$(%current-system)))
+                     (install-file "nvidia-smi" (string-append #$output "/bin")))))
                (add-after 'patch-elf 'create-short-name-symlinks
                  (lambda _
                    (define (get-soname file)
@@ -335,7 +342,7 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                             (string-append #$output "/lib/xorg/modules/extensions/" "libglxserver_nvidia.so"))
                    (symlink (string-append "libnvidia-allocator.so." #$version)
                             (string-append #$output "/lib/nvidia-drm_gbm.so" )))))))
-    (supported-systems '("x86_64-linux"))
+    (supported-systems '("i686-linux" "x86_64-linux"))
     (native-inputs (list patchelf))
     (inputs
      (list `(,gcc "lib")
