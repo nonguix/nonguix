@@ -1,6 +1,7 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2019, 2020 Alex Griffin <a@ajgrf.com>
 ;;; Copyright © 2021-2022 Timotej Lazar <timotej.lazar@araneo.si>
+;;; Copyright © 2023 Eidvilas Markevičius <markeviciuseidvilas@gmail.com>
 
 (define-module (nongnu packages gog)
   #:use-module (gnu packages boost)
@@ -21,7 +22,7 @@
 (define-public lgogdownloader
   (package
     (name "lgogdownloader")
-    (version "3.9")
+    (version "3.11")
     (source
      (origin
        (method git-fetch)
@@ -30,7 +31,7 @@
              (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1hbwgwdm1vn7lkz366q9q8f44sk1pvhgjffndwx49lh3md66xps2"))))
+        (base32 "0mcwl6vfyy91sq1816j4v3lhf06dz1rr58hsq8hqx217z102s86d"))))
     (build-system qt-build-system)
     (arguments
      `(#:configure-flags '("-DUSE_QT_GUI=ON")
