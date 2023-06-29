@@ -37,6 +37,7 @@
   #:use-module (gnu packages linux)
   #:use-module (gnu packages llvm)
   #:use-module (gnu packages logging)
+  #:use-module (gnu packages lsof)
   #:use-module (nongnu packages nvidia)
   #:use-module (gnu packages pciutils)
   #:use-module (gnu packages pulseaudio)
@@ -124,6 +125,7 @@
     ("libvdpau" ,libvdpau)              ; Required for hardware video encoding/decoding.
     ("libvdpau-va-gl" ,libvdpau-va-gl)  ; Additional VDPAU support.
     ("llvm" ,llvm-for-mesa)             ; Required for mesa.
+    ("lsof" ,lsof)                      ; Required for some friend's list actions.
     ("mesa" ,mesa)                      ; Required for steam startup.
     ("nss-certs" ,nss-certs)            ; Required for steam login.
     ("pciutils" ,pciutils)              ; Tries to run lspci at steam startup.
