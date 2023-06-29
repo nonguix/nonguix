@@ -123,7 +123,7 @@
     ("libva" ,libva)                    ; Required for hardware video encoding/decoding.
     ("libvdpau" ,libvdpau)              ; Required for hardware video encoding/decoding.
     ("libvdpau-va-gl" ,libvdpau-va-gl)  ; Additional VDPAU support.
-    ("llvm" ,llvm-11)                   ; Required for mesa.
+    ("llvm" ,llvm-for-mesa)             ; Required for mesa.
     ("mesa" ,mesa)                      ; Required for steam startup.
     ("nss-certs" ,nss-certs)            ; Required for steam login.
     ("pciutils" ,pciutils)              ; Tries to run lspci at steam startup.
