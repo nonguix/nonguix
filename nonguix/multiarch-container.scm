@@ -104,19 +104,8 @@
   (description   ngc-description (default #f))
   (license       ngc-license (default #f)))
 
-(define glibc-for-fhs
-  (package
-    (inherit glibc)
-    (name "glibc-for-fhs")
-    (source (origin (inherit (package-source glibc))
-                    ;; Remove Guix's patch to read ld.so.cache from /gnu/store
-                    ;; directories, re-enabling the default /etc/ld.so.cache
-                    ;; behavior.
-                    (patches (delete (car (search-patches "glibc-dl-cache.patch"))
-                                     (origin-patches (package-source glibc))))))))
-
 (define fhs-min-libs
-  `(("glibc" ,glibc-for-fhs)
+  `(("glibc" ,(@@ (gnu packages base) glibc-for-fhs))
     ("glibc-locales" ,glibc-locales)))
 
 (define* (fhs-union inputs #:key (name "fhs-union") (version "0.0") (system "x86_64-linux"))
