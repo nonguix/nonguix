@@ -38,7 +38,7 @@ for VAAPI.")
 (define-public intel-media-driver
   (package
     (name "intel-media-driver")
-    (version "22.6.6")
+    (version "23.1.6")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -47,7 +47,7 @@ for VAAPI.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "08rnvhpgf7czb39swpm0qds11v5zlfjzl1wxnjl7df9vgf1lx3qh"))))
+                "14yvnxaxq5i7s3a1zy9nr0i4si0i630ln54nbqkhjxqjxr9l2p37"))))
     (build-system cmake-build-system)
     (inputs (list libva gmmlib))
     (native-inputs (list pkg-config))
@@ -71,5 +71,3 @@ for VAAPI.")
 accelerated decoding, encoding, and video post processing for the GEN based
 graphics hardware.")
     (license (list license:expat license:bsd-3))))
-
-intel-media-driver
