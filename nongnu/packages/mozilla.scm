@@ -77,22 +77,6 @@
 (define-public rust-firefox-esr rust) ; 1.60 is the default in Guix
 (define-public rust-firefox rust) ; 1.65 is the minimum
 
-(define icu4c-72
-  (package
-    (inherit icu4c)
-    (version "72.1")
-    (source (origin
-              (method url-fetch)
-              (uri (string-append
-                    "https://github.com/unicode-org/icu/releases/download/release-"
-                    (string-map (lambda (x) (if (char=? x #\.) #\- x)) version)
-                    "/icu4c-"
-                    (string-map (lambda (x) (if (char=? x #\.) #\_ x)) version)
-                    "-src.tgz"))
-              (sha256
-               (base32
-                "0s0xly0ndspd4p9jl6101qvnp5rgz5kl9qrmcvapwah92y1d7lm2"))))))
-
 (define icu4c-73
   (package
     (inherit icu4c)
