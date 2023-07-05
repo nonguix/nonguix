@@ -93,6 +93,22 @@
                (base32
                 "0s0xly0ndspd4p9jl6101qvnp5rgz5kl9qrmcvapwah92y1d7lm2"))))))
 
+(define icu4c-73
+  (package
+    (inherit icu4c)
+    (version "73.1")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://github.com/unicode-org/icu/releases/download/release-"
+                    (string-map (lambda (x) (if (char=? x #\.) #\- x)) version)
+                    "/icu4c-"
+                    (string-map (lambda (x) (if (char=? x #\.) #\_ x)) version)
+                    "-src.tgz"))
+              (sha256
+               (base32
+                "0iccpdvc0kvpww5a31k9gjkqigyz016i7v80r9zamd34w4fl6mx4"))))))
+
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
 (define %firefox-esr-build-id "20230704000000")
@@ -512,20 +528,20 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
 
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
-(define %firefox-build-id "20230606000000")
+(define %firefox-build-id "20230704000000")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "114.0")
+    (version "115.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "1ijbbfdbxrcaa23kfqw50pa3igs75fl7p0wnwh612ligfh10afnj"))))
+        (base32 "1678aizdrasfrkcjp6mpwzw8hmwxv1fiwk71ix636m6bbkz27nvw"))))
     (arguments
      (substitute-keyword-arguments (package-arguments firefox-esr)
        ((#:phases phases)
@@ -535,7 +551,7 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
                 (setenv "MOZ_BUILD_DATE" #$%firefox-build-id)))))))
     (inputs
      (modify-inputs (package-inputs firefox-esr)
-       (replace "icu4c" icu4c-72)))
+       (replace "icu4c" icu4c-73)))
     (native-inputs
      (modify-inputs (package-native-inputs firefox-esr)
        (replace "rust" rust-firefox)
