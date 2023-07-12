@@ -1,8 +1,11 @@
                                                               -*- org -*-
 # SPDX-License-Identifier: CC0-1.0
-# Copyright © 2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+# Copyright © 2022-2023 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 # Copyright © 2023 John Kehayias <john.kehayias@protonmail.com>
 #+TITLE: NEWS about user visible changes of nonguix
+
+* Unreleased
+*** New `chromium-binary-build-system`
 
 * Changes in 1.4.0 (since 2022-05-21 (Guix 1.3.0))
 ** Distribution
