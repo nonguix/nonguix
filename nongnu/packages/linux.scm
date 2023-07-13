@@ -209,13 +209,13 @@ distribution with custom settings and new features.  It's built to provide a
 stable, responsive and smooth desktop experience."))))
 
 ;; Linux-XanMod sources
-(define-public linux-xanmod-version "6.3.11")
+(define-public linux-xanmod-version "6.4.3")
 (define-public linux-xanmod-revision "xanmod1")
 (define-public linux-xanmod-source
   (make-linux-xanmod-source
    linux-xanmod-version
    linux-xanmod-revision
-   (base32 "06nlrzp5hlhnbcaf8y9bkv15vrqma97h1g4ad6r7a2670g6aacy3")))
+   (base32 "0z6f7lnwbw2y7wwfr253d6gg4kz0l62s71pj266hb9c0dj15xl0r")))
 
 (define-public linux-xanmod-lts-version "6.1.37")
 (define-public linux-xanmod-lts-revision "xanmod1")
