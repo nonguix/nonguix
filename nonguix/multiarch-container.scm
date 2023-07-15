@@ -263,6 +263,12 @@ in a sandboxed FHS environment."
                                "^PRESSURE_VESSEL_" ; For pressure vessel options.
                                "_PROXY$"
                                "_proxy$"
+                               ;; To allow workaround for upstream bug
+                               ;; <https://github.com/ValveSoftware/steam-for-linux/issues/9306>
+                               ;; and tracked on our end as
+                               ;; <https://gitlab.com/nonguix/nonguix/-/issues/267>.
+                               ;; TODO: Remove once upstream fixes this bug.
+                               "^QT_X11_NO_MITSHM$"
                                "^SDL_"
                                "^STEAM_"
                                "^VDPAU_DRIVER_PATH$" ; For VDPAU drivers.
