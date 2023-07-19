@@ -34,9 +34,13 @@
             (method url-fetch)
             (uri (string-append "https://developers.hp.com/sites/default/files/hplip-"
                                 (package-version hplip) "-plugin.run"))
+            ;; TODO: Since this needs to be updated on every update to Guix's
+            ;; hplip in order to build, might be better to decouple this
+            ;; package from hplip.  In the meantime, update this hash when
+            ;; hplip is updated in Guix.
             (sha256
              (base32
-              "100zyvmqlp71v8691s9wfzrllqq8aaqj9a4pki36gqs1bn4429h3")))))
+              "1396d9skaq5c5vxxi331nc81yhm9daws7awq0rcn1faq89mvygps")))))
       (package-native-inputs hplip)))
     (arguments
      (substitute-keyword-arguments (package-arguments hplip)
