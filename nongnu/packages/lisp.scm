@@ -125,8 +125,8 @@ then open a browser at http://localhost:PORT, where PORT is the indicated port."
               "https://franz.com/ftp/pub/legal/ACL-Express-20170301.pdf"))))
 
 (define-public sbcl-cl-electron
-  (let ((commit "f2b8615ec398c88a35c2d4e01dc41381e1e59586")
-        (revision "0"))
+  (let ((commit "ec8e3610be26d2d7312fab7d59d840e550b221f2")
+        (revision "1"))
     (package
       (name "sbcl-cl-electron")
       (version (git-version "0.0.0" revision commit))
@@ -138,12 +138,13 @@ then open a browser at http://localhost:PORT, where PORT is the indicated port."
                (commit commit)))
          (file-name (git-file-name "cl-electron" version))
          (sha256
-          (base32 "081gcfr8cn9cdyqh81pcks6s7nfmhwy5a5s8xq9k3kx61w5mk2b2"))))
+          (base32 "0bmnh0xl5pvjv4pdb4a37x87zlyzr5fy7cyaws69p4p4rgzszzv8"))))
       (build-system asdf-build-system/sbcl)
       (native-inputs (list ;; sbcl-lisp-unit2
                            sbcl))
       (inputs (list electron node
-                    sbcl-cl-json sbcl-usocket sbcl-parenscript sbcl-bordeaux-threads))
+                    sbcl-cl-json sbcl-iolib sbcl-nclasses
+                    sbcl-parenscript sbcl-bordeaux-threads))
       (synopsis "Common Lisp interface to Electron")
       (home-page "https://github.com/atlas-engineer/cl-electron")
       (description "@command{cl-electron} is a binding to Electron for
