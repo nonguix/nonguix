@@ -16,7 +16,7 @@
 (define-public electron
   (package
     (name "electron")
-    (version "24.2.0")
+    (version "25.3.1")
     (source (origin
               (method url-fetch/zipbomb)
               (uri
@@ -29,7 +29,7 @@
                   ("aarch64-linux" "linux-arm64")
                   ("armhf-linux" "linux-armv7l"))
                 ".zip"))
-              (sha256 (base32 "04vmqr5547059751yxr729ljqahal57lymyglaa5xzpw5bfq0xwd"))))
+              (sha256 (base32 "0x6asi81gwxx33mhpm74l31xzf1lbzbf7s97fay0l35fg73kkw9n"))))
     (build-system chromium-binary-build-system)
     (arguments
      `(#:wrapper-plan
