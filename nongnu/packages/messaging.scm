@@ -3,6 +3,7 @@
 ;;; Copyright © 2022, 2023 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2022 Evgenii Lepikhin <johnlepikhin@gmail.com>
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
+;;; Copyright © 2023 Raven Hallsby <karl@hallsby.org>
 
 (define-module (nongnu packages messaging)
   #:use-module (gnu packages base)
@@ -281,6 +282,8 @@ or iOS.")
                                         "pango"
                                         "pulseaudio"
                                         "xcb-util"
+                                        "xcb-util-image"
+                                        "xcb-util-keysyms"
                                         "xcb-util-wm"
                                         "xcb-util-renderutil"
                                         "zlib")))))
@@ -320,6 +323,8 @@ or iOS.")
                                         "pango"
                                         "pulseaudio"
                                         "xcb-util"
+                                        "xcb-util-image"
+                                        "xcb-util-keysyms"
                                         "xcb-util-wm"
                                         "xcb-util-renderutil"
                                         "zlib")))))))
