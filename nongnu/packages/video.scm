@@ -6,6 +6,7 @@
   #:use-module (gnu packages video)
   #:use-module (guix build utils)
   #:use-module (guix build-system cmake)
+  #:use-module (guix gexp)
   #:use-module (guix git-download)
   #:use-module (guix packages)
   #:use-module ((guix licenses) #:prefix license:))
@@ -52,11 +53,11 @@ for VAAPI.")
     (inputs (list libva gmmlib))
     (native-inputs (list pkg-config))
     (arguments
-     '(#:tests? #f ;Tests are run as part of the normal build step
-       #:configure-flags
-       (list "-DENABLE_NONFREE_KERNELS=OFF"
-             (string-append "-DLIBVA_DRIVERS_PATH="
-                            (assoc-ref %outputs "out") "/lib/dri"))))
+     (list #:tests? #f ;Tests are run as part of the normal build step
+           #:configure-flags
+           #~(list "-DENABLE_NONFREE_KERNELS=OFF"
+                   (string-append "-DLIBVA_DRIVERS_PATH="
+                                  #$output "/lib/dri"))))
     ;; XXX Because of <https://issues.guix.gnu.org/issue/22138>, we need to add
     ;; this to all VA-API back ends instead of once to libva.
     (native-search-paths
