@@ -92,8 +92,23 @@
                      ((old-exe) exe))
                    (substitute* (string-append usr/share "/menu/google-" #$appname ".menu")
                      (("/opt") share)
-                     ((old-exe) exe))
-                   #t)))
+                     ((old-exe) exe)))))
+             (add-after 'install 'install-icons
+                (lambda _
+                  (define (format-icon-size name)
+                    (car
+                      (string-split
+                       (string-drop-right (string-drop name 13) 4)
+                       #\_)))
+                  (let ((icons (string-append #$output "/share/icons/hicolor"))
+                        (share (string-append #$output "/share/google/" #$appname)))
+                    (for-each (lambda (icon)
+                                (let* ((icon-name (basename icon))
+                                       (icon-size (format-icon-size icon-name))
+                                       (target (string-append icons "/" icon-size "x" icon-size "/apps/google-" #$appname ".png")))
+                                  (mkdir-p (dirname target))
+                                  (rename-file icon target)))
+                              (find-files share "product_logo_.*\\.png")))))
              (add-before 'install-wrapper 'install-exe
               (lambda _
                 (let* ((bin (string-append #$output "/bin"))
