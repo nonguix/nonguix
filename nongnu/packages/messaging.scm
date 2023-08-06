@@ -132,7 +132,7 @@ its core.")
                    ;; Fix the .desktop file binary location.
                    (substitute* '("share/applications/signal-desktop.desktop") 
                      (("/opt/Signal/")
-                      (string-append #$output "/lib/Signal/")))))
+                      (string-append #$output "/bin/")))))
                (add-after 'install 'symlink-binary-file-and-cleanup
                  (lambda _
                    (delete-file (string-append #$output "/environment-variables"))
