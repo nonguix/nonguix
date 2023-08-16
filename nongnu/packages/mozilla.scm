@@ -95,19 +95,19 @@
 
 ;; Update this id with every firefox update to it's release date.
 ;; It's used for cache validation and therefor can lead to strange bugs.
-(define %firefox-esr-build-id "20230801000000")
+(define %firefox-esr-build-id "20230816000000")
 
 (define-public firefox-esr
   (package
     (name "firefox-esr")
-    (version "102.14.0esr")
+    (version "115.1.0esr")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "1vpglmqm97ac3rs273qv7kldkrkawyhdnwwqhvyjqiwaq20m1f0s"))))
+        (base32 "19hpds04wws7kw96a253zi3nk4wp1iyjw1l3xb059237ddbjxjd7"))))
     (build-system gnu-build-system)
     (arguments
      (list
@@ -418,7 +418,7 @@
         gtk+
         gtk+-2
         hunspell
-        icu4c
+        icu4c-73
         jemalloc
         libcanberra
         libevent
@@ -458,12 +458,12 @@
         wasm32-wasi-clang-toolchain
         m4
         nasm
-        node
+        node-lts
         perl
         pkg-config
         python
         rust-firefox-esr
-        rust-cbindgen-0.23
+        rust-cbindgen-0.24
         which
         yasm))
     (home-page "https://mozilla.org/firefox/")
@@ -533,15 +533,10 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
             (replace 'set-build-id
               (lambda _
                 (setenv "MOZ_BUILD_DATE" #$%firefox-build-id)))))))
-    (inputs
-     (modify-inputs (package-inputs firefox-esr)
-       (replace "icu4c" icu4c-73)))
     (native-inputs
      (modify-inputs (package-native-inputs firefox-esr)
        (replace "rust" rust-firefox)
-       (replace "rust:cargo" `(,rust-firefox "cargo"))
-       (replace "node" node-lts)
-       (replace "rust-cbindgen" rust-cbindgen-0.24)))
+       (replace "rust:cargo" `(,rust-firefox "cargo"))))
     (description
      "Full-featured browser client built from Firefox source tree, without
 the official icon and the name \"firefox\".")))
