@@ -93,8 +93,8 @@
                (base32
                 "0iccpdvc0kvpww5a31k9gjkqigyz016i7v80r9zamd34w4fl6mx4"))))))
 
-;; Update this id with every firefox update to it's release date.
-;; It's used for cache validation and therefor can lead to strange bugs.
+;; Update this id with every firefox update to its release date.
+;; It's used for cache validation and therefore can lead to strange bugs.
 (define %firefox-esr-build-id "20230829000000")
 
 (define-public firefox-esr
@@ -510,8 +510,8 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
              ((firefox) out))
            #t))))))
 
-;; Update this id with every firefox update to it's release date.
-;; It's used for cache validation and therefor can lead to strange bugs.
+;; Update this id with every firefox update to its release date.
+;; It's used for cache validation and therefore can lead to strange bugs.
 (define %firefox-build-id "20230829000000")
 
 (define-public firefox
