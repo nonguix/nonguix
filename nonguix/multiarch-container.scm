@@ -479,6 +479,7 @@ application."
                 ((,union64 "lib") . "/run/current-system/profile/lib64")
                 ((,union64 "lib/locale") . "/run/current-system/locale")
                 ((,union64 "sbin/ldconfig") . "/sbin/ldconfig")
+                ((,union64 "share/mime") . "/usr/share/mime") ; Steam tray icon.
                 ((,union64 "share/drirc.d") . "/usr/share/drirc.d")
                 ((,union64 "share/fonts") . "/run/current-system/profile/share/fonts")
                 ((,union64 "etc/fonts") . "/etc/fonts")

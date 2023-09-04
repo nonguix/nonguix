@@ -32,6 +32,7 @@
   #:use-module (gnu packages glib)
   #:use-module (gnu packages gnome)
   #:use-module (gnu packages graphics)
+  #:use-module (gnu packages gtk)
   #:use-module (gnu packages libbsd)
   #:use-module (gnu packages libusb)
   #:use-module (gnu packages linux)
@@ -139,6 +140,7 @@
     ("find" ,findutils)                 ; Required at least for some logging.
     ("freetype" ,freetype)              ; Required for steam login.
     ("gawk" ,gawk)
+    ("gdk-pixbuf" ,gdk-pixbuf)          ; Required for steam tray icon.
     ("gcc:lib" ,gcc "lib")              ; Required for steam startup.
     ("grep" ,grep)
     ("libbsd" ,libbsd)
