@@ -116,26 +116,19 @@ its core.")
            #~'("lib/Signal/signal-desktop")
            #:phases
            #~(modify-phases %standard-phases
-               (replace 'unpack
+               (add-after 'binary-unpack 'setup-cwd
                  (lambda _
-                   (invoke "ar" "x" #$source)
-                   (invoke "tar" "xvf" "data.tar.xz")
                    (copy-recursively "usr/" ".")
                    ;; Use the more standard lib directory for everything.
                    (rename-file "opt/" "lib")
                    ;; Remove unneeded files.
                    (delete-file-recursively "usr")
-                   (delete-file "control.tar.gz")
-                   (delete-file "data.tar.xz")
-                   (delete-file "debian-binary")
-                   (delete-file "environment-variables")
                    ;; Fix the .desktop file binary location.
                    (substitute* '("share/applications/signal-desktop.desktop") 
                      (("/opt/Signal/")
                       (string-append #$output "/bin/")))))
-               (add-after 'install 'symlink-binary-file-and-cleanup
+               (add-after 'install 'symlink-binary-file
                  (lambda _
-                   (delete-file (string-append #$output "/environment-variables"))
                    (mkdir-p (string-append #$output "/bin"))
                    (symlink (string-append #$output "/lib/Signal/signal-desktop")
                             (string-append #$output "/bin/signal-desktop"))))
@@ -147,7 +140,6 @@ its core.")
                           (list
                            (string-append #$output "/lib/Signal"))
                           ":")))))))))
-    (native-inputs (list tar))
     (home-page "https://signal.org/")
     (synopsis "Private messenger using the Signal protocol")
     (description "Signal Desktop is an Electron application that links with Signal on Android
