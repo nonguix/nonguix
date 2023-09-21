@@ -54,25 +54,19 @@
            #~'("lib/Element/element-desktop")
            #:phases
            #~(modify-phases %standard-phases
-               (replace 'unpack
+               (add-after 'binary-unpack 'setup-cwd
                  (lambda _
-                   (invoke "ar" "x" #$source)
-                   (invoke "tar" "xvf" "data.tar.xz")
                    (copy-recursively "usr/" ".")
                    ;; Use the more standard lib directory for everything.
                    (rename-file "opt/" "lib")
                    ;; Remove unneeded files.
                    (delete-file-recursively "usr")
-                   (delete-file "control.tar.gz")
-                   (delete-file "data.tar.xz")
-                   (delete-file "debian-binary")
                    ;; Fix the .desktop file binary location.
                    (substitute* '("share/applications/element-desktop.desktop") 
                      (("/opt/Element/")
                       (string-append #$output "/bin/")))))
-               (add-after 'install 'symlink-binary-file-and-cleanup
+               (add-after 'install 'symlink-binary-file
                  (lambda _
-                   (delete-file (string-append #$output "/environment-variables"))
                    (mkdir-p (string-append #$output "/bin"))
                    (symlink (string-append #$output "/lib/Element/element-desktop")
                             (string-append #$output "/bin/element-desktop"))))
@@ -84,8 +78,6 @@
                           (list
                            (string-append #$output "/lib/Element"))
                           ":")))))))))
-
-    (native-inputs (list tar))
     (home-page "https://github.com/vector-im/element-desktop")
     (synopsis "Matrix collaboration client for desktop")
     (description "Element Desktop is a Matrix client for desktop with Element Web at
