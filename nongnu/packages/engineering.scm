@@ -35,28 +35,22 @@
            #~'("lib/LycheeSlicer/lycheeslicer")
            #:phases
            #~(modify-phases %standard-phases
-               (replace 'unpack
+               (add-after 'binary-unpack 'setup-cwd
                  (lambda _
-                   (invoke "ar" "x" #$source)
-                   (invoke "tar" "xvf" "data.tar.xz")
                    ;; Use the more standard lib directory for everything.
                    (rename-file "opt/" "lib")
                    (mkdir-p "share")
                    (copy-recursively "usr/share" "share")
                    ;; Remove unneeded files.
-                   (delete-file-recursively "usr")
-                   (delete-file "control.tar.gz")
-                   (delete-file "data.tar.xz")
-                   (delete-file "debian-binary")))
-               (add-after 'unpack 'fix-desktop-file
+                   (delete-file-recursively "usr")))
+               (add-after 'setup-cwd 'fix-desktop-file
                  (lambda _
                    ;; Fix the .desktop file binary location.
                    (substitute* '("share/applications/lycheeslicer.desktop")
                      (("/opt/LycheeSlicer")
                       (string-append #$output "/lib/LycheeSlicer")))))
-               (add-before 'install-wrapper 'symlink-binary-file-and-cleanup
+               (add-before 'install-wrapper 'symlink-binary-file
                  (lambda _
-                   (delete-file (string-append #$output "/environment-variables"))
                    (mkdir-p (string-append #$output "/bin"))
                    (symlink (string-append #$output "/lib/LycheeSlicer/lycheeslicer")
                             (string-append #$output "/bin/lycheeslicer"))))
@@ -68,7 +62,6 @@
                           (list
                            (string-append #$output "/lib/LycheeSlicer"))
                           ":")))))))))
-    (native-inputs (list tar))
     (inputs
      (list libxscrnsaver))
     (home-page "https://mango3d.io")
