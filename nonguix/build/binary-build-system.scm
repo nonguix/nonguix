@@ -1,6 +1,7 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2019 Julien Lepiller <julien@lepiller.eu>
 ;;; Copyright © 2022 Attila Lendvai <attila@lendvai.name>
+;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 
 (define-module (nonguix build binary-build-system)
   #:use-module ((guix build gnu-build-system) #:prefix gnu:)
@@ -133,10 +134,34 @@ The inputs are optional when the file is an executable."
        patchelf-plan)))
   #t)
 
+(define (deb-file? binary-file)
+  (string-suffix? ".deb" binary-file))
+
+(define (unpack-deb deb-file)
+  (invoke "ar" "x" deb-file)
+  (invoke "tar" "xvf" "data.tar.xz")
+  (invoke "rm" "-rfv" "control.tar.gz"
+          "data.tar.xz"
+          deb-file
+          "debian-binary"))
+
+(define* (binary-unpack #:key source #:allow-other-keys)
+  (let* ((files (filter (lambda (f)
+                          (not (string=? (basename f) "environment-variables")))
+                        (find-files (getcwd))))
+         (binary-file (car files)))
+    (when (= 1 (length files))
+      (mkdir "binary")
+      (chdir "binary")
+      (match binary-file
+        ((? deb-file?) (unpack-deb binary-file))
+        (_ (format #t "Unknown file type: ~a~%" (basename binary-file)))))))
+
 (define %standard-phases
-  ;; Everything is as with the GNU Build System except for the `configure'
-  ;; , `build', `check' and `install' phases.
+  ;; Everything is as with the GNU Build System except for the `binary-unpack',
+  ;; `configure', `build', `check' and `install' phases.
   (modify-phases gnu:%standard-phases
+    (add-after 'unpack 'binary-unpack binary-unpack)
     (delete 'bootstrap)
     (delete 'configure)
     (delete 'build)
