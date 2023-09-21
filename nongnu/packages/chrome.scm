@@ -72,16 +72,6 @@
              ("usr/share/" "/share"))
         #:phases
          #~(modify-phases %standard-phases
-             (add-after 'unpack 'unpack-deb
-               (lambda* (#:key inputs #:allow-other-keys)
-                 (invoke "ar" "x" #$source)
-                 (invoke "rm" "-v" "control.tar.xz"
-                                   "debian-binary"
-                                   (string-append "google-chrome-" #$repo "_"
-                                                  #$version
-                                                  "-1_amd64.deb"))
-                 (invoke "tar" "xf" "data.tar.xz")
-                 (invoke "rm" "-vrf" "data.tar.xz" "etc")))
              (add-before 'install 'patch-assets
                ;; Many thanks to
                ;; https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/networking/browsers/google-chrome/default.nix
@@ -128,7 +118,6 @@
                   (symlink chrome-target exe)
                   (wrap-program exe
                     '("CHROME_WRAPPER" = (#$appname)))))))))
-     (native-inputs (list tar))
      (inputs
       (list bzip2
             curl
