@@ -98,7 +98,7 @@ its core.")
 (define-public signal-desktop
   (package
     (name "signal-desktop")
-    (version "6.30.1")
+    (version "6.30.2")
     (source
      (origin
        (method url-fetch)
@@ -107,7 +107,7 @@ its core.")
          "https://updates.signal.org/desktop/apt/pool/s/" name "/" name "_" version
          "_amd64.deb"))
        (sha256
-        (base32 "15dxz9pxcx0skpkfr4ydb4m7qnpwp7ayw0s7qfkzrkwl1zh52vml"))))
+        (base32 "1kxxb6s7h2llksmqrjbk9nhp55r0v7573h3qz44ssb2kx8xxwgdb"))))
     (supported-systems '("x86_64-linux"))
     (build-system chromium-binary-build-system)
     (arguments
