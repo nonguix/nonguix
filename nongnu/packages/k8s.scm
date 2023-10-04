@@ -177,3 +177,41 @@ such as Kubernetes (or OpenShift).")
      "Helm helps you manage Kubernetes applications - Helm Charts help you
 define, install, and upgrade Kubernetes applications.")
     (license license:asl2.0)))
+
+(define-public kind
+  (package
+    (name "kind")
+    (version "0.20.0")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://kind.sigs.k8s.io/dl/v" version "/kind-linux-amd64"))
+              (sha256
+               (base32
+                "1v9x953a5n0l3kz78wm29yh11vz56nmlvhi7xzcjscyksq9p4fji"))))
+    (build-system copy-build-system)
+    (arguments
+     (list
+      #:substitutable? #f
+      #:install-plan
+      #~'(("kind" "bin/"))
+      #:phases
+      #~(modify-phases %standard-phases
+          (replace 'unpack
+            (lambda _
+              (copy-file #$source "./kind")
+              (chmod "kind" #o644)))
+          (add-before 'install 'chmod
+            (lambda _
+              (chmod "kind" #o555))))))
+    (home-page "https://kind.sigs.k8s.io")
+    (synopsis "Tool for running local Kubernetes clusters using Docker containers")
+    (description "kind (Kubernetes in Docker) is designed for creating and managing
+local Kubernetes clusters using Docker containers as nodes. It provides
+a fast and straightforward way to run Kubernetes for development and
+testing tasks.
+
+Supporting multi-node cluster configurations, kind is ideal for testing
+more complex, real-world scenarios without demanding extensive resources.
+It’s a lightweight, portable, and configurable solution useful in
+continuous integration (CI) workflows.")
+    (license license:asl2.0)))
