@@ -58,14 +58,6 @@
           ("usr/share/" "/share"))
       #:phases
       #~(modify-phases %standard-phases
-          (add-after 'unpack 'unpack-deb
-            (lambda* (#:key inputs #:allow-other-keys)
-              (invoke "ar" "x" #$source)
-              (invoke "rm" "-v" "control.tar.gz"
-                      "debian-binary"
-                      (string-append "anytype-" #$version ".deb"))
-              (invoke "tar" "xvf" "data.tar.xz")
-              (invoke "rm" "-vrf" "data.tar.xz")))
           (add-before 'install 'patch-assets
             (lambda _
               (let* ((bin (string-append #$output "/bin"))
@@ -86,7 +78,6 @@
                 (symlink target exe)
                 (wrap-program exe
                   `("LD_LIBRARY_PATH" = (,share)))))))))
-    (native-inputs (list tar))
     (inputs
      (list bzip2
            flac
