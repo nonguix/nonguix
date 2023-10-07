@@ -20,6 +20,7 @@
 ;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
 ;;; Copyright © 2021, 2022, 2023 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2022 Pierre Langlois <pierre.langlois@gmx.com>
+;;; Copyright © 2023 Tomas Volf <wolf@wolfsden.cz>
 
 (define-module (nongnu packages mozilla)
   #:use-module (guix build-system gnu)
@@ -64,6 +65,7 @@
   #:use-module (gnu packages python)
   #:use-module (gnu packages rust)
   #:use-module (gnu packages rust-apps)
+  #:use-module (gnu packages speech)
   #:use-module (gnu packages sqlite)
   #:use-module (gnu packages video)
   #:use-module (nongnu packages wasm)
@@ -154,6 +156,7 @@
             "--disable-elf-hack"))
       #:imported-modules %cargo-utils-modules
       #:modules `((ice-9 regex)
+                  (ice-9 string-fun)
                   (ice-9 ftw)
                   (srfi srfi-1)
                   (srfi srfi-26)
@@ -230,6 +233,22 @@
               (substitute* "build/RunCbindgen.py"
                 (("\"--frozen\",") ""))))
           (delete 'bootstrap)
+          (add-before 'configure 'patch-SpeechDispatcherService.cpp
+            (lambda _
+              (let* ((lib "libspeechd.so.2")
+                     (file "dom/media/webspeech/synth/speechd/SpeechDispatcherService.cpp")
+                     (old-content (call-with-input-file file get-string-all)))
+                (substitute
+                 file
+                 `((,(format #f "~s" lib)
+                    . ,(λ (line _)
+                         (string-replace-substring
+                          line
+                          lib
+                          (string-append #$speech-dispatcher "/lib/" lib))))))
+                (if (string=? old-content
+                              (call-with-input-file file get-string-all))
+                    (error "substitute did nothing, phase requires an update")))))
           (add-before 'configure 'set-build-id
             ;; Firefox will write the timestamp to output, which is harmful
             ;; for reproducibility, so change it to a fixed date.  Use a
@@ -442,8 +461,9 @@
         pipewire
         pixman
         pulseaudio
-        startup-notification
+        speech-dispatcher
         sqlite
+        startup-notification
         eudev
         unzip
         zip
