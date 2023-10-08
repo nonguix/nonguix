@@ -13,7 +13,11 @@
  (c-mode          . ((c-file-style . "gnu")))
  (scheme-mode
   .
-  ((indent-tabs-mode . nil)
+  ;; Note this next setting will use the current guix as the geiser binary;
+  ;; one working with a local guix checkout may want something different.
+  ((geiser-guile-binary . ("guix" "repl"))
+
+   (indent-tabs-mode . nil)
    (eval . (put 'eval-when 'scheme-indent-function 1))
    (eval . (put 'call-with-prompt 'scheme-indent-function 1))
    (eval . (put 'test-assert 'scheme-indent-function 1))
