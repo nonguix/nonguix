@@ -145,9 +145,9 @@ view logs.")
 such as Kubernetes (or OpenShift).")
     (license license:expat)))
 
-(define-public helm
+(define-public helm-kubernetes
   (package
-    (name "helm")
+    (name "helm-kubernetes")
     (version "3.12.3")
     (source (origin
               (method url-fetch)
