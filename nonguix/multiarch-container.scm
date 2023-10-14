@@ -463,12 +463,14 @@ application."
               '("/run/current-system/profile/etc"
                 "/run/current-system/profile/share"
                 "/sbin"
-                "/usr/share/vulkan/icd.d"
-                "/usr/share/vulkan/implicit_layer.d")) ; Implicit layers like MangoHud
+                "/usr/share/vulkan/icd.d"))
              (for-each
               new-symlink
               `((,ld.so.cache . "/etc/ld.so.cache")
                 (,ld.so.conf . "/etc/ld.so.conf") ;; needed?
+                ;; For MangoHud implicit layers.
+                ((,guix-env "share/vulkan/implicit_layer.d") .
+                 "/usr/share/vulkan/implicit_layer.d")
                 ((,guix-env "etc/ssl") . "/etc/ssl")
                 ((,guix-env "etc/ssl") . "/run/current-system/profile/etc/ssl")
                 ((,union32 "lib") . "/lib")
@@ -484,13 +486,7 @@ application."
                 ((,union64 "share/fonts") . "/run/current-system/profile/share/fonts")
                 ((,union64 "etc/fonts") . "/etc/fonts")
                 ((,union64 "share/vulkan/explicit_layer.d") .
-                 "/usr/share/vulkan/explicit_layer.d")
-                ;; The MangoHud layer has the same file name for 64- and 32-bit,
-                ;; so create links with different names.
-                ((,union64 "share/vulkan/implicit_layer.d/MangoHud.json") .
-                 "/usr/share/vulkan/implicit_layer.d/MangoHud.json")
-                ((,union32 "share/vulkan/implicit_layer.d/MangoHud.json") .
-                 "/usr/share/vulkan/implicit_layer.d/MangoHud.x86.json")))
+                 "/usr/share/vulkan/explicit_layer.d")))
              (for-each
               icd-symlink
               ;; Use stat to follow links from packages like MangoHud.
