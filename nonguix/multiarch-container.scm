@@ -330,6 +330,9 @@ in a sandboxed FHS environment."
                        ,@(exists-> (getenv "XAUTHORITY"))
                        #$@(ngc-shared container)))
               (DEBUG (equal? (getenv "DEBUG") "1"))
+              (extra-shares (if (getenv "GUIX_SANDBOX_EXTRA_SHARES")
+                                (string-split (getenv "GUIX_SANDBOX_EXTRA_SHARES") #\:)
+                                #f))
               (args (cdr (command-line)))
               (command (if DEBUG '()
                            `("--" ,run ,@args))))
@@ -362,7 +365,9 @@ in a sandboxed FHS environment."
                   ,@(map add-path expose)
                   ,@(map (lambda (item)
                            (add-path item #:writable? #t))
-                         share)
+                         (if extra-shares
+                             (append share extra-shares)
+                             share))
                   "-m" ,manifest-file
                   ,@command))))))
 
