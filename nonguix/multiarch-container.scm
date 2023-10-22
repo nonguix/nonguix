@@ -260,6 +260,17 @@ in a sandboxed FHS environment."
                                "^DISPLAY$"
                                "^DRI_PRIME$"
                                "^GDK_SCALE$" ; For UI scaling.
+                               ;; For startup of added non-Steam games as it
+                               ;; seems they start in an early environment
+                               ;; before our additional settings.  (Likely
+                               ;; this can be removed when rewritten to use
+                               ;; --emulate-fhs from upstream.)  Note that
+                               ;; this is explicitly set below.  We could
+                               ;; preserve what is set before launching the
+                               ;; container, but any such directories would
+                               ;; need to be shared with the container as
+                               ;; well; this is not needed currently.
+                               "^LD_LIBRARY_PATH$"
                                "^PRESSURE_VESSEL_" ; For pressure vessel options.
                                "_PROXY$"
                                "_proxy$"
@@ -320,6 +331,10 @@ in a sandboxed FHS environment."
               (args (cdr (command-line)))
               (command (if DEBUG '()
                            `("--" ,run ,@args))))
+         ;; Set this so that e.g. non-Steam games added to Steam will launch
+         ;; properly.  It seems otherwise they don't make it to launching
+         ;; Steam's pressure-vessel container (for Proton games).
+         (setenv "LD_LIBRARY_PATH" "/lib64:/lib")
          ;; By default VDPAU drivers are searched for in libvdpau's store
          ;; path, so set this path to where the drivers will actually be
          ;; located in the container.
