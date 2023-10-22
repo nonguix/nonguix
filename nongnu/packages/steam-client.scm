@@ -180,9 +180,7 @@
     ("libvdpau-va-gl" ,libvdpau-va-gl)  ; Additional VDPAU support.
     ("llvm" ,llvm-for-mesa)             ; Required for mesa.
     ("lsof" ,lsof)                      ; Required for some friend's list actions.
-    ;; TODO: Set back to mesa once libx11 is ungrafted upstream or once
-    ;; <https://issues.guix.gnu.org/53406> is fixed.
-    ("mesa" ,mesa-fixed)                ; Required for steam startup.
+    ("mesa" ,mesa-next)                  ; Required for steam startup.
     ("nss-certs" ,nss-certs)            ; Required for steam login.
     ("pciutils" ,pciutils)              ; Tries to run lspci at steam startup.
     ("procps" ,procps)
