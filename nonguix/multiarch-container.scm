@@ -271,6 +271,7 @@ in a sandboxed FHS environment."
                                ;; need to be shared with the container as
                                ;; well; this is not needed currently.
                                "^LD_LIBRARY_PATH$"
+                               "^MANGOHUD" ; For MangoHud configuration.
                                "^PRESSURE_VESSEL_" ; For pressure vessel options.
                                "_PROXY$"
                                "_proxy$"
