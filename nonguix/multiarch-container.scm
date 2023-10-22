@@ -320,11 +320,6 @@ in a sandboxed FHS environment."
               (args (cdr (command-line)))
               (command (if DEBUG '()
                            `("--" ,run ,@args))))
-         ;; TODO: Remove once upstream change is merged and in stable pressure-vessel
-         ;; (although may want to hold off for anyone using older pressure-vessel versions
-         ;; for whatever reason), see:
-         ;; https://gitlab.steamos.cloud/steamrt/steam-runtime-tools/-/merge_requests/406
-         (setenv "PRESSURE_VESSEL_FILESYSTEMS_RO" "/gnu/store")
          ;; By default VDPAU drivers are searched for in libvdpau's store
          ;; path, so set this path to where the drivers will actually be
          ;; located in the container.
