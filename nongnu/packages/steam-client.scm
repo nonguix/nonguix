@@ -120,13 +120,25 @@
      (modify-inputs (package-propagated-inputs libxdamage)
        (replace "libx11" libx11-fixed)))))
 
-(define mesa-fixed
+(define-public mesa-next
   (package
     (inherit mesa)
     (propagated-inputs
      (modify-inputs (package-propagated-inputs mesa)
        (replace "libx11" libx11-fixed)
-       (replace "libxdamage" libxdamage-fixed)))))
+       (replace "libxdamage" libxdamage-fixed)))
+    (name "mesa-next")
+    (version "23.2.1")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (list (string-append "https://archive.mesa3d.org/"
+                                 "mesa-" version ".tar.xz")
+                  (string-append "ftp://ftp.freedesktop.org/pub/mesa/"
+                                 "mesa-" version ".tar.xz")))
+       (sha256
+        (base32
+         "1k61pgw0vcjrlb4299q98cy7iqmk2r7jmb5ika91z01dzhb0dpk4"))))))
 
 (define steam-client-libs
   `(("bash" ,bash)                      ; Required for steam startup.
