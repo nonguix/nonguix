@@ -140,6 +140,23 @@
         (base32
          "1k61pgw0vcjrlb4299q98cy7iqmk2r7jmb5ika91z01dzhb0dpk4"))))))
 
+(define-public mesa-git
+  (let ((commit "9f4f52f4f3466ba4570f163c869fc1c04b21e5c9")
+        (revision "0"))
+    (package
+      (inherit mesa-next)
+      (name "mesa-git")
+      (version (git-version "23.3.0-devel" revision commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://gitlab.freedesktop.org/mesa/mesa")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32 "17s2kyf0dsmvi7cnvrmsy39db6j9sba94y34345kqmg4rc2z150a")))))))
+
 (define steam-client-libs
   `(("bash" ,bash)                      ; Required for steam startup.
     ("coreutils" ,coreutils)
