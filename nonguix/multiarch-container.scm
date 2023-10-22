@@ -260,6 +260,7 @@ in a sandboxed FHS environment."
                                "^DISPLAY$"
                                "^DRI_PRIME$"
                                "^GDK_SCALE$" ; For UI scaling.
+                               "^GUIX_LOCPATH$" ; For pressure-vessel locales.
                                ;; For startup of added non-Steam games as it
                                ;; seems they start in an early environment
                                ;; before our additional settings.  (Likely
@@ -336,6 +337,11 @@ in a sandboxed FHS environment."
          ;; properly.  It seems otherwise they don't make it to launching
          ;; Steam's pressure-vessel container (for Proton games).
          (setenv "LD_LIBRARY_PATH" "/lib64:/lib")
+         ;; Set this so Steam's pressure-vessel container does not need to
+         ;; generate locales, improving startup time.  This needs to be set to
+         ;; the "usual" path, probably so they are included in the
+         ;; pressure-vessel container.
+         (setenv "GUIX_LOCPATH" "/usr/lib/locale")
          ;; By default VDPAU drivers are searched for in libvdpau's store
          ;; path, so set this path to where the drivers will actually be
          ;; located in the container.
@@ -474,6 +480,7 @@ application."
               '("/run/current-system/profile/etc"
                 "/run/current-system/profile/share"
                 "/sbin"
+                "/usr/lib"
                 "/usr/share/vulkan/icd.d"))
              (for-each
               new-symlink
@@ -491,6 +498,9 @@ application."
                 ((,union64 "lib") . "/lib64")
                 ((,union64 "lib") . "/run/current-system/profile/lib64")
                 ((,union64 "lib/locale") . "/run/current-system/locale")
+                ;; Despite using GUIX_LOCPATH, stil need locales in their
+                ;; expected location for pressure-vessel to use them.
+                ((,union64 "lib/locale") . "/usr/lib/locale")
                 ((,union64 "sbin/ldconfig") . "/sbin/ldconfig")
                 ((,union64 "share/mime") . "/usr/share/mime") ; Steam tray icon.
                 ((,union64 "share/drirc.d") . "/usr/share/drirc.d")
