@@ -21,14 +21,14 @@
 (define-public anydesk
   (package
     (name "anydesk")
-    (version "6.1.1")
+    (version "6.3.0")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://download.anydesk.com/linux/anydesk-"
                                   version "-amd64.tar.gz"))
               (sha256
                (base32
-                "1ai58fsivb8al1279bayl800qavy0kfj40rjhf87g902ap3p4bhh"))))
+                "0lp4zvbdriwbzfnvblbbpzxsrs0l425rha9qjs9sy6ff6myk7qxi"))))
     (build-system binary-build-system)
     (arguments
      `(#:validate-runpath? #f
