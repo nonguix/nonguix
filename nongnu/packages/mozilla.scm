@@ -532,20 +532,20 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-build-id "20231010000000")
+(define %firefox-build-id "20231023133125")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "118.0.2")
+    (version "119.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "08bvf9fxys5d98prjaxy2vsdq20g1rlr8jq7gkrq5xzhy8h6aql9"))))
+        (base32 "1p9rpscy0zpnlq1014jywqbhak52743q023577hldwj88lcl8gpn"))))
     (arguments
      (substitute-keyword-arguments (package-arguments firefox-esr)
        ((#:phases phases)
@@ -556,7 +556,8 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
     (native-inputs
      (modify-inputs (package-native-inputs firefox-esr)
        (replace "rust" rust-firefox)
-       (replace "rust:cargo" `(,rust-firefox "cargo"))))
+       (replace "rust:cargo" `(,rust-firefox "cargo"))
+       (replace "rust-cbindgen" rust-cbindgen-0.26)))
     (description
      "Full-featured browser client built from Firefox source tree, without
 the official icon and the name \"firefox\".")))
