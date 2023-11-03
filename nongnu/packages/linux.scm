@@ -1122,7 +1122,7 @@ documented in the respective processor revision guides.")
 (define-public sof-firmware
   (package
     (name "sof-firmware")
-    (version "2.2.3")
+    (version "2.2.6")
     (source
      (origin
        (method url-fetch)
@@ -1130,7 +1130,7 @@ documented in the respective processor revision guides.")
                            version "/sof-bin-v" version ".tar.gz"))
        (sha256
         (base32
-         "0hnvzbjgib8f0m2gw345vk0p4h9ba34g7vciih1jgcz2y5kgs7sr"))))
+         "018901g5hshrqf2d0rn7yhzxcy4gmdc4v6167df880kdcfkw48lk"))))
     (build-system copy-build-system)
     (arguments
      `(#:install-plan
