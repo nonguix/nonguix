@@ -94,8 +94,11 @@ your configuration.
 ** Installation image
 
 For some hardware the official Guix installation image won't do
-(e.g. unsupported wifi).  You can generate an installation image running the
-nonfree Linux kernel and nonfree firmware with the following command:
+(e.g. unsupported wifi).  You can find a pre-generated installation image
+(time and version in line with upstream Guix), running the nonfree Linux
+kernel and nonfree firmware, on the [[https://gitlab.com/nonguix/nonguix/-/releases][Releases page]].  Or, you can generate an
+installation image from a local checkout of this repository, at a more recent
+commit, with the following command:
 
 #+begin_src sh
 guix system image --image-type=iso9660 /path/to/this/channel/nongnu/system/install.scm
