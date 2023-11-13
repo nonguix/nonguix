@@ -23,6 +23,7 @@
 ;;; Copyright © 2023 Jelle Licht <jlicht@fsfe.org>
 ;;; Copyright © 2023 Adam Kandur <rndd@tuta.io>
 ;;; Copyright © 2023 Hilton Chain <hako@ultrarare.space>
+;;; Copyright © 2023 Ada Stevenson <adanskana@gmail.com>
 
 (define-module (nongnu packages linux)
   #:use-module (gnu packages)
@@ -247,14 +248,16 @@ stable, responsive and smooth desktop experience."))))
 (define-public linux-firmware
   (package
     (name "linux-firmware")
-    (version "20231030")
+    (version "20231111")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://kernel.org/linux/kernel/firmware/"
                                   "linux-firmware-" version ".tar.xz"))
               (sha256
                (base32
-                "1ivrasi3p1l7sd73m21yybgijn0k9vikqwcllphhs4m3qh7j13f9"))))
+                "165hrdwfvkqngmdf5s759wzfk8wpa8h6bln31bjady1z570mjjcd"))
+              (patches
+               (search-patches "nongnu/packages/patches/copy-firmware-rdfind.patch"))))
     (build-system gnu-build-system)
     (arguments
      `(#:tests? #f
