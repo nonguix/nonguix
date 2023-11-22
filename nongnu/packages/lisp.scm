@@ -125,8 +125,8 @@ then open a browser at http://localhost:PORT, where PORT is the indicated port."
               "https://franz.com/ftp/pub/legal/ACL-Express-20170301.pdf"))))
 
 (define-public sbcl-cl-electron
-  (let ((commit "ec8e3610be26d2d7312fab7d59d840e550b221f2")
-        (revision "1"))
+  (let ((commit "458a60d8c9baae71906294ffae891c3d0686c672")
+        (revision "2"))
     (package
       (name "sbcl-cl-electron")
       (version (git-version "0.0.0" revision commit))
@@ -143,7 +143,7 @@ then open a browser at http://localhost:PORT, where PORT is the indicated port."
       (native-inputs (list ;; sbcl-lisp-unit2
                            sbcl))
       (inputs (list electron node
-                    sbcl-cl-json sbcl-iolib sbcl-nclasses
+                    sbcl-cl-json sbcl-iolib sbcl-cl-str sbcl-nclasses
                     sbcl-parenscript sbcl-bordeaux-threads))
       (synopsis "Common Lisp interface to Electron")
       (home-page "https://github.com/atlas-engineer/cl-electron")
