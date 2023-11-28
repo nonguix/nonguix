@@ -106,28 +106,6 @@
     (description "Steam is a digital software distribution platform created by Valve.")
     (license (license:nonfree "file:///share/doc/steam/steam_subscriber_agreement.txt"))))
 
-;; After guix commit to add a replacement for libx11 (security fixes),
-;; 5ff0c8997a2ddf71af477883584a5f9ccd9b757f, a profile collision happens with
-;; the propagated libx11 (now grafted) from mesa and its propagated-input
-;; libxdamage.  See previous upstream report (when this occurred for expat and
-;; fontconfig) at <https://issues.guix.gnu.org/53406>.  So we define explicit
-;; replacement packages to workaround this issue.
-;; TODO: remove once upstream bug is fixed or libx11 is ungrafted.
-(define libxdamage-fixed
-  (package
-    (inherit libxdamage)
-    (propagated-inputs
-     (modify-inputs (package-propagated-inputs libxdamage)
-       (replace "libx11" libx11-fixed)))))
-
-(define mesa-fixed
-  (package
-    (inherit mesa)
-    (propagated-inputs
-     (modify-inputs (package-propagated-inputs mesa)
-       (replace "libx11" libx11-fixed)
-       (replace "libxdamage" libxdamage-fixed)))))
-
 (define steam-client-libs
   `(("bash" ,bash)                      ; Required for steam startup.
     ("coreutils" ,coreutils)
@@ -151,9 +129,7 @@
     ("libvdpau-va-gl" ,libvdpau-va-gl)  ; Additional VDPAU support.
     ("llvm" ,llvm-for-mesa)             ; Required for mesa.
     ("lsof" ,lsof)                      ; Required for some friend's list actions.
-    ;; TODO: Set back to mesa once libx11 is ungrafted upstream or once
-    ;; <https://issues.guix.gnu.org/53406> is fixed.
-    ("mesa" ,mesa-fixed)                ; Required for steam startup.
+    ("mesa" ,mesa)                      ; Required for steam startup.
     ("nss-certs" ,nss-certs)            ; Required for steam login.
     ("pciutils" ,pciutils)              ; Tries to run lspci at steam startup.
     ("procps" ,procps)
