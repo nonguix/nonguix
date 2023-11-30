@@ -138,7 +138,7 @@ then open a browser at http://localhost:PORT, where PORT is the indicated port."
                (commit commit)))
          (file-name (git-file-name "cl-electron" version))
          (sha256
-          (base32 "0bmnh0xl5pvjv4pdb4a37x87zlyzr5fy7cyaws69p4p4rgzszzv8"))))
+          (base32 "1ya6y55kv0g3h19ifnmwbc752p00s9mj1b1n4ljw4n7ycxmdpb24"))))
       (build-system asdf-build-system/sbcl)
       (native-inputs (list ;; sbcl-lisp-unit2
                            sbcl))
