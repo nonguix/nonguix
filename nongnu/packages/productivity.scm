@@ -24,17 +24,17 @@
 (define-public anytype
   (package
     (name "anytype")
-    (version "0.35.2")
+    (version "0.36.0")
     (source
      (origin
        (method url-fetch)
        (uri
         (string-append "https://download.anytype.io?action=download"
-                       "&key=desktop&id=127051615"))
+                       "&key=desktop&id=136705969"))
        (file-name (string-append "anytype-" version ".deb"))
        (sha256
         (base32
-         "12lfy5rygnaachax62j40b1ns9qsysa94f0hgqhsjaij50kw3dlc"))))
+         "17cs4w3k7nmjav873wwzpxb2dz4mp2zgkpz1karp3x2mxan0x2i3"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list
