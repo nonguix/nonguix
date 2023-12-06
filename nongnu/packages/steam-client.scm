@@ -107,7 +107,8 @@
     (license (license:nonfree "file:///share/doc/steam/steam_subscriber_agreement.txt"))))
 
 (define steam-client-libs
-  `(("bash" ,bash)                      ; Required for steam startup.
+  `(("at-spi2-core" ,at-spi2-core)      ; Required (often) for SteamVR interface.
+    ("bash" ,bash)                      ; Required for steam startup.
     ("coreutils" ,coreutils)
     ("diffutils" ,diffutils)
     ("dbus-glib" ,dbus-glib)            ; Required for steam browser.
