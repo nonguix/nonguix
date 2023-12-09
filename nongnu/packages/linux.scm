@@ -46,12 +46,6 @@
   #:use-module (srfi srfi-1)
   #:export (corrupt-linux))
 
-(define %default-extra-linux-options
-  (@@ (gnu packages linux) %default-extra-linux-options))
-
-(define config->string
-  (@@ (gnu packages linux) config->string))
-
 (define (linux-url version)
   "Return a URL for Linux VERSION."
   (string-append "mirror://kernel.org"
@@ -189,56 +183,68 @@ on hardware which requires nonfree software to function."))))
                             #:key
                             (name "linux-xanmod")
                             (xanmod-defconfig "config_x86-64-v1"))
-  (let ((defconfig xanmod-defconfig)    ;to be used in phases.
-        (base (customize-linux #:name name
-                               #:source source
-                               #:defconfig xanmod-defconfig
-                               ;; EXTRAVERSION is used instead.
-                               #:configs (config->string
-                                          '(("CONFIG_LOCALVERSION" . "")))
-                               #:extra-version xanmod-revision)))
-    (package
-      (inherit base)
-      (version version)
-      (arguments
-       (substitute-keyword-arguments (package-arguments base)
-         ((#:phases phases)
-          #~(modify-phases #$phases
-              (add-before 'configure 'add-xanmod-defconfig
-                (lambda _
-                  (rename-file
-                   (string-append "CONFIGS/xanmod/gcc/" #$defconfig)
-                   ".config")
 
-                  ;; Adapted from `make-linux-libre*'.
-                  (chmod ".config" #o666)
-                  (let ((port (open-file ".config" "a"))
-                        (extra-configuration
-                         #$(config->string
-                            ;; FIXME: There might be other support missing.
-                            (append '(("CONFIG_BLK_DEV_NVME" . #t)
-                                      ("CONFIG_CRYPTO_XTS" . m)
-                                      ("CONFIG_VIRTIO_CONSOLE" . m))
-                                    %default-extra-linux-options))))
-                    (display extra-configuration port)
-                    (close-port port))
-                  (invoke "make" "oldconfig")
+  (define %default-extra-linux-options
+    (@@ (gnu packages linux) %default-extra-linux-options))
 
-                  (rename-file
-                   ".config"
-                   (string-append "arch/x86/configs/" #$defconfig))))))))
-      (native-inputs
-       (modify-inputs (package-native-inputs base)
-         ;; cpio is needed for CONFIG_IKHEADERS.
-         (append cpio zstd)))
-      (home-page "https://xanmod.org/")
-      (supported-systems '("x86_64-linux"))
-      (synopsis
-       "Linux kernel distribution with custom settings and new features")
-      (description
-       "This package provides XanMod kernel, a general-purpose Linux kernel
+  (define config->string
+    (@@ (gnu packages linux) config->string))
+
+  (define base-kernel
+    (customize-linux
+     #:name name
+     #:source source
+     #:defconfig xanmod-defconfig
+     ;; EXTRAVERSION is used instead.
+     #:configs (config->string
+                '(("CONFIG_LOCALVERSION" . "")))
+     #:extra-version xanmod-revision))
+
+  (package
+    (inherit base-kernel)
+    (version version)
+    (arguments
+     (substitute-keyword-arguments (package-arguments base-kernel)
+       ((#:phases phases)
+        #~(modify-phases #$phases
+            ;; Since `customize-linux' replaces the configure phase, we add
+            ;; XanMod defconfig beforehand to ensure compatibility of the
+            ;; resulting package with `customize-linux'.
+            (add-before 'configure 'add-xanmod-defconfig
+              (lambda _
+                (rename-file
+                 (string-append "CONFIGS/xanmod/gcc/" #$xanmod-defconfig)
+                 ".config")
+
+                ;; Adapted from `make-linux-libre*'.
+                (chmod ".config" #o666)
+                (let ((port (open-file ".config" "a"))
+                      (extra-configuration
+                       #$(config->string
+                          (append %default-extra-linux-options
+                                  ;; NOTE: These are configs expected by Guix
+                                  ;; but missing from XanMod defconfig.
+                                  '(("CONFIG_BLK_DEV_NVME" . #t)
+                                    ("CONFIG_CRYPTO_XTS" . m)
+                                    ("CONFIG_VIRTIO_CONSOLE" . m))))))
+                  (display extra-configuration port)
+                  (close-port port))
+                (invoke "make" "oldconfig")
+
+                (rename-file
+                 ".config"
+                 (string-append "arch/x86/configs/" #$xanmod-defconfig))))))))
+    (native-inputs
+     (modify-inputs (package-native-inputs base-kernel)
+       ;; cpio is needed for CONFIG_IKHEADERS.
+       (prepend cpio zstd)))
+    (home-page "https://xanmod.org/")
+    (supported-systems '("x86_64-linux"))
+    (synopsis "Linux kernel distribution with custom settings and new features")
+    (description
+     "This package provides XanMod kernel, a general-purpose Linux kernel
 distribution with custom settings and new features.  It's built to provide a
-stable, responsive and smooth desktop experience."))))
+stable, responsive and smooth desktop experience.")))
 
 ;; Linux-XanMod sources
 (define-public linux-xanmod-version "6.5.10")
