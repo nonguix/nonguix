@@ -147,12 +147,43 @@ on hardware which requires nonfree software to function."))))
 ;;; Linux-XanMod
 ;;;
 
-(define (make-linux-xanmod-source version xanmod-revision hash-string)
+(define* (make-linux-xanmod-source version xanmod-revision
+                                   #:key xanmod-branch kernel-hash xanmod-hash)
+
+  (define %upstream-linux-source
+    (@@ (gnu packages linux) %upstream-linux-source))
+
+  (define kernel-source
+    (%upstream-linux-source (version-major+minor version) kernel-hash))
+
+  (define xanmod-patch
+    (origin
+      (method url-fetch)
+      (uri (string-append
+            "mirror://sourceforge/xanmod/releases/" xanmod-branch "/"
+            version "-" xanmod-revision "/patch-"
+            version "-" xanmod-revision ".xz"))
+      (sha256 xanmod-hash)))
+
   (origin
-    (method url-fetch)
-    (uri (string-append "https://gitlab.com/xanmod/linux/-/archive/"
-                        version "-" xanmod-revision ".tar.bz2"))
-    (sha256 hash-string)))
+    (inherit kernel-source)
+    (modules '((guix build utils)))
+    (snippet
+     #~(begin
+         (let* ((xz-name (basename #+xanmod-patch))
+                (patch-xz-name (string-append (string-drop-right xz-name 3)
+                                              ".patch.xz"))
+                (patch-name (string-drop-right patch-xz-name 3)))
+           (copy-file #+xanmod-patch patch-xz-name)
+           (invoke #+(file-append xz "/bin/unxz") patch-xz-name)
+           (invoke #+(file-append patch "/bin/patch")
+                   "--force" "--no-backup-if-mismatch"
+                   #+@(origin-patch-flags kernel-source)
+                   "--input" patch-name)
+           (for-each delete-file
+                     (list patch-name
+                           ;; EXTRAVERSION is used instead.
+                           "localversion")))))))
 
 (define* (make-linux-xanmod version xanmod-revision source
                             #:key
@@ -173,11 +204,6 @@ on hardware which requires nonfree software to function."))))
        (substitute-keyword-arguments (package-arguments base)
          ((#:phases phases)
           #~(modify-phases #$phases
-              ;; EXTRAVERSION is used instead.
-              (add-after 'unpack 'remove-localversion
-                (lambda _
-                  (when (file-exists? "localversion")
-                    (delete-file "localversion"))))
               (add-before 'configure 'add-xanmod-defconfig
                 (lambda _
                   (rename-file
@@ -221,7 +247,9 @@ stable, responsive and smooth desktop experience."))))
   (make-linux-xanmod-source
    linux-xanmod-version
    linux-xanmod-revision
-   (base32 "020f97pd45lg9nw38j4hz4kqd2ch81fqdp3qkpnzpxf8kihzn2li")))
+   #:xanmod-branch "main"
+   #:kernel-hash (base32 "117qmckqrabja9f9260vhrg08wkz4q3syzyaa9msfbl042y4nmvs")
+   #:xanmod-hash (base32 "1n10yl5wgqk0n6ijnnzlmidk61hazhhwzgjf7kkg9cgk7nsjs626")))
 
 (define-public linux-xanmod-lts-version "6.1.61")
 (define-public linux-xanmod-lts-revision "xanmod1")
@@ -229,7 +257,9 @@ stable, responsive and smooth desktop experience."))))
   (make-linux-xanmod-source
    linux-xanmod-lts-version
    linux-xanmod-lts-revision
-   (base32 "1rp9g9qdrr2l0wwxx4myz6kr3agznama2r6q8an505l8mwdgwll8")))
+   #:xanmod-branch "lts"
+   #:kernel-hash (base32 "1ssxn81jfl0jf9brczfrrwd1f1vmf594jvhrs7zgcc54a5qg389c")
+   #:xanmod-hash (base32 "036yl7a8x2y8mjwyb061vaw9zwabdddpvs7sii9ip27i34k0cl11")))
 
 ;; Linux-XanMod packages
 (define-public linux-xanmod
