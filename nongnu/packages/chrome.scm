@@ -15,6 +15,7 @@
   #:use-module (gnu packages linux)
   #:use-module (gnu packages pciutils)
   #:use-module (gnu packages photo)
+  #:use-module (gnu packages qt)
   #:use-module (gnu packages video)
   #:use-module (gnu packages wget)
   #:use-module (gnu packages xiph)
@@ -55,9 +56,17 @@
                   '("chrome"
                     "chrome-sandbox"
                     "chrome_crashpad_handler"
-                    "nacl_helper"
                     "libEGL.so"
-                    "libGLESv2.so")))
+                    "libGLESv2.so"
+                    "liboptimization_guide_internal.so"
+                    "libqt5_shim.so"
+                    "libqt6_shim.so"
+                    "libvk_swiftshader.so"
+                    "libvulkan.so.1"
+                    "WidevineCdm/_platform_specific/linux_x64/libwidevinecdm.so"
+                    #$@(if (string=? repo "stable")
+                           '("nacl_helper")
+                           '()))))
         #:install-plan
          #~'(("opt/" "/share")
              ("usr/share/" "/share"))
@@ -135,6 +144,8 @@
             opus
             pciutils
             pipewire
+            qtbase-5
+            qtbase
             snappy
             util-linux
             xdg-utils
@@ -146,7 +157,7 @@
      (license (nonfree "https://www.google.com/intl/en/chrome/terms/")))))
 
 (define-public google-chrome-stable
-  (make-google-chrome "stable" "118.0.5993.70" "1bq170l0g9yq17x6xlg6fjar6gv3hdi0zijwmx4s02pmw6727484"))
+  (make-google-chrome "stable" "120.0.6099.71" "15r1kx4jnbrcw7kfma528ks5ic17s4ydh1ncsb680himhln02z64"))
 
 (define-public google-chrome-beta
   (make-google-chrome "beta" "117.0.5938.22" "11w1di146mjb9ql30df9yk9x4b9amc6514jzyfbf09mqsrw88dvr"))
