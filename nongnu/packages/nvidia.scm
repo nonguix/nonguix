@@ -73,7 +73,13 @@
 
 
 (define (nvidia-source-unbundle-libraries version)
-  #t)
+  #~(begin
+      (use-modules (guix build utils))
+      (for-each delete-file
+                (find-files "." (string-join
+                                 '(;; nvidia-settings
+                                   "libnvidia-gtk[23]\\.so\\.")
+                                 "|")))))
 
 (define* (make-nvidia-source
           version hash
@@ -197,18 +203,11 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                                   (list "$ORIGIN"
                                         (string-append #$output "/lib")
                                         (string-append #$gcc:lib "/lib")
-                                        (string-append #$gtk+-2 "/lib")
-                                        (string-append #$(this-package-input "atk") "/lib")
-                                        (string-append #$(this-package-input "cairo") "/lib")
-                                        (string-append #$(this-package-input "gdk-pixbuf") "/lib")
-                                        (string-append #$(this-package-input "glib") "/lib")
                                         (string-append #$(this-package-input "glibc") "/lib")
-                                        (string-append #$(this-package-input "gtk+") "/lib")
                                         (string-append #$(this-package-input "libdrm") "/lib")
                                         (string-append #$(this-package-input "libx11") "/lib")
                                         (string-append #$(this-package-input "libxext") "/lib")
                                         (string-append #$(this-package-input "mesa") "/lib")
-                                        (string-append #$(this-package-input "pango") "/lib")
                                         (string-append #$(this-package-input "wayland") "/lib"))
                                   ":")))
                      (define (patch-elf file)
@@ -265,23 +264,16 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
     (native-inputs (list patchelf))
     (inputs
      (list `(,gcc "lib")
-           atk
            bash-minimal
-           cairo
            coreutils
-           gdk-pixbuf
-           glib
            glibc
            grep
-           gtk+
-           gtk+-2
            kmod
            libdrm
            libx11
            libxext
            linux-lts
            mesa
-           pango
            wayland))
     (home-page "https://www.nvidia.com")
     (synopsis "Proprietary NVIDIA driver")
