@@ -270,11 +270,9 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
            coreutils
            glibc
            grep
-           kmod
            libdrm
            libx11
            libxext
-           linux-lts
            mesa
            wayland))
     (home-page "https://www.nvidia.com")
