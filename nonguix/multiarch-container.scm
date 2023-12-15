@@ -8,6 +8,7 @@
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2023 Attila Lendvai <attila@lendvai.name>
 ;;; Copyright © 2023 Elijah Malaby
+;;; Copyright © 2023 Timo Wilken <guix@twilken.net>
 
 ;;; The script provided by this package may optionally be started as
 ;;; a shell instead of automatically launching the wrapped entrypoint by setting
@@ -50,6 +51,7 @@
   #:export (nonguix-container
             nonguix-container?
             ngc-name
+            ngc-binary-name
             ngc-version
             ngc-wrap-package
             ngc-run
@@ -82,6 +84,7 @@
   nonguix-container make-nonguix-container
   nonguix-container? this-nonguix-container
   (name          ngc-name)
+  (binary-name   ngc-binary-name (default (ngc-name this-nonguix-container)) (thunked))
   (version       ngc-version (default #f))
   (wrap-package  ngc-wrap-package)
   (run           ngc-run)
@@ -207,7 +210,7 @@ in a sandboxed FHS environment."
                   (manifest-target (assoc-ref %build-inputs "fhs-manifest"))
                   (manifest-dest (string-append out "/etc/" ,(ngc-manifest-name container)))
                   (wrapper-target (assoc-ref %build-inputs "fhs-wrapper"))
-                  (wrapper-dest (string-append out "/bin/" ,(ngc-name container)))
+                  (wrapper-dest (string-append out "/bin/" ,(ngc-binary-name container)))
                   (link-files ',(ngc-link-files container)))
              (mkdir-p (string-append out "/sbin"))
              (mkdir-p (string-append out "/etc"))
@@ -528,7 +531,7 @@ application."
                (if asound32-opt
                    (display "\n\n/etc/asound.conf configured for 32-bit.\n\n\n")
                    (display (string-append "\n\n/etc/asound.conf configured for 64-bit.\nLaunch "
-                                           #$(ngc-name container)
+                                           #$(ngc-binary-name container)
                                            " with \""
                                            (basename #$(ngc-run container))
                                            " -- --asound32\" to use 32-bit instead.\n\n\n")))

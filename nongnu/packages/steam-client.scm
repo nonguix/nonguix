@@ -7,6 +7,7 @@
 ;;; Copyright © 2021, 2022 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2023 Elijah Malaby
+;;; Copyright © 2023 Timo Wilken <guix@twilken.net>
 
 (define-module (nongnu packages steam-client)
   #:use-module ((guix licenses) #:prefix license:)
@@ -200,6 +201,8 @@ all games will be installed.")))
   (nonguix-container
    (inherit steam-container)
    (name "steam-nvidia")
+   ;; Steam's .desktop files expect a "steam" executable, so provide that.
+   (binary-name "steam")
    (union64 (replace-mesa (ngc-union64 steam-container)))
    (union32 (replace-mesa (ngc-union32 steam-container)))))
 
