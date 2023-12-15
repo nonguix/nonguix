@@ -539,6 +539,8 @@ userspace tools from the corresponding driver release.")
                     (url "https://github.com/NVIDIA/nvidia-settings")
                     (commit version)))
               (file-name (git-file-name name version))
+              (modules '((guix build utils)))
+              (snippet '(delete-file-recursively "src/jansson"))
               (sha256
                (base32
                 "1hplc42115c06cc555cjmw3c9371qn7ibwjpqjybcf6ixfd6lryq"))))
@@ -546,7 +548,8 @@ userspace tools from the corresponding driver release.")
     (arguments
      (list #:tests? #f ;no test suite
            #:make-flags
-           #~(list (string-append "PREFIX=" #$output)
+           #~(list "NV_USE_BUNDLED_LIBJANSSON=0"
+                   (string-append "PREFIX=" #$output)
                    (string-append "CC=" #$(cc-for-target)))
            #:phases
            #~(modify-phases %standard-phases
@@ -564,6 +567,7 @@ userspace tools from the corresponding driver release.")
                   glu
                   gtk+
                   gtk+-2
+                  jansson
                   libvdpau
                   libx11
                   libxext
