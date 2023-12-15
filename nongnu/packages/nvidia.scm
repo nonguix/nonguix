@@ -6,7 +6,7 @@
 ;;; Copyright © 2021 Pierre Langlois <pierre.langlois@gmx.com>
 ;;; Copyright © 2022, 2023 Petr Hodina <phodina@protonmail.com>
 ;;; Copyright © 2022 Alexey Abramov <levenson@mmer.org>
-;;; Copyright © 2022 Hilton Chain <hako@ultrarare.space>
+;;; Copyright © 2022, 2023, 2024 Hilton Chain <hako@ultrarare.space>
 
 (define-module (nongnu packages nvidia)
   #:use-module (guix packages)
@@ -41,6 +41,7 @@
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages python-xyz)
   #:use-module (gnu packages qt)
+  #:use-module (gnu packages tls)
   #:use-module (gnu packages video)
   #:use-module (gnu packages web)
   #:use-module (gnu packages xdisorg)
@@ -64,7 +65,7 @@
     ;; GSYNC control for Vulkan direct-to-display applications.
     "^VKDirectGSYNC(Compatible)?Allowed$"))
 
-(define-public nvidia-version "515.76")
+(define-public nvidia-version "550.67")
 
 
 ;;;
@@ -74,11 +75,11 @@
 
 (define* (nvidia-source-hash version #:optional (package "nvidia-driver"))
   (define %nvidia-source-hashes
-    '(("515.76" .
+    '(("550.67" .
        (("nvidia-driver" .
-         "0i5zyvlsjnfkpfqhw6pklp0ws8nndyiwxrg4pj04jpwnxf6a38n6")
+         "1qnsyzplkxfcc2sj6fcw3ylfp0njvb5z1c0y4v80zzqwqw4il84r")
         ("nvidia-settings" .
-         "1hplc42115c06cc555cjmw3c9371qn7ibwjpqjybcf6ixfd6lryq")))))
+         "18sij736liyhqysvsnqwb6r58pf0zbggxyvyc11psc4ljxg30h8m")))))
   (let ((hashes (assoc-ref %nvidia-source-hashes version)))
     (assoc-ref hashes package)))
 
@@ -137,7 +138,8 @@ VERSION as argument and returns a G-expression."
                        grep
                        tar
                        which
-                       xz))
+                       xz
+                       zstd))
              (setenv "XZ_OPT" (string-join (%xz-parallel-args)))
              (invoke "sh" #$installer "-x")
              (copy-recursively
@@ -333,6 +335,7 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                                                 #$(glibc-dynamic-linker)))
                           (rpath (string-join
                                   (list (string-append #$output "/lib")
+                                        (string-append #$openssl-1.1 "/lib")
                                         (string-append #$(this-package-input "egl-wayland") "/lib")
                                         (string-append (ungexp (this-package-input "gcc") "lib") "/lib")
                                         (string-append #$(this-package-input "glibc") "/lib")
@@ -340,6 +343,7 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                                         (string-append #$(this-package-input "libglvnd") "/lib")
                                         (string-append #$(this-package-input "libx11") "/lib")
                                         (string-append #$(this-package-input "libxext") "/lib")
+                                        (string-append #$(this-package-input "openssl") "/lib")
                                         (string-append #$(this-package-input "wayland") "/lib"))
                                   ":")))
                      (define (patch-elf file)
@@ -366,7 +370,9 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                           (install-file binary bindir)
                           (when (file-exists? manual)
                             (install-file manual mandir))))
-                      '("nvidia-smi")))))
+                      '("nvidia-cuda-mps-control"
+                        "nvidia-cuda-mps-server"
+                        "nvidia-smi")))))
                (add-before 'patch-elf 'relocate-libraries
                  (lambda _
                    (let* ((version #$(package-version this-package))
@@ -441,6 +447,8 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
            libglvnd-for-nvda
            libx11
            libxext
+           openssl
+           openssl-1.1
            wayland))
     (home-page "https://www.nvidia.com")
     (synopsis "Proprietary NVIDIA driver (libraries)")
