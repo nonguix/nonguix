@@ -554,6 +554,10 @@ userspace tools from the corresponding driver release.")
            #:phases
            #~(modify-phases %standard-phases
                (delete 'configure)
+               (add-after 'unpack 'fix-application-profile-path
+                 (lambda* (#:key inputs #:allow-other-keys)
+                   (substitute* "src/gtk+-2.x/ctkappprofile.c"
+                     (("/usr") "/run/booted-system/profile"))))
                (add-after 'install 'wrap-program
                  (lambda* (#:key outputs #:allow-other-keys)
                    (let ((out (assoc-ref outputs "out")))
