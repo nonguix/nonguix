@@ -66,9 +66,6 @@
 
 (define-public nvidia-version "515.76")
 
-(define computed-origin-method
-  (@@ (guix packages) computed-origin-method))
-
 
 ;;;
 ;;; NVIDIA driver checkouts
@@ -78,7 +75,7 @@
 ;; Extract the driver installer and make it a new origin instance for reusing.
 (define (make-nvidia-source version installer)
   (origin
-    (method computed-origin-method)
+    (method (@@ (guix packages) computed-origin-method))
     (file-name (string-append "nvidia-driver-" version "-checkout"))
     (sha256 #f)
     (uri
@@ -89,13 +86,13 @@
                           (ice-9 ftw))
              (set-path-environment-variable
               "PATH" '("bin")
-              (list (canonicalize-path #+bash-minimal)
-                    (canonicalize-path #+coreutils)
-                    (canonicalize-path #+gawk)
-                    (canonicalize-path #+grep)
-                    (canonicalize-path #+tar)
-                    (canonicalize-path #+which)
-                    (canonicalize-path #+xz)))
+              '#+(list bash-minimal
+                       coreutils
+                       gawk
+                       grep
+                       tar
+                       which
+                       xz))
              (setenv "XZ_OPT" (string-join (%xz-parallel-args)))
              (invoke "sh" #$installer "-x")
              (copy-recursively
