@@ -558,6 +558,17 @@ userspace tools from the corresponding driver release.")
                  (lambda* (#:key inputs #:allow-other-keys)
                    (substitute* "src/gtk+-2.x/ctkappprofile.c"
                      (("/usr") "/run/booted-system/profile"))))
+               (add-after 'install 'install-desktop-file
+                 (lambda _
+                   (substitute* "doc/nvidia-settings.desktop"
+                     (("^Exec=.*") "Exec=nvidia-settings\n")
+                     (("__NVIDIA_SETTINGS_DESKTOP_CATEGORIES__") "Settings"))
+                   (install-file "doc/nvidia-settings.desktop"
+                                 (string-append
+                                  #$output "/share/applications"))
+                   (install-file "doc/nvidia-settings.png"
+                                 (string-append
+                                  #$output "/share/icons/hicolor/128x128/apps"))))
                (add-after 'install 'wrap-program
                  (lambda* (#:key outputs #:allow-other-keys)
                    (let ((out (assoc-ref outputs "out")))
