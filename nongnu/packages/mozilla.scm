@@ -532,20 +532,20 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-build-id "20231129224408")
+(define %firefox-build-id "20231218153158")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "120.0.1")
+    (version "121.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "1qlsjpiwgr17bd0dphshs6dj23889m7h3sfq8j21b0282hmbprvn"))))
+        (base32 "193al259awzfi5c3pf8257p8qr9i4biapx9bw8ijmzr3klasbizd"))))
     (arguments
      (substitute-keyword-arguments (package-arguments firefox-esr)
        ((#:phases phases)
@@ -562,38 +562,6 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
      "Full-featured browser client built from Firefox source tree, without
 the official icon and the name \"firefox\".")))
 
-(define-public firefox/wayland
-  (package
-    (inherit firefox)
-    (name "firefox-wayland")
-    (native-inputs '())
-    (inputs
-     `(("bash" ,bash-minimal)
-       ("firefox" ,firefox)))
-    (build-system trivial-build-system)
-    (arguments
-     '(#:modules ((guix build utils))
-       #:builder
-       (begin
-         (use-modules (guix build utils))
-         (let* ((bash    (assoc-ref %build-inputs "bash"))
-                (firefox (assoc-ref %build-inputs "firefox"))
-                (out     (assoc-ref %outputs "out"))
-                (exe     (string-append out "/bin/firefox")))
-           (mkdir-p (dirname exe))
-
-           (call-with-output-file exe
-             (lambda (port)
-               (format port "#!~a
-MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
-                       (string-append bash "/bin/bash")
-                       (string-append firefox "/bin/firefox"))))
-           (chmod exe #o555)
-
-           ;; Provide the manual and .desktop file.
-           (copy-recursively (string-append firefox "/share")
-                             (string-append out "/share"))
-           (substitute* (string-append
-                         out "/share/applications/firefox.desktop")
-             ((firefox) out))
-           #t))))))
+;; As of Firefox 121.0, Firefox uses Wayland by default. This means we no longer need a seperate package
+;; for Firefox on Wayland.
+(deprecated-package "firefox-wayland" firefox)
