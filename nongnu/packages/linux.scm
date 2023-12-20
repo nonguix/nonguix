@@ -245,22 +245,23 @@ stable, responsive and smooth desktop experience."))))
 (define-public linux-firmware
   (package
     (name "linux-firmware")
-    (version "20231111")
+    (version "20231211")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://kernel.org/linux/kernel/firmware/"
                                   "linux-firmware-" version ".tar.xz"))
               (sha256
                (base32
-                "165hrdwfvkqngmdf5s759wzfk8wpa8h6bln31bjady1z570mjjcd"))
-              (patches
-               (search-patches "nongnu/packages/patches/copy-firmware-rdfind.patch"))))
+                "1fz8vflidayal6gpjvmp75ni04b9ndxbpp5krmlpilxbbr5pxbwn"))))
     (build-system gnu-build-system)
     (arguments
      `(#:tests? #f
        #:make-flags (list (string-append "DESTDIR=" (assoc-ref %outputs "out")))
        #:phases
        (modify-phases %standard-phases
+         (replace 'install
+           (lambda* (#:key (make-flags '()) #:allow-other-keys)
+             (apply invoke "make" "install-nodedup" make-flags)))
          (delete 'validate-runpath))))
     (home-page
      "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git")
