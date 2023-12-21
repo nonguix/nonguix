@@ -564,4 +564,5 @@ the official icon and the name \"firefox\".")))
 
 ;; As of Firefox 121.0, Firefox uses Wayland by default. This means we no longer need a seperate package
 ;; for Firefox on Wayland.
-(deprecated-package "firefox-wayland" firefox)
+(define-public firefox-wayland
+  (deprecated-package "firefox-wayland" firefox))
