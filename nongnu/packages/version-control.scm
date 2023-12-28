@@ -13,7 +13,7 @@
 (define-public helix-core
   (package
     (name "helix-core")
-    (version "r22.1")
+    (version "r23.1")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://ftp.perforce.com/perforce/" version
@@ -28,7 +28,7 @@
                   ("i686-linux"
                    "0f5qs55rspw86axnmml3nxx551lwbxwz1cgi9kmy2f9g5rrplnkn")
                   (_
-                   "077rfbjgyhdgv76i2727s3yk3p52y75nml8n9wv8g7mvhfs9ypa9"))))))
+                   "1vqfkhgbx6ch7710w8mmm7hydl6jmd9qgzs0gfjg8gvd5gnh1csr"))))))
     (build-system binary-build-system)
     (arguments
      `(#:strip-binaries? #f
