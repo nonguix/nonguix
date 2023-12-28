@@ -4,7 +4,7 @@
 ;;; Copyright © 2019 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2019 Timotej Lazar <timotej.lazar@araneo.si>
 ;;; Copyright © 2020, 2021 James Smith <jsubuntuxp@disroot.org>
-;;; Copyright © 2020, 2021, 2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2020-2023 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2020, 2022 Michael Rohleder <mike@rohleder.de>
 ;;; Copyright © 2020, 2021, 2022 Tobias Geerinckx-Rice <me@tobias.gr>
 ;;; Copyright © 2020, 2021, 2022 Zhu Zihao <all_but_last@163.com>
@@ -824,7 +824,7 @@ RTL8812AU, RTL8821AU, and RTL8814AU chips.")
 (define-public r8168-linux-module
   (package
     (name "r8168-linux-module")
-    (version "8.051.02")
+    (version "8.052.01")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -833,19 +833,9 @@ RTL8812AU, RTL8821AU, and RTL8814AU chips.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "16mpr0np6xbmzdnwg4p3q6yli2gh032k98g4vplya33hrn50vh52"))))
+                "01mi7hh92nc7jaxkfrpz7j0ci78djrhgmq0im4k1270mwmvr0yzj"))))
     (arguments
-     (list #:tests? #f
-           #:phases #~(modify-phases %standard-phases
-                        (add-after 'unpack 'enter-src-directory
-                          (lambda _
-                            (chdir "src")))
-                        ;; Needed to compile module for linux >= 6.1
-                        (add-before 'build 'fix-build
-                          (lambda _
-                            (substitute* "r8168.h"
-                              (("netif_napi_add\\(ndev, &priv->napi, function, weight\\)")
-                               "netif_napi_add(ndev, &priv->napi, function)")))))))
+     (list #:tests? #f))
     (build-system linux-module-build-system)
     (home-page "https://github.com/mtorromeo/r8168")
     (synopsis "Linux driver for Realtek PCIe network adapters")
