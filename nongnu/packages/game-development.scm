@@ -144,6 +144,7 @@ development should opt for GLSL rather than Cg.")
              (copy-file (assoc-ref inputs "source") "libsteam_api.so")
              (chmod "libsteam_api.so" #o644)
              #t))
+         (delete 'binary-unpack)
          (add-after 'install 'symlink
            (lambda* (#:key outputs #:allow-other-keys)
              (let ((out (assoc-ref outputs "out")))
