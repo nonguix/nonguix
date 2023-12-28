@@ -2,6 +2,7 @@
 ;;; Copyright © 2019 Pierre Neidhardt <mail@ambrevar.xyz>
 ;;; Copyright © 2020 Jelle Licht <jlicht@fsfe.org>
 ;;; Copyright © 2020 Alex Griffin <a@ajgrf.com>
+;;; Copyright © 2023 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 
 (define-module (nongnu packages clojure)
   #:use-module (gnu packages compression)
@@ -11,6 +12,7 @@
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system trivial)
   #:use-module (guix download)
+  #:use-module (guix gexp)
   #:use-module (guix git-download)
   #:use-module (guix packages)
   #:use-module (nonguix build-system binary)
@@ -96,20 +98,18 @@ lets you focus on your code.")
                "1zb4bkmhv5mh18z8h82qa1a0m95pd5dwdxg31pqgs6lnlca3vsph"))))
    (build-system binary-build-system)
    (arguments
-    `(#:patchelf-plan
-      '(("clj-kondo" ("gcc:lib" "zlib")))
-      #:install-plan
-      '(("clj-kondo" "/bin/"))
-      #:phases
-      (modify-phases %standard-phases
-         (add-after 'unpack 'chmod
-           (lambda _
-             (chmod "clj-kondo" #o755))))))
+    (list #:patchelf-plan `'(("clj-kondo" ("gcc" "zlib")))
+          #:install-plan `'(("clj-kondo" "/bin/"))
+          #:phases #~(modify-phases %standard-phases
+                       (delete 'binary-unpack)
+                       (add-after 'unpack 'chmod
+                         (lambda _
+                           (chmod "clj-kondo" #o755))))))
    (native-inputs
-    `(("unzip" ,unzip)))
+    (list unzip))
    (inputs
-    `(("gcc:lib" ,gcc "lib")
-      ("zlib" ,zlib)))
+    (list `(,gcc "lib")
+          zlib))
    (supported-systems '("x86_64-linux"))
    (home-page "https://github.com/clj-kondo/clj-kondo")
    (synopsis  "Linter for Clojure code")
