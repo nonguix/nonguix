@@ -155,7 +155,12 @@ The inputs are optional when the file is an executable."
       (chdir "binary")
       (match binary-file
         ((? deb-file?) (unpack-deb binary-file))
-        (_ (format #t "Unknown file type: ~a~%" (basename binary-file)))))))
+        (_
+         (begin
+           (format #t "Unknown file type: ~a~%" (basename binary-file))
+           ;; Cleanup after ourselves
+           (chdir "..")
+           (rmdir "binary")))))))
 
 (define %standard-phases
   ;; Everything is as with the GNU Build System except for the `binary-unpack',

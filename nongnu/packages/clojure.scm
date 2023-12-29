@@ -101,7 +101,6 @@ lets you focus on your code.")
     (list #:patchelf-plan `'(("clj-kondo" ("gcc" "zlib")))
           #:install-plan `'(("clj-kondo" "/bin/"))
           #:phases #~(modify-phases %standard-phases
-                       (delete 'binary-unpack)
                        (add-after 'unpack 'chmod
                          (lambda _
                            (chmod "clj-kondo" #o755))))))
