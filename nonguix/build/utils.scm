@@ -97,23 +97,3 @@ contents:
   (call-with-output-file result
     (lambda (port)
       (for-each (cut dump <> port) files))))
-
-(define build-paths-for-input
-  (lambda (dirs input)
-    (filter-map
-     (lambda (sub-directory)
-       (let ((directory
-              (string-append
-               input "/" sub-directory)))
-         (and
-          (directory-exists? directory)
-          directory)))
-     dirs)))
-
-(define build-paths-from-inputs
-  (lambda (dirs inputs)
-    (reduce append '()
-            (map
-             (lambda (input)
-               (build-paths-for-input dirs input))
-             inputs))))

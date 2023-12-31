@@ -4,7 +4,6 @@
 (define-module (nonguix build chromium-binary-build-system)
   #:use-module ((guix build gnu-build-system) #:prefix gnu:)
   #:use-module ((nonguix build binary-build-system) #:prefix binary:)
-  #:use-module (nonguix build utils)
   #:use-module (guix build utils)
   #:use-module (ice-9 ftw)
   #:use-module (ice-9 match)
@@ -24,9 +23,9 @@
          (nss (assoc-ref inputs "nss"))
          (wrap-inputs (map cdr inputs))
          (lib-directories
-          (build-paths-from-inputs '("lib") wrap-inputs))
+          (search-path-as-list '("lib") wrap-inputs))
          (bin-directories
-          (build-paths-from-inputs
+          (search-path-as-list
            '("bin" "sbin" "libexec")
            wrap-inputs)))
     (for-each
