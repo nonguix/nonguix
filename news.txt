@@ -9,6 +9,14 @@
 (channel-news
  (version 0)
 
+ (entry (commit "efc2678cbcd85c9cdb759500dcd8ab53c05095ff")
+        (title
+         (en "(nongnu packages steam-client) module renamed"))
+        (body
+         (en "The (nongnu packages steam-client) module has been renamed to (nongnu packages
+game-client).  This is to better reflect the contents with the addition of the
+Heroic client in a following commit.")))
+
  (entry (commit "9456c59cfa580399ab450ca0057321e2d81f3319")
         (title
          (en "Linux LTS kernel updated to 6.1")
