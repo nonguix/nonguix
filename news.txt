@@ -9,7 +9,7 @@
 (channel-news
  (version 0)
 
- (entry (commit "efc2678cbcd85c9cdb759500dcd8ab53c05095ff")
+ (entry (commit "1591c3d1d10b2884da29ab7d1252304f2ce1514b")
         (title
          (en "(nongnu packages steam-client) module renamed"))
         (body
