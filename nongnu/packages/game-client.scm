@@ -4,7 +4,7 @@
 ;;; Copyright © 2021 pineapples
 ;;; Copyright © 2021 Jean-Baptiste Volatier <jbv@pm.me>
 ;;; Copyright © 2021 Kozo <kozodev@runbox.com>
-;;; Copyright © 2021, 2022 John Kehayias <john.kehayias@protonmail.com>
+;;; Copyright © 2021, 2022, 2023, 2024 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2023 Elijah Malaby
 ;;; Copyright © 2023 Timo Wilken <guix@twilken.net>
@@ -15,6 +15,7 @@
   #:use-module (guix git-download)
   #:use-module (guix packages)
   #:use-module (guix download)
+  #:use-module (guix gexp)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system python)
   #:use-module (gnu packages audio)
@@ -22,6 +23,7 @@
   #:use-module (gnu packages bash)
   #:use-module (gnu packages certs)
   #:use-module (gnu packages compression)
+  #:use-module (gnu packages curl)
   #:use-module (gnu packages elf)
   #:use-module (gnu packages file)
   #:use-module (gnu packages fonts)
@@ -49,8 +51,67 @@
   #:use-module (gnu packages toolkits)
   #:use-module (gnu packages video)
   #:use-module (gnu packages xorg)
+  #:use-module (nonguix build-system chromium-binary)
   #:use-module (nonguix multiarch-container)
   #:use-module (nonguix utils))
+
+(define heroic-client
+  (package
+    (name "heroic-client")
+    (version "2.11.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://github.com/Heroic-Games-Launcher/"
+                           "HeroicGamesLauncher/releases/download/v"
+                           version "/heroic_" version "_amd64.deb"))
+       (sha256
+        (base32
+         "1g54rzhgbqqd7nsbd08p3jkdyy01gz0q8yvhpcd698jpi2ks87q0"))))
+    (build-system chromium-binary-build-system)
+    (arguments
+     (list #:validate-runpath? #f ; TODO: fails on wrapped binary and included other files
+           #:wrapper-plan
+           #~'("lib/Heroic/heroic"
+               "lib/Heroic/libEGL.so"
+               "lib/Heroic/libGLESv2.so"
+               "lib/Heroic/libvk_swiftshader.so"
+               "lib/Heroic/libvulkan.so.1"
+               "lib/Heroic/chrome-sandbox"
+               "lib/Heroic/chrome_crashpad_handler"
+               "lib/Heroic/libffmpeg.so")
+           #:phases
+           #~(modify-phases %standard-phases
+               (add-after 'binary-unpack 'setup-cwd
+                 (lambda _
+                   (copy-recursively "usr/" ".")
+                   ;; Use the more standard lib directory for everything.
+                   (rename-file "opt/" "lib")
+                   ;; Remove unneeded files.
+                   (delete-file-recursively "usr")
+                   ;; Fix the .desktop file binary location.
+                   (substitute* '("share/applications/heroic.desktop")
+                     (("/opt/Heroic/")
+                      (string-append #$output "/bin/")))))
+               (add-after 'install 'symlink-binary-file
+                 (lambda _
+                   (mkdir-p (string-append #$output "/bin"))
+                   (symlink (string-append #$output "/lib/Heroic/heroic")
+                            (string-append #$output "/bin/heroic"))))
+               (add-after 'install-wrapper 'wrap-where-patchelf-does-not-work
+                 (lambda _
+                   (wrap-program (string-append #$output "/lib/Heroic/heroic")
+                     `("LD_LIBRARY_PATH" ":" prefix
+                       (,(string-join
+                          (list
+                           (string-append #$output "/lib/Heroic"))
+                          ":")))))))))
+    (home-page "https://heroicgameslauncher.com")
+    (synopsis "A Native GOG, Amazon and Epic Games Launcher")
+    (description "Heroic is an Open Source Game Launcher.  Right now it supports launching
+games from the Epic Games Store using Legendary, GOG Games using our custom
+implementation with gogdl and Amazon Games using Nile.")
+    (license license:gpl3)))
 
 (define steam-client
   (package
@@ -157,6 +218,11 @@
     ("python" ,python)                  ; Required for KillingFloor2 and Wreckfest.
     ("spdlog" ,spdlog)))                ; Required for MangoHud.
 
+(define heroic-extra-client-libs
+  `(("curl" ,curl)                      ; Required for Heroic to download e.g. Wine.
+    ("which" ,which)                    ; Heroic complains about trying to use which (though works).
+    ("gtk+" ,gtk+)))                    ; Required for Heroic interface (gtk filechooser schema).
+
 (define steam-ld.so.conf
   (packages->ld.so.conf
    (list (fhs-union `(,@steam-client-libs
@@ -208,6 +274,50 @@ all games will be installed.")))
 
 (define-public steam (nonguix-container->package steam-container))
 (define-public steam-nvidia (nonguix-container->package steam-nvidia-container))
+
+(define-public heroic-container
+  (nonguix-container
+   (name "heroic")
+   (wrap-package heroic-client)
+   (run "/bin/heroic")
+   (ld.so.conf steam-ld.so.conf)
+   (ld.so.cache steam-ld.so.cache)
+   ;; TODO: Probably can remove some of the packages from these lists, at
+   ;; least changing the client libraries as Heroic is rather different from
+   ;; Steam.  However, a good number will be needed to run games anyway.  A
+   ;; better separation and testing in Steam as well would be helpful to
+   ;; differentiate what packages are needed for what in general.  For now,
+   ;; this is easier and works.
+   (union64
+    (fhs-union `(,@heroic-extra-client-libs
+                 ,@steam-client-libs
+                 ,@steam-gameruntime-libs
+                 ,@fhs-min-libs)
+               #:name "fhs-union-64"))
+   ;; Don't include heroic-client-libs as they are not needed in 32-bit.
+   (union32
+    (fhs-union `(,@steam-client-libs
+                 ,@steam-gameruntime-libs
+                 ,@fhs-min-libs)
+               #:name "fhs-union-32"
+               #:system "i686-linux"))
+   (link-files '("share/applications/heroic.desktop"))
+   (description "Heroic is an Open Source Game Launcher.  Right now it supports launching
+games from the Epic Games Store using Legendary, GOG Games using our custom
+implementation with gogdl and Amazon Games using Nile.  This package provides
+a script for launching Heroic in a Guix container which will use the directory
+@file{$HOME/.local/share/guix-sandbox-home} where all games will be
+installed.")))
+
+(define-public heroic-nvidia-container
+  (nonguix-container
+   (inherit heroic-container)
+   (name "heroic-nvidia")
+   (union64 (replace-mesa (ngc-union64 heroic-container)))
+   (union32 (replace-mesa (ngc-union32 heroic-container)))))
+
+(define-public heroic (nonguix-container->package heroic-container))
+(define-public heroic-nvidia (nonguix-container->package heroic-nvidia-container))
 
 (define-public protonup-ng
   (package
