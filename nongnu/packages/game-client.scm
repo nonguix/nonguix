@@ -9,7 +9,7 @@
 ;;; Copyright © 2023 Elijah Malaby
 ;;; Copyright © 2023 Timo Wilken <guix@twilken.net>
 
-(define-module (nongnu packages steam-client)
+(define-module (nongnu packages game-client)
   #:use-module ((guix licenses) #:prefix license:)
   #:use-module ((nonguix licenses) #:prefix license:)
   #:use-module (guix git-download)
