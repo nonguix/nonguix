@@ -227,6 +227,9 @@ or iOS.")
                                         "libxrender"
                                         "zlib")))))
                    (wrap-program (string-append #$output "/lib/zoom/zoom")
+                     '("QML2_IMPORT_PATH" = ())
+                     '("QT_PLUGIN_PATH" = ())
+                     '("QT_SCREEN_SCALE_FACTORS" = ())
                      `("FONTCONFIG_PATH" ":" prefix
                        (,(string-join
                           (list
