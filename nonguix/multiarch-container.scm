@@ -239,136 +239,137 @@ in a sandboxed FHS environment."
 in a sandboxed FHS environment."
   (program-file
    (ngc-wrapper-name container)
-   #~(begin
-       (use-modules (guix build utils))
-       (define (preserve-var var)
-         (string-append "--preserve=" var))
-       (define* (add-path path #:key writable?)
-         (let ((opt (if writable?
-                        "--share="
-                        "--expose=")))
-           (if (pair? path)
-               (string-append opt (car path) "=" (cdr path))
-               (string-append opt path))))
-       (define (exists-> file)
-         (if (and file (file-exists? file))
-             `(,file) '()))
-       (let* ((run #$(file-append fhs-internal "/bin/" (ngc-internal-name container)))
-              (manifest-file #$(file-append fhs-manifest))
-              (xdg-runtime (getenv "XDG_RUNTIME_DIR"))
-              (home (getenv "HOME"))
-              (sandbox-home (or (getenv "GUIX_SANDBOX_HOME")
-                                (string-append home "/" #$(ngc-sandbox-home container))))
-              (preserved-env '("^DBUS_"
-                               "^DISPLAY$"
-                               "^DRI_PRIME$"
-                               "^GDK_SCALE$" ; For UI scaling.
-                               "^GUIX_LOCPATH$" ; For pressure-vessel locales.
-                               ;; For startup of added non-Steam games as it
-                               ;; seems they start in an early environment
-                               ;; before our additional settings.  (Likely
-                               ;; this can be removed when rewritten to use
-                               ;; --emulate-fhs from upstream.)  Note that
-                               ;; this is explicitly set below.  We could
-                               ;; preserve what is set before launching the
-                               ;; container, but any such directories would
-                               ;; need to be shared with the container as
-                               ;; well; this is not needed currently.
-                               "^LD_LIBRARY_PATH$"
-                               "^MANGOHUD" ; For MangoHud configuration.
-                               "^PRESSURE_VESSEL_" ; For pressure vessel options.
-                               "_PROXY$"
-                               "_proxy$"
-                               ;; To allow workaround for upstream bug
-                               ;; <https://github.com/ValveSoftware/steam-for-linux/issues/9306>
-                               ;; and tracked on our end as
-                               ;; <https://gitlab.com/nonguix/nonguix/-/issues/267>.
-                               ;; TODO: Remove once upstream fixes this bug.
-                               "^QT_X11_NO_MITSHM$"
-                               "^SDL_"
-                               "^STEAM_"
-                               "^SSL_" ; SSL certificate environment, needed by curl for Heroic.
-                               "^VDPAU_DRIVER_PATH$" ; For VDPAU drivers.
-                               "^XAUTHORITY$"
-                               ;; Matching all ^XDG_ vars causes issues
-                               ;; discussed in 80decf05.
-                               "^XDG_DATA_HOME$"
-                               "^XDG_RUNTIME_DIR$"
-                               ;; The following are useful for debugging.
-                               "^CAPSULE_DEBUG$"
-                               "^G_MESSAGES_DEBUG$"
-                               "^LD_DEBUG$"
-                               "^LIBGL_DEBUG$"))
-              (expose `("/dev/bus/usb" ; Needed for libusb.
-                        "/dev/dri"
-                        "/dev/input"  ; Needed for controller input.
-                        "/dev/uinput" ; Needed for Steam Input.
-                        ,@(exists-> "/dev/nvidia0") ; needed for nvidia proprietary driver
-                        ,@(exists-> "/dev/nvidiactl")
-                        ,@(exists-> "/dev/nvidia-modeset")
-                        ,@(exists-> "/etc/machine-id")
-                        "/etc/localtime" ; Needed for correct time zone.
-                        "/sys/class/drm" ; Needed for hw monitoring like MangoHud.
-                        "/sys/class/hwmon" ; Needed for hw monitoring like MangoHud.
-                        "/sys/class/hidraw" ; Needed for devices like the Valve Index.
-                        "/sys/class/input" ; Needed for controller input.
-                        ,@(exists-> "/sys/class/power_supply") ; Needed for power monitoring like MangoHud.
-                        ,@(exists-> "/sys/class/powercap") ; Needed for power monitoring like MangoHud.
-                        "/sys/dev"
-                        "/sys/devices"
-                        ,@(exists-> "/var/run/dbus")
-                        #$@(ngc-exposed container)))
-              ;; /dev/hidraw is needed for SteamVR to access the HMD, although here we
-              ;; share all hidraw devices. Instead we could filter to only share specific
-              ;; device. See, for example, this script:
-              ;; https://arvchristos.github.io/post/matching-dev-hidraw-devices-with-physical-devices/
-              (share `(,@(find-files "/dev" "hidraw")
-                       "/dev/shm"
-                       ;; "/tmp/.X11-unix" is needed for bwrap, and "/tmp" more generally
-                       ;; for writing things like crash dumps and "steam_chrome_shm".
-                       "/tmp"
-                       ,(string-append sandbox-home "=" home)
-                       ,@(exists-> (string-append home "/.config/pulse"))
-                       ,@(exists-> (string-append xdg-runtime "/pulse"))
-                       ,@(exists-> (string-append xdg-runtime "/bus"))
-                       ,@(exists-> (getenv "XAUTHORITY"))
-                       #$@(ngc-shared container)))
-              (DEBUG (equal? (getenv "DEBUG") "1"))
-              (args (cdr (command-line)))
-              (command (if DEBUG '()
-                           `("--" ,run ,@args))))
-         ;; Set this so that e.g. non-Steam games added to Steam will launch
-         ;; properly.  It seems otherwise they don't make it to launching
-         ;; Steam's pressure-vessel container (for Proton games).
-         (setenv "LD_LIBRARY_PATH" "/lib64:/lib")
-         ;; Set this so Steam's pressure-vessel container does not need to
-         ;; generate locales, improving startup time.  This needs to be set to
-         ;; the "usual" path, probably so they are included in the
-         ;; pressure-vessel container.
-         (setenv "GUIX_LOCPATH" "/usr/lib/locale")
-         ;; By default VDPAU drivers are searched for in libvdpau's store
-         ;; path, so set this path to where the drivers will actually be
-         ;; located in the container.
-         (setenv "VDPAU_DRIVER_PATH" "/lib64/vdpau")
-         (format #t "\n* Launching ~a in sandbox: ~a.\n\n"
-                 #$(package-name (ngc-wrap-package container)) sandbox-home)
-         (when DEBUG
-           (format #t "* DEBUG set to 1: Starting shell. Launch application manually with: ~a.\n\n"
-                   #$(ngc-internal-name container)))
-         (mkdir-p sandbox-home)
-         (invoke #$(file-append pulseaudio "/bin/pulseaudio")
-                 "--start"
-                 "--exit-idle-time=60")
-         (apply invoke
-                `("guix" "shell"
-                  "--container" "--no-cwd" "--network"
-                  ,@(map preserve-var preserved-env)
-                  ,@(map add-path expose)
-                  ,@(map (lambda (item)
-                           (add-path item #:writable? #t))
-                         share)
-                  "-m" ,manifest-file
-                  ,@command))))))
+   (with-imported-modules '((guix build utils))
+     #~(begin
+         (use-modules (guix build utils))
+         (define (preserve-var var)
+           (string-append "--preserve=" var))
+         (define* (add-path path #:key writable?)
+           (let ((opt (if writable?
+                          "--share="
+                          "--expose=")))
+             (if (pair? path)
+                 (string-append opt (car path) "=" (cdr path))
+                 (string-append opt path))))
+         (define (exists-> file)
+           (if (and file (file-exists? file))
+               `(,file) '()))
+         (let* ((run #$(file-append fhs-internal "/bin/" (ngc-internal-name container)))
+                (manifest-file #$(file-append fhs-manifest))
+                (xdg-runtime (getenv "XDG_RUNTIME_DIR"))
+                (home (getenv "HOME"))
+                (sandbox-home (or (getenv "GUIX_SANDBOX_HOME")
+                                  (string-append home "/" #$(ngc-sandbox-home container))))
+                (preserved-env '("^DBUS_"
+                                 "^DISPLAY$"
+                                 "^DRI_PRIME$"
+                                 "^GDK_SCALE$" ; For UI scaling.
+                                 "^GUIX_LOCPATH$" ; For pressure-vessel locales.
+                                 ;; For startup of added non-Steam games as it
+                                 ;; seems they start in an early environment
+                                 ;; before our additional settings.  (Likely
+                                 ;; this can be removed when rewritten to use
+                                 ;; --emulate-fhs from upstream.)  Note that
+                                 ;; this is explicitly set below.  We could
+                                 ;; preserve what is set before launching the
+                                 ;; container, but any such directories would
+                                 ;; need to be shared with the container as
+                                 ;; well; this is not needed currently.
+                                 "^LD_LIBRARY_PATH$"
+                                 "^MANGOHUD" ; For MangoHud configuration.
+                                 "^PRESSURE_VESSEL_" ; For pressure vessel options.
+                                 "_PROXY$"
+                                 "_proxy$"
+                                 ;; To allow workaround for upstream bug
+                                 ;; <https://github.com/ValveSoftware/steam-for-linux/issues/9306>
+                                 ;; and tracked on our end as
+                                 ;; <https://gitlab.com/nonguix/nonguix/-/issues/267>.
+                                 ;; TODO: Remove once upstream fixes this bug.
+                                 "^QT_X11_NO_MITSHM$"
+                                 "^SDL_"
+                                 "^STEAM_"
+                                 "^SSL_" ; SSL certificate environment, needed by curl for Heroic.
+                                 "^VDPAU_DRIVER_PATH$" ; For VDPAU drivers.
+                                 "^XAUTHORITY$"
+                                 ;; Matching all ^XDG_ vars causes issues
+                                 ;; discussed in 80decf05.
+                                 "^XDG_DATA_HOME$"
+                                 "^XDG_RUNTIME_DIR$"
+                                 ;; The following are useful for debugging.
+                                 "^CAPSULE_DEBUG$"
+                                 "^G_MESSAGES_DEBUG$"
+                                 "^LD_DEBUG$"
+                                 "^LIBGL_DEBUG$"))
+                (expose `("/dev/bus/usb" ; Needed for libusb.
+                          "/dev/dri"
+                          "/dev/input"  ; Needed for controller input.
+                          "/dev/uinput" ; Needed for Steam Input.
+                          ,@(exists-> "/dev/nvidia0") ; needed for nvidia proprietary driver
+                          ,@(exists-> "/dev/nvidiactl")
+                          ,@(exists-> "/dev/nvidia-modeset")
+                          ,@(exists-> "/etc/machine-id")
+                          "/etc/localtime" ; Needed for correct time zone.
+                          "/sys/class/drm" ; Needed for hw monitoring like MangoHud.
+                          "/sys/class/hwmon" ; Needed for hw monitoring like MangoHud.
+                          "/sys/class/hidraw" ; Needed for devices like the Valve Index.
+                          "/sys/class/input" ; Needed for controller input.
+                          ,@(exists-> "/sys/class/power_supply") ; Needed for power monitoring like MangoHud.
+                          ,@(exists-> "/sys/class/powercap") ; Needed for power monitoring like MangoHud.
+                          "/sys/dev"
+                          "/sys/devices"
+                          ,@(exists-> "/var/run/dbus")
+                          #$@(ngc-exposed container)))
+                ;; /dev/hidraw is needed for SteamVR to access the HMD, although here we
+                ;; share all hidraw devices. Instead we could filter to only share specific
+                ;; device. See, for example, this script:
+                ;; https://arvchristos.github.io/post/matching-dev-hidraw-devices-with-physical-devices/
+                (share `(,@(find-files "/dev" "hidraw")
+                         "/dev/shm"
+                         ;; "/tmp/.X11-unix" is needed for bwrap, and "/tmp" more generally
+                         ;; for writing things like crash dumps and "steam_chrome_shm".
+                         "/tmp"
+                         ,(string-append sandbox-home "=" home)
+                         ,@(exists-> (string-append home "/.config/pulse"))
+                         ,@(exists-> (string-append xdg-runtime "/pulse"))
+                         ,@(exists-> (string-append xdg-runtime "/bus"))
+                         ,@(exists-> (getenv "XAUTHORITY"))
+                         #$@(ngc-shared container)))
+                (DEBUG (equal? (getenv "DEBUG") "1"))
+                (args (cdr (command-line)))
+                (command (if DEBUG '()
+                             `("--" ,run ,@args))))
+           ;; Set this so that e.g. non-Steam games added to Steam will launch
+           ;; properly.  It seems otherwise they don't make it to launching
+           ;; Steam's pressure-vessel container (for Proton games).
+           (setenv "LD_LIBRARY_PATH" "/lib64:/lib")
+           ;; Set this so Steam's pressure-vessel container does not need to
+           ;; generate locales, improving startup time.  This needs to be set to
+           ;; the "usual" path, probably so they are included in the
+           ;; pressure-vessel container.
+           (setenv "GUIX_LOCPATH" "/usr/lib/locale")
+           ;; By default VDPAU drivers are searched for in libvdpau's store
+           ;; path, so set this path to where the drivers will actually be
+           ;; located in the container.
+           (setenv "VDPAU_DRIVER_PATH" "/lib64/vdpau")
+           (format #t "\n* Launching ~a in sandbox: ~a.\n\n"
+                   #$(package-name (ngc-wrap-package container)) sandbox-home)
+           (when DEBUG
+             (format #t "* DEBUG set to 1: Starting shell. Launch application manually with: ~a.\n\n"
+                     #$(ngc-internal-name container)))
+           (mkdir-p sandbox-home)
+           (invoke #$(file-append pulseaudio "/bin/pulseaudio")
+                   "--start"
+                   "--exit-idle-time=60")
+           (apply invoke
+                  `("guix" "shell"
+                    "--container" "--no-cwd" "--network"
+                    ,@(map preserve-var preserved-env)
+                    ,@(map add-path expose)
+                    ,@(map (lambda (item)
+                             (add-path item #:writable? #t))
+                           share)
+                    "-m" ,manifest-file
+                    ,@command)))))))
 
 (define (make-container-manifest container fhs-internal)
   "Return a scheme file-like object to be used as package manifest for FHS
