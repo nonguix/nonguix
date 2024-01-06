@@ -26,15 +26,15 @@
   #:use-module (srfi srfi-1))
 
 (define-public chromium-embedded-framework
-  (let ((git-revision "d0bbcbb")
-        (chromium-version "103.0.5060.114")
+  (let ((git-revision "5053a95")
+        (chromium-version "117.0.5938.150")
         (arch (match (or (%current-target-system) (%current-system))
                 ("aarch64-linux" "linuxarm64")
                 ("armhf-linux" "linuxarm")
                 (_ "linux64"))))
     (package
       (name "chromium-embedded-framework")
-      (version "103.0.9")
+      (version "117.2.4")
       (source (origin
                 (method url-fetch)
                 (uri (string-append
@@ -45,7 +45,7 @@
                       "_" arch "_minimal.tar.bz2"))
                 (sha256
                  (base32
-                  "143x0jmasl4z16bkxlrbz874chd9x9xpc5qylb9h7j80gfcrzlsi"))))
+                  "0vzzwq1k6bv9d209yg3samvfnfwj7s58y9r3p3pd98wxa9iyzf4j"))))
       (build-system binary-build-system)
       (arguments
        `(#:patchelf-plan
