@@ -24,17 +24,17 @@
 (define-public anytype
   (package
     (name "anytype")
-    (version "0.36.0")
+    (version "0.37.3")
     (source
      (origin
        (method url-fetch)
        (uri
         (string-append "https://download.anytype.io?action=download"
-                       "&key=desktop&id=136705969"))
+                       "&key=desktop&id=142685264"))
        (file-name (string-append "anytype-" version ".deb"))
        (sha256
         (base32
-         "17cs4w3k7nmjav873wwzpxb2dz4mp2zgkpz1karp3x2mxan0x2i3"))))
+         "197v4dsn21yfi9dhcrqdznz3vfzicd79fc4abbpifacgb4fxcxq8"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list
@@ -61,12 +61,10 @@
           (add-before 'install 'patch-assets
             (lambda _
               (let* ((bin (string-append #$output "/bin"))
-                     (icon (string-append #$output "/share/icons/hicolor/0x0/apps/anytype.png"))
                      (usr/share "./usr/share")
                      (old-exe "/opt/Anytype/anytype")
                      (exe (string-append bin "/anytype")))
                 (substitute* (string-append usr/share "/applications/anytype.desktop")
-                  (("^Icon=anytype") (string-append "Icon=" icon))
                   (((string-append "^Exec=" old-exe)) (string-append "Exec=" exe))))))
           (add-before 'install-wrapper 'symlink-entrypoint
             (lambda _
