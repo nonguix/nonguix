@@ -338,10 +338,6 @@ in a sandboxed FHS environment."
                 (args (cdr (command-line)))
                 (command (if DEBUG '()
                              `("--" ,run ,@args))))
-           ;; Set this so that e.g. non-Steam games added to Steam will launch
-           ;; properly.  It seems otherwise they don't make it to launching
-           ;; Steam's pressure-vessel container (for Proton games).
-           (setenv "LD_LIBRARY_PATH" "/lib64:/lib")
            ;; Set this so Steam's pressure-vessel container does not need to
            ;; generate locales, improving startup time.  This needs to be set to
            ;; the "usual" path, probably so they are included in the
@@ -526,6 +522,16 @@ application."
              ;; (previous would output this error but continue).
              (if (file-exists? ".steam/root/bootstrap.tar.xz")
                  (chmod ".steam/root/bootstrap.tar.xz" #o644))
+             ;; TODO: Should other environment setup also happen inside the
+             ;; container rather than before container is launched?
+             ;;
+             ;; Set this so that e.g. non-Steam games added to Steam will
+             ;; launch properly.  It seems otherwise they don't make it to
+             ;; launching Steam's pressure-vessel container (for Proton
+             ;; games).  Wait to set this inside the container to not cause
+             ;; issues on foreign distros, see
+             ;; <https://gitlab.com/nonguix/nonguix/-/issues/303>
+             (setenv "LD_LIBRARY_PATH" "/lib64:/lib")
 
              ;; Process FHS-specific command line options.
              (let* ((options (getopt-long (or fhs-args '("")) fhs-option-spec))
