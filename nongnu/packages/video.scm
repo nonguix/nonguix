@@ -1,5 +1,6 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2022 Jelle Licht <jlicht@fsfe.org>
+;;; Copyright © 2024 Oleg Pykhalov <go.wigust@gmail.com>
 
 (define-module (nongnu packages video)
   #:use-module (gnu packages pkg-config)
@@ -10,7 +11,8 @@
   #:use-module (guix git-download)
   #:use-module (guix packages)
   #:use-module (guix utils)
-  #:use-module ((guix licenses) #:prefix license:))
+  #:use-module ((guix licenses) #:prefix license:)
+  #:use-module (nongnu packages chromium))
 
 (define-public gmmlib
   (package
@@ -92,3 +94,65 @@ graphics hardware.")
         (package-description intel-media-driver)
         "  This build of intel-media-driver includes nonfree blobs to fully enable the
 video decode capabilities of supported Intel GPUs."))))
+
+(define-public obs-with-cef
+  (package
+    (inherit obs)
+    (name "obs-with-cef")
+    (inputs
+     (append (package-inputs obs)
+             `(("chromium-embedded-framework" ,chromium-embedded-framework))))
+    (arguments
+     (substitute-keyword-arguments (package-arguments obs)
+       ((#:configure-flags flags)
+        #~(append #$flags
+                  '("-DBUILD_BROWSER=ON"
+                    "-DCEF_ROOT_DIR=../source/cef")))
+       ((#:phases phases)
+        #~(modify-phases #$phases
+            (add-before 'configure 'add-cef
+              (lambda* (#:key inputs #:allow-other-keys)
+                (let ((chromium-embedded-framework
+                       #$(this-package-input "chromium-embedded-framework")))
+                  (mkdir-p "cef/Release")
+                  (mkdir-p "cef/Resources")
+                  (for-each (lambda (file)
+                              (symlink file (string-append "cef/Release/"
+                                                           (basename file)))
+                              (symlink file (string-append "cef/Resources/"
+                                                           (basename file))))
+                            (filter
+                             (lambda (file)
+                               (not (string= (basename (dirname file))
+                                             "locales")))
+                             (find-files
+                              (string-append chromium-embedded-framework
+                                             "/share/cef"))))
+                  (symlink (string-append chromium-embedded-framework
+                                          "/lib/libcef.so")
+                           "cef/Release/libcef.so")
+                  (mkdir-p "cef/libcef_dll_wrapper")
+                  (symlink (string-append chromium-embedded-framework
+                                          "/lib/libcef_dll_wrapper.a")
+                           "cef/libcef_dll_wrapper/libcef_dll_wrapper.a")
+                  (symlink (string-append chromium-embedded-framework
+                                          "/include")
+                           "cef/include"))))
+            (add-after 'install 'symlink-obs-browser
+              ;; Required for lib/obs-plugins/obs-browser.so file.
+              (lambda* (#:key outputs #:allow-other-keys)
+                (symlink
+                 (string-append #$output
+                                "/lib/libobs-frontend-api.so.0")
+                 (string-append #$output
+                                "/lib/obs-plugins/libobs-frontend-api.so.0"))
+                (symlink
+                 (string-append #$output
+                                "/lib/libobs.so.0")
+                 (string-append #$output
+                                "/lib/obs-plugins/libobs.so.0"))))))))
+    (description
+     (string-append
+      (package-description obs)
+      "  This build of OBS includes embeded Chromium-based browser to enable
+Browser source."))))
