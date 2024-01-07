@@ -1,5 +1,5 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
-;;; Copyright © 2022 Hilton Chain <hako@ultrarare.space>
+;;; Copyright © 2022, 2024 Hilton Chain <hako@ultrarare.space>
 
 (define-module (nongnu services nvidia)
   #:use-module (guix gexp)
@@ -27,14 +27,20 @@
             (default nvidia-module)))   ; file-like
 
 (define (nvidia-shepherd-service config)
-  (list (shepherd-service
-         (documentation "Prepare system environment for NVIDIA driver.")
-         (provision '(nvidia))
-         (requirement '(user-processes))
-         (start #~(const #t))
-         (stop #~(lambda _
-                   (let ((rmmod #$(file-append kmod "/bin/rmmod")))
-                     (system* rmmod "nvidia_uvm")))))))
+  (let ((nvidia-driver (nvidia-configuration-driver config))
+        (nvidia-smi (file-append nvidia-driver "/bin/nvidia-smi"))
+        (rmmod (file-append kmod "/bin/rmmod")))
+    (list (shepherd-service
+           (documentation "Prepare system environment for NVIDIA driver.")
+           (provision '(nvidia))
+           (requirement '(udev user-processes))
+           (start
+            #~(lambda _
+                (when (file-exists? #$nvidia-smi)
+                  (system* #$nvidia-smi))))
+           (stop
+            #~(lambda _
+                (system* #$rmmod "nvidia_uvm")))))))
 
 (define nvidia-service-type
   (service-type
