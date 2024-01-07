@@ -139,6 +139,95 @@ VERSION as argument and returns a G-expression."
 ;;;
 
 
+(define %nvidia-script-create-device-nodes
+  (program-file
+   "create-device-nodes.scm"
+   (with-imported-modules '((guix build utils))
+     #~(begin
+         (use-modules (ice-9 regex)
+                      (rnrs io ports)
+                      (srfi srfi-1)
+                      (guix build utils))
+
+         (define %nvidia-character-devices
+           (call-with-input-file "/proc/devices"
+             (lambda (port)
+               (filter-map
+                (lambda (line)
+                  (if (string-contains line "nvidia")
+                      (apply cons (reverse (string-tokenize line)))
+                      #f))
+                (string-split (get-string-all port) #\newline)))))
+
+         (define %nvidia-driver-device-minors
+           (let ((device-minor-regexp (make-regexp "^Device Minor: \t (.*)")))
+             (append-map
+              (lambda (file)
+                (call-with-input-file file
+                  (lambda (port)
+                    (filter-map
+                     (lambda (line)
+                       (let ((matched (regexp-exec device-minor-regexp line)))
+                         (if matched
+                             (match:substring matched 1)
+                             #f)))
+                     (string-split (get-string-all port) #\newline)))))
+              (find-files "/proc/driver/nvidia/gpus/" "information$"))))
+
+         (define (create-device-node path name minor)
+           (let ((major
+                  (or (assoc-ref %nvidia-character-devices name)
+                      (assoc-ref %nvidia-character-devices "nvidia-frontend")))
+                 (mknod #$(file-append coreutils "/bin/mknod")))
+             (system* mknod "-Zm0666" path "c" major minor)))
+
+         (define (main args)
+           (case (string->symbol (first args))
+             ((nvidia_modeset)
+              (create-device-node "/dev/nvidia-modeset" "nvidia-modeset" "254"))
+             ((nvidia_uvm)
+              (begin
+                (create-device-node "/dev/nvidia-uvm" "nvidia-uvm" "0")
+                (create-device-node "/dev/nvidia-uvm-tools" "nvidia-uvm" "1")))
+             ((nvidia)
+              (begin
+                (create-device-node "/dev/nvidiactl" "nvidiactl" "255")
+                (for-each
+                 (lambda (minor)
+                   (create-device-node
+                    (string-append "/dev/nvidia" minor) "nvidia" minor))
+                 %nvidia-driver-device-minors)))))
+
+         (main (cdr (command-line)))))))
+
+;; Adapted from <https://github.com/Frogging-Family/nvidia-all/blob/master/60-nvidia.rules>
+(define %nvidia-udev-rules
+  (mixed-text-file
+   "90-nvidia.rules" "\
+# Make sure device nodes are present even when the DDX is not started for the Wayland/EGLStream case
+KERNEL==\"nvidia\", RUN+=\"" %nvidia-script-create-device-nodes " nvidia\"
+KERNEL==\"nvidia_modeset\", RUN+=\"" %nvidia-script-create-device-nodes " nvidia_modeset\"
+KERNEL==\"nvidia_uvm\", RUN+=\"" %nvidia-script-create-device-nodes " nvidia_uvm\"
+
+# Enable runtime PM for NVIDIA VGA/3D controller devices
+ACTION==\"bind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\"0x03[0-9]*\", TEST==\"power/control\", ATTR{power/control}=\"auto\"
+# Enable runtime PM for NVIDIA Audio devices
+ACTION==\"bind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\"0x040300\", TEST==\"power/control\", ATTR{power/control}=\"auto\"
+# Enable runtime PM for NVIDIA USB xHCI Host Controller devices
+ACTION==\"bind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\"0x0c0330\", TEST==\"power/control\", ATTR{power/control}=\"auto\"
+# Enable runtime PM for NVIDIA USB Type-C UCSI devices
+ACTION==\"bind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\"0x0c8000\", TEST==\"power/control\", ATTR{power/control}=\"auto\"
+
+# Disable runtime PM for NVIDIA VGA/3D controller devices
+ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\"0x03[0-9]*\", TEST==\"power/control\", ATTR{power/control}=\"on\"
+# Disable runtime PM for NVIDIA Audio devices
+ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\"0x040300\", TEST==\"power/control\", ATTR{power/control}=\"on\"
+# Disable runtime PM for NVIDIA USB xHCI Host Controller devices
+ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\"0x0c0330\", TEST==\"power/control\", ATTR{power/control}=\"on\"
+# Disable runtime PM for NVIDIA USB Type-C UCSI devices
+ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\"0x0c8000\", TEST==\"power/control\", ATTR{power/control}=\"on\"
+"))
+
 (define-public nvidia-driver
   (package
     (name "nvidia-driver")
@@ -151,7 +240,6 @@ VERSION as argument and returns a G-expression."
                        (ice-9 popen)
                        (ice-9 rdelim)
                        (ice-9 regex)
-                       (ice-9 textual-ports)
                        (srfi srfi-26))
            #:install-plan
            #~`((#$(match (or (%current-target-system) (%current-system))
@@ -189,20 +277,8 @@ VERSION as argument and returns a G-expression."
                      (("libGLX_nvidia\\.so\\.." all)
                       (string-append #$output "/lib/" all)))
 
-                   ;; Add udev rules for nvidia
-                   (let ((rules "90-nvidia.rules"))
-                     (call-with-output-file rules
-                       (lambda (port)
-                         (put-string port (format #f "~
-KERNEL==\"nvidia\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidiactl c $$(@grep@ nvidia-frontend /proc/devices | @cut@ -d \\  -f 1) 255'\"
-KERNEL==\"nvidia_modeset\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-modeset c $$(@grep@ nvidia-frontend /proc/devices | @cut@ -d \\  -f 1) 254'\"
-KERNEL==\"card*\", SUBSYSTEM==\"drm\", DRIVERS==\"nvidia\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia0 c $$(@grep@ nvidia-frontend /proc/devices | @cut@ -d \\  -f 1) 0'\"
-KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm c $$(@grep@ nvidia-uvm /proc/devices | @cut@ -d \\  -f 1) 0'\"
-KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $$(@grep@ nvidia-uvm /proc/devices | @cut@ -d \\  -f 1) 0'\"
-"))))
-                     (substitute* rules
-                       (("@\\<(sh|grep|mknod|cut)\\>@" all cmd)
-                        (search-input-file inputs (string-append "/bin/" cmd)))))))
+                   ;; Add udev rules
+                   (symlink #$%nvidia-udev-rules "90-nvidia.rules")))
                (add-after 'install 'patch-elf
                  (lambda _
                    (let* ((ld.so (string-append #$(this-package-input "glibc")
@@ -297,10 +373,7 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
      (list egl-gbm
            egl-wayland
            `(,gcc "lib")
-           bash-minimal
-           coreutils
            glibc
-           grep
            libdrm
            libx11
            libxext
