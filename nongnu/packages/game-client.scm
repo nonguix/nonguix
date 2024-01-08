@@ -58,7 +58,7 @@
 (define heroic-client
   (package
     (name "heroic-client")
-    (version "2.11.0")
+    (version "2.12.0")
     (source
      (origin
        (method url-fetch)
@@ -67,7 +67,7 @@
                            version "/heroic_" version "_amd64.deb"))
        (sha256
         (base32
-         "1g54rzhgbqqd7nsbd08p3jkdyy01gz0q8yvhpcd698jpi2ks87q0"))))
+         "0ikb9r72n7xknns81mibipfwqh0r9hqnm5a3k4xsk8my1gajc60c"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list #:validate-runpath? #f ; TODO: fails on wrapped binary and included other files
