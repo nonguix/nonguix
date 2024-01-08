@@ -608,6 +608,10 @@ configuration, creating application profiles, gpu monitoring and more.")
   (package
     (inherit nvidia-driver)
     (name "nvda")
+    (version (string-pad-right
+              (package-version nvidia-driver)
+              (string-length (package-version mesa))
+              #\0))
     (source #f)
     (build-system trivial-build-system)
     (arguments
