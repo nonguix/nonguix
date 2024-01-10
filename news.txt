@@ -11,9 +11,9 @@
 
  (entry (commit "8078757b887a7691644b119913c3f7b41661775d")
         (title
-         (en "New @code{GUIX_SANDBOX_EXTRA_SHARES} variable for nonguix containers (Steam)")
-         (body
-          (en "The nonguix container has a new environment variable
+         (en "New @code{GUIX_SANDBOX_EXTRA_SHARES} variable for nonguix containers (Steam)"))
+        (body
+         (en "The nonguix container has a new environment variable
 @code{GUIX_SANDBOX_EXTRA_SHARES} which is a @code{:} delimited list of
 directories to share with the container.  These directories will be available
 at the same path as the host.  For instance, you can set this to another drive
@@ -27,7 +27,7 @@ GUIX_SANDBOX_EXTRA_SHARES=/some/other/drive steam
 This should allow you to select @code{/some/other/drive} in Steam for a game
 library.  This is an experimental feature and just provides a basic way to add
 shares to the container, so please test and report any difficulties or
-suggestions to improve."))))
+suggestions to improve.")))
 
  (entry (commit "1591c3d1d10b2884da29ab7d1252304f2ce1514b")
         (title
