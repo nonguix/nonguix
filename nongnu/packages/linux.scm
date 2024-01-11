@@ -24,6 +24,7 @@
 ;;; Copyright © 2023 Adam Kandur <rndd@tuta.io>
 ;;; Copyright © 2023 Hilton Chain <hako@ultrarare.space>
 ;;; Copyright © 2023 Ada Stevenson <adanskana@gmail.com>
+;;; Copyright © 2023 Tomas Volf <~@wolfsden.cz>
 
 (define-module (nongnu packages linux)
   #:use-module (gnu packages)
@@ -52,10 +53,42 @@
                        "/linux/kernel/v" (version-major version) ".x"
                        "/linux-" version ".tar.xz"))
 
+;;; If you are corrupting the kernel on your own, consider using output of
+;;; this procedure as a base for your options:
+;;;   (corrupt-linux linux-libre-lts
+;;;                  #:configs (cons* "CONFIG_FOO=y"
+;;;                                   (nonguix-extra-linux-options linux-libre-lts)
+(define-public (nonguix-extra-linux-options linux-or-version)
+  "Return a list containing additional options that nonguix sets by default
+for a corrupted linux package of specified version.  linux-or-version can be
+some freedo package or an output of package-version procedure."
+  (define linux-version
+    (if (package? linux-or-version)
+        (package-version linux-or-version)
+        linux-or-version))
+
+  (reverse (fold (lambda (opt opts)
+                   (if (version>=? linux-version (car opt))
+                       (cons* (cdr opt) opts)
+                       opts))
+                 '()
+                 ;; List of additional options for nonguix corrupted linux.
+                 ;; Each member is a pair of a minimal version (>=) and the
+                 ;; option itself.  Option has to be in a format suitable for
+                 ;; (@ (guix build kconfig) modify-defconfig) procedure.
+                 ;;
+                 ;; Do note that this list is intended for enabling use of
+                 ;; hardware requiring non-free firmware.  If a configuration
+                 ;; option does work under linux-libre, it should go into Guix
+                 ;; actual.
+                 '(
+                   ;; Driver for MediaTek mt7921e wireless chipset
+                   ("5.15" . "CONFIG_MT7921E=m")))))
+
 (define* (corrupt-linux freedo
                         #:key
                         (name "linux")
-                        (configs '())
+                        (configs (nonguix-extra-linux-options freedo))
                         (defconfig #f))
 
   ;; TODO: This very directly depends on guix internals.
