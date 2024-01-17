@@ -1,0 +1,48 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright © 2024 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+# Copyright © 2024 Wolf <wolf@wolfsden.cz>
+
+# This hook script prevents the user from pushing to GitLab if any of the new
+# commits' OpenPGP signatures cannot be verified, or if a commit is signed
+# with an unauthorized key.
+
+# Called by "git push" after it has checked the remote status, but before
+# anything has been pushed.  If this script exits with a non-zero status nothing
+# will be pushed.
+#
+# This hook is called with the following parameters:
+#
+# $1 -- Name of the remote to which the push is being done
+# $2 -- URL to which the push is being done
+#
+# If pushing without using a named remote those arguments will be equal.
+#
+# Information about the commits which are being pushed is supplied as lines to
+# the standard input in the form:
+#
+#   <local ref> <local sha1> <remote ref> <remote sha1>
+
+# This is the "empty hash" used by Git when pushing a branch deletion.
+z40=0000000000000000000000000000000000000000
+
+while read local_ref local_hash remote_ref remote_hash
+do
+  # When deleting a remote branch, no commits are pushed to the remote, and
+  # thus there are no signatures to be verified.
+  if [ "$local_hash" != $z40 ]
+  then
+    # Only use the hook when pushing to the nonguix project on GitLab.
+    case "$2" in
+      *gitlab.com[:/]nonguix/*)
+        exec make authenticate
+        exit 127
+        ;;
+      *)
+        exit 0
+        ;;
+    esac
+  fi
+done
+
+exit 0
