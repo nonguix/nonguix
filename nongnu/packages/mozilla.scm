@@ -241,7 +241,7 @@
                 (substitute
                  file
                  `((,(format #f "~s" lib)
-                    . ,(λ (line _)
+                    . ,(lambda (line _)
                          (string-replace-substring
                           line
                           lib
