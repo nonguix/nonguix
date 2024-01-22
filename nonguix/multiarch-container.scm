@@ -295,6 +295,7 @@ in a sandboxed FHS environment."
                                  ;; discussed in 80decf05.
                                  "^XDG_DATA_HOME$"
                                  "^XDG_RUNTIME_DIR$"
+                                 #$@(ngc-preserved-env container) ; Environment from container.
                                  ;; The following are useful for debugging.
                                  "^CAPSULE_DEBUG$"
                                  "^G_MESSAGES_DEBUG$"
