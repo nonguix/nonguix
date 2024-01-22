@@ -118,14 +118,6 @@ on hardware which requires nonfree software to function."))))
 (define-public linux-4.19
   (corrupt-linux linux-libre-4.19))
 
-(define-public linux-4.14
-  (corrupt-linux linux-libre-4.14
-                 #:configs
-                 '("# CONFIG_GCC_PLUGIN_CYC_COMPLEXITY is not set"
-                   "# CONFIG_GCC_PLUGIN_LATENT_ENTROPY is not set"
-                   "# CONFIG_GCC_PLUGIN_STRUCTLEAK is not set"
-                   "# CONFIG_GCC_PLUGIN_RANDSTRUCT is not set")))
-
 (define-public linux linux-6.6)
 ;; linux-lts points to the *newest* released long-term support version.
 (define-public linux-lts linux-6.1)
