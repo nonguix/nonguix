@@ -320,13 +320,27 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                       '("nvidia-smi")))))
                (add-before 'patch-elf 'relocate-libraries
                  (lambda _
-                   (let* ((libdir (string-append #$output "/lib"))
+                   (let* ((version #$(package-version this-package))
+                          (libdir (string-append #$output "/lib"))
+                          (gbmdir (string-append libdir "/gbm"))
+                          (vdpaudir (string-append libdir "/vdpau"))
                           (xorgmoddir (string-append libdir "/xorg/modules"))
                           (xorgdrvdir (string-append xorgmoddir "/drivers"))
                           (xorgextdir (string-append xorgmoddir "/extensions"))
                           (move-to-dir (lambda (file dir)
                                          (install-file file dir)
                                          (delete-file file))))
+                     (for-each
+                      (lambda (file)
+                        (mkdir-p gbmdir)
+                        (with-directory-excursion gbmdir
+                          (symlink file "nvidia-drm_gbm.so")))
+                      (find-files libdir "libnvidia-allocator\\.so\\."))
+
+                     (for-each
+                      (cut move-to-dir <> vdpaudir)
+                      (find-files libdir "libvdpau_nvidia\\.so\\."))
+
                      (for-each
                       (cut move-to-dir <> xorgdrvdir)
                       (find-files libdir "nvidia_drv\\.so$"))
