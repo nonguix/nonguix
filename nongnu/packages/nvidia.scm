@@ -249,6 +249,7 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                 "lib/" #:include-regexp ("^./[^/]+\\.so"))
                ("." "share/nvidia/" #:include-regexp ("nvidia-application-profiles"))
                ("." "share/egl/egl_external_platform.d/" #:include-regexp ("(gbm|wayland)\\.json"))
+               ("10_nvidia.json" "share/glvnd/egl_vendor.d/")
                ("90-nvidia.rules" "lib/udev/rules.d/")
                ("nvidia-drm-outputclass.conf" "share/X11/xorg.conf.d/")
                ("nvidia-dbus.conf" "share/dbus-1/system.d/")
@@ -265,6 +266,11 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                                   "15_nvidia_gbm.json")
                      (("libnvidia-egl-(wayland|gbm)\\.so\\.." all)
                       (search-input-file inputs (string-append "lib/" all))))
+
+                   ;; EGL vendor ICD configuration
+                   (substitute* "10_nvidia.json"
+                     (("libEGL_nvidia\\.so\\.." all)
+                      (string-append #$output "/lib/" all)))
 
                    ;; OpenCL vendor ICD configuration
                    (substitute* "nvidia.icd"
