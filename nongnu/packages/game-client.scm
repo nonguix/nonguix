@@ -116,7 +116,7 @@ implementation with gogdl and Amazon Games using Nile.")
 (define steam-client
   (package
     (name "steam-client")
-    (version "1.0.0.75")
+    (version "1.0.0.78")
     (source
      (origin
        (method url-fetch)
@@ -124,7 +124,7 @@ implementation with gogdl and Amazon Games using Nile.")
                            version ".tar.gz"))
        (sha256
         (base32
-         "19rn29slsxv7b5fisr1jzn79bskzifbj5hmxqn2436ivwfjna9g5"))
+         "0390qy8vy7sx35hxl51yrbk6mvdz1vvpy96v07qva4bjbmsmjhhh"))
        (file-name (string-append name "-" version ".tar.gz"))))
     (build-system gnu-build-system)
     (arguments
