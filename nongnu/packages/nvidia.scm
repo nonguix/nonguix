@@ -632,6 +632,28 @@ configuration, creating application profiles, gpu monitoring and more.")
                                               (last files))))
                                 (format #t "chosen ~a ~%" file)
                                 file))))))
+    (native-search-paths
+     (list
+      ;; https://github.com/NVIDIA/egl-wayland/issues/39
+      (search-path-specification
+       (variable "__EGL_EXTERNAL_PLATFORM_CONFIG_DIRS")
+       (files '("share/egl/egl_external_platform.d")))
+      ;; https://gitlab.freedesktop.org/glvnd/libglvnd/-/blob/master/src/EGL/icd_enumeration.md
+      (search-path-specification
+       (variable "__EGL_VENDOR_LIBRARY_DIRS")
+       (files '("share/glvnd/egl_vendor.d")))
+      ;; See also: ‘src/gbm/main/backend.c’ in mesa source.
+      (search-path-specification
+       (variable "GBM_BACKENDS_PATH")
+       (files '("lib/gbm")))
+      (search-path-specification
+       (variable "VDPAU_DRIVER_PATH")
+       (files '("lib/vdpau"))
+       (separator #f))
+      ;; https://github.com/KhronosGroup/Vulkan-Loader/blob/main/docs/LoaderLayerInterface.md
+      (search-path-specification
+       (variable "XDG_DATA_DIRS")
+       (files '("share")))))
     (description
      "These are the libraries of the evil NVIDIA driver, packaged in such a
 way that you can use the transformation option @code{--with-graft=mesa=nvda}
