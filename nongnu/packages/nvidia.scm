@@ -144,44 +144,46 @@ VERSION as argument and returns a G-expression."
     (arguments
      (list #:modules '((guix build copy-build-system)
                        (guix build utils)
-                       (ice-9 ftw)
                        (ice-9 popen)
                        (ice-9 rdelim)
                        (ice-9 regex)
-                       (ice-9 textual-ports))
+                       (ice-9 textual-ports)
+                       (srfi srfi-26))
            #:install-plan
-           #~`((,#$(match (or (%current-target-system) (%current-system))
-                     ("i686-linux" "32")
-                     ("x86_64-linux" ".")
-                     (_ "."))
-                "lib/" #:include-regexp ("^./[^/]+\\.so") #:exclude-regexp ("nvidia_drv\\.so" "libglxserver_nvidia\\.so\\..*"))
-               ("." "share/nvidia/" #:include-regexp ("nvidia-application-profiles.*"))
-               ("." "share/egl/egl_external_platform.d/" #:include-regexp (".*_nvidia_.*\\.json"))
+           #~`((#$(match (or (%current-target-system) (%current-system))
+                    ("i686-linux" "32")
+                    ("x86_64-linux" ".")
+                    (_ "."))
+                "lib/" #:include-regexp ("^./[^/]+\\.so"))
+               ("." "share/nvidia/" #:include-regexp ("nvidia-application-profiles"))
+               ("." "share/egl/egl_external_platform.d/" #:include-regexp ("(gbm|wayland)\\.json"))
                ("90-nvidia.rules" "lib/udev/rules.d/")
-               ("nvidia-drm-outputclass.conf" "share/x11/xorg.conf.d/")
+               ("nvidia-drm-outputclass.conf" "share/X11/xorg.conf.d/")
                ("nvidia-dbus.conf" "share/dbus-1/system.d/")
-               ("nvidia-smi.1.gz" "share/man/man1/")
                ("nvidia.icd" "etc/OpenCL/vendors/")
-               ("nvidia_drv.so" "lib/xorg/modules/drivers/")
                ("nvidia_icd.json" "share/vulkan/icd.d/")
-               ("nvidia_layers.json" "share/vulkan/implicit_layer.d/")
-               (,(string-append "libglxserver_nvidia.so." #$version) "lib/xorg/modules/extensions/"))
+               ("nvidia_layers.json" "share/vulkan/implicit_layer.d/"))
            #:phases
            #~(modify-phases %standard-phases
                (delete 'strip)
                (add-after 'unpack 'create-misc-files
                  (lambda* (#:key inputs #:allow-other-keys)
-                   ;; Vulkan layer configuration
-                   (for-each (lambda (file)
-                               (substitute* file
-                                 (("lib(GLX|nvidia).*\\.so\\..*" all)
-                                  (string-append #$output "/lib/" all))))
-                             (scandir "." (lambda (name)
-                                            (string-contains name ".json"))))
+                   ;; EGL external platform configuraiton
+                   (substitute* '("10_nvidia_wayland.json"
+                                  "15_nvidia_gbm.json")
+                     (("libnvidia-egl-(wayland|gbm)\\.so\\.." all)
+                      (string-append #$output "/lib/" all)))
 
                    ;; OpenCL vendor ICD configuration
                    (substitute* "nvidia.icd"
-                     ((".*" all) (string-append #$output "/lib/" all)))
+                     (("libnvidia-opencl\\.so\\.." all)
+                      (string-append #$output "/lib/" all)))
+
+                   ;; Vulkan ICD & layer configuraiton
+                   (substitute* '("nvidia_icd.json"
+                                  "nvidia_layers.json")
+                     (("libGLX_nvidia\\.so\\.." all)
+                      (string-append #$output "/lib/" all)))
 
                    ;; Add udev rules for nvidia
                    (let ((rules "90-nvidia.rules"))
@@ -202,9 +204,8 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                    (let* ((ld.so (string-append #$(this-package-input "glibc")
                                                 #$(glibc-dynamic-linker)))
                           (rpath (string-join
-                                  (list "$ORIGIN"
-                                        (string-append #$output "/lib")
-                                        (string-append #$gcc:lib "/lib")
+                                  (list (string-append #$output "/lib")
+                                        (string-append (ungexp (this-package-input "gcc") "lib") "/lib")
                                         (string-append #$(this-package-input "glibc") "/lib")
                                         (string-append #$(this-package-input "libdrm") "/lib")
                                         (string-append #$(this-package-input "libx11") "/lib")
@@ -218,16 +219,45 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                          (invoke "patchelf" "--set-interpreter" ld.so file))
                        (invoke "patchelf" "--set-rpath" rpath file)
                        (display " done\n"))
+
                      (for-each (lambda (file)
                                  (when (elf-file? file)
                                    (patch-elf file)))
-                               (append (find-files #$output  ".*\\.so")
-                                       (find-files (string-append #$output "/bin")))))))
-               (add-before 'patch-elf 'install-nvidia-smi
+                               (find-files #$output)))))
+               (add-before 'patch-elf 'install-commands
                  (lambda _
-                   (if (string-match "x86_64-linux"
-                        (or #$(%current-target-system) #$(%current-system)))
-                     (install-file "nvidia-smi" (string-append #$output "/bin")))))
+                   (when (string-match
+                          "x86_64-linux"
+                          (or #$(%current-target-system) #$(%current-system)))
+                     (for-each
+                      (lambda (binary)
+                        (let ((bindir (string-append #$output "/bin"))
+                              (manual (string-append binary ".1.gz"))
+                              (mandir (string-append #$output "/share/man/man1")))
+                          (install-file binary bindir)
+                          (when (file-exists? manual)
+                            (install-file manual mandir))))
+                      '("nvidia-smi")))))
+               (add-before 'patch-elf 'relocate-libraries
+                 (lambda _
+                   (let* ((libdir (string-append #$output "/lib"))
+                          (xorgmoddir (string-append libdir "/xorg/modules"))
+                          (xorgdrvdir (string-append xorgmoddir "/drivers"))
+                          (xorgextdir (string-append xorgmoddir "/extensions"))
+                          (move-to-dir (lambda (file dir)
+                                         (install-file file dir)
+                                         (delete-file file))))
+                     (for-each
+                      (cut move-to-dir <> xorgdrvdir)
+                      (find-files libdir "nvidia_drv\\.so$"))
+
+                     (for-each
+                      (lambda (file)
+                        (move-to-dir file xorgextdir)
+                        (with-directory-excursion xorgextdir
+                          (symlink (basename file)
+                                   "libglxserver_nvidia.so")))
+                      (find-files libdir "libglxserver_nvidia\\.so\\.")))))
                (add-after 'patch-elf 'create-short-name-symlinks
                  (lambda _
                    (define (get-soname file)
@@ -237,7 +267,6 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                               (soname (read-line port)))
                          (close-pipe port)
                          soname)))
-
                    (for-each
                     (lambda (lib)
                       (let ((lib-soname (get-soname lib)))
@@ -257,11 +286,7 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                                  (symlink source target)
                                  (display " done\n")))
                              (list soname base))))))
-                    (find-files #$output "\\.so"))
-                   (symlink (string-append "libglxserver_nvidia.so." #$version)
-                            (string-append #$output "/lib/xorg/modules/extensions/" "libglxserver_nvidia.so"))
-                   (symlink (string-append "libnvidia-allocator.so." #$version)
-                            (string-append #$output "/lib/nvidia-drm_gbm.so" )))))))
+                    (find-files #$output "\\.so\\.")))))))
     (supported-systems '("i686-linux" "x86_64-linux"))
     (native-inputs (list patchelf))
     (inputs
@@ -281,8 +306,7 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
      "This is the evil NVIDIA driver.  Don't forget to add @code{service
 nvidia-service-type} to your @file{config.scm}.  Further xorg should be
 configured by adding: @code{(modules (cons* nvidia-driver
-%default-xorg-modules)) (drivers '(\"nvidia\"))} to @code{xorg-configuration}.
-")
+%default-xorg-modules)) (drivers '(\"nvidia\"))} to @code{xorg-configuration}.")
     (license
      (license:nonfree
       (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
