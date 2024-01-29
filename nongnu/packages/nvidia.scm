@@ -78,7 +78,9 @@
       (for-each delete-file
                 (find-files "." (string-join
                                  '(;; nvidia-settings
-                                   "libnvidia-gtk[23]\\.so\\.")
+                                   "libnvidia-gtk[23]\\.so\\."
+                                   ;; opencl-icd-loader
+                                   "libOpenCL\\.so\\.")
                                  "|")))))
 
 (define* (make-nvidia-source
