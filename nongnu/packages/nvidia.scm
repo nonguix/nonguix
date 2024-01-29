@@ -77,7 +77,11 @@
       (use-modules (guix build utils))
       (for-each delete-file
                 (find-files "." (string-join
-                                 '(;; nvidia-settings
+                                 '(;; egl-gbm
+                                   "libnvidia-egl-gbm\\.so\\."
+                                   ;; egl-wayland
+                                   "libnvidia-egl-wayland\\.so\\."
+                                   ;; nvidia-settings
                                    "libnvidia-gtk[23]\\.so\\."
                                    ;; opencl-icd-loader
                                    "libOpenCL\\.so\\.")
@@ -172,7 +176,7 @@ VERSION as argument and returns a G-expression."
                    (substitute* '("10_nvidia_wayland.json"
                                   "15_nvidia_gbm.json")
                      (("libnvidia-egl-(wayland|gbm)\\.so\\.." all)
-                      (string-append #$output "/lib/" all)))
+                      (search-input-file inputs (string-append "lib/" all))))
 
                    ;; OpenCL vendor ICD configuration
                    (substitute* "nvidia.icd"
@@ -205,12 +209,12 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
                                                 #$(glibc-dynamic-linker)))
                           (rpath (string-join
                                   (list (string-append #$output "/lib")
+                                        (string-append #$(this-package-input "egl-wayland") "/lib")
                                         (string-append (ungexp (this-package-input "gcc") "lib") "/lib")
                                         (string-append #$(this-package-input "glibc") "/lib")
                                         (string-append #$(this-package-input "libdrm") "/lib")
                                         (string-append #$(this-package-input "libx11") "/lib")
                                         (string-append #$(this-package-input "libxext") "/lib")
-                                        (string-append #$(this-package-input "mesa") "/lib")
                                         (string-append #$(this-package-input "wayland") "/lib"))
                                   ":")))
                      (define (patch-elf file)
@@ -290,7 +294,9 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
     (supported-systems '("i686-linux" "x86_64-linux"))
     (native-inputs (list patchelf))
     (inputs
-     (list `(,gcc "lib")
+     (list egl-gbm
+           egl-wayland
+           `(,gcc "lib")
            bash-minimal
            coreutils
            glibc
@@ -298,7 +304,6 @@ KERNEL==\"nvidia_uvm\", RUN+=\"@sh@ -c '@mknod@ -m 666 /dev/nvidia-uvm-tools c $
            libdrm
            libx11
            libxext
-           mesa
            wayland))
     (home-page "https://www.nvidia.com")
     (synopsis "Proprietary NVIDIA driver")
