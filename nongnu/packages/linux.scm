@@ -4,7 +4,7 @@
 ;;; Copyright © 2019 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2019 Timotej Lazar <timotej.lazar@araneo.si>
 ;;; Copyright © 2020, 2021 James Smith <jsubuntuxp@disroot.org>
-;;; Copyright © 2020-2023 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2020-2024 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2020, 2022 Michael Rohleder <mike@rohleder.de>
 ;;; Copyright © 2020, 2021, 2022 Tobias Geerinckx-Rice <me@tobias.gr>
 ;;; Copyright © 2020, 2021, 2022 Zhu Zihao <all_but_last@163.com>
@@ -25,6 +25,7 @@
 ;;; Copyright © 2023 Hilton Chain <hako@ultrarare.space>
 ;;; Copyright © 2023 Ada Stevenson <adanskana@gmail.com>
 ;;; Copyright © 2023 Tomas Volf <~@wolfsden.cz>
+;;; Copyright © 2023 PRESFIL <presfil@protonmail.com>
 
 (define-module (nongnu packages linux)
   #:use-module (gnu packages)
@@ -848,6 +849,60 @@ network adapters.")
       ;; Rejected by Guix beause it contains a binary blob in:
       ;; hal/rtl8821c/hal8821c_fw.c
       (license gpl2))))
+
+(define-public rtl8821cu-linux-module
+  (let ((commit "a41ef7cabd1aa36fa2b4eb63a71cf719bff11b72")
+        (revision "1"))
+    (package
+      (name "rtl8821cu-linux-module")
+      (version (git-version "0.0.0" revision commit))
+      (source
+       (origin
+         (method git-fetch)
+         (uri (git-reference
+               (url "https://github.com/morrownr/8821cu-20210916")
+               (commit commit)))
+         (file-name (git-file-name name version))
+         (sha256
+          (base32 "0fnv4gm4adnf8gbjzc2lljh2a3i111159qira3w0qm1zhyqadaq0"))))
+      (build-system linux-module-build-system)
+      (arguments
+       (list
+        #:make-flags #~(list (string-append "CC="
+                                            #$(cc-for-target))
+                             (string-append "KSRC="
+                                            (assoc-ref %build-inputs
+                                                       "linux-module-builder")
+                                            "/lib/modules/build"))
+        #:phases #~(modify-phases %standard-phases
+                     (replace 'build
+                       (lambda* (#:key (make-flags '())
+                                 (parallel-build? #t) #:allow-other-keys)
+                         (apply invoke "make"
+                                `(,@(if parallel-build?
+                                        `("-j" ,(number->string (parallel-job-count)))
+                                        '()) ,@make-flags)))))
+        #:tests? #f))
+      (home-page "https://github.com/morrownr/8821cu-20210916")
+      (synopsis "Linux driver for Realtek USB WiFi adapters")
+      (description
+       "Linux driver for USB WiFi adapters that are based on the
+Realtek RTL8811CU, RTL8821CU, RTL8821CUH and RTL8731AU chipsets.
+
+To work, in addition to installing the driver, you need
+to disable the conflicting rtw88 driver:
+
+@example
+(operating-system
+  ;; ...
+  ;; Blacklist conflicting kernel modules.
+  (kernel-arguments '(\"modprobe.blacklist=rtw88_8821cu\"))
+  (kernel-loadable-modules (list rtl8821cu-linux-module)))
+@end example")
+      ;; Rejected by Guix beause it contains a binary blob in:
+      ;; hal/rtl8821c/hal8821c_fw.c
+      (license (nonfree
+                "https://github.com/morrownr/8821cu-20210916/blob/main/LICENSE")))))
 
 (define-public rtl8812au-aircrack-ng-linux-module
   (let ((commit "35308f4dd73e77fa572c48867cce737449dd8548")
