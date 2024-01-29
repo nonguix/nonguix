@@ -285,6 +285,30 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
 
                    ;; Add udev rules
                    (symlink #$%nvidia-udev-rules "90-nvidia.rules")))
+               (add-after 'install 'add-architecture-to-filename
+                 (lambda _
+                   (for-each
+                    (lambda (path)
+                      (let* ((out #$output)
+                             (system #$(or (%current-target-system)
+                                           (%current-system)))
+                             (dash (string-index system #\-))
+                             (arch (string-take system dash))
+
+                             (dot  (string-index-right path #\.))
+                             (base (string-take path dot))
+                             (ext  (string-drop path (+ 1 dot))))
+                        ;; <...>/nvidia.icd -> <...>/nvidia.x86_64.icd
+                        ;; <...>/nvidia_icd.json -> <...>/nvidia_icd.x86_64.json
+                        (rename-file
+                         (string-append out path)
+                         (string-append out base "." arch "." ext))))
+                    '("/etc/OpenCL/vendors/nvidia.icd"
+                      "/share/egl/egl_external_platform.d/10_nvidia_wayland.json"
+                      "/share/egl/egl_external_platform.d/15_nvidia_gbm.json"
+                      "/share/glvnd/egl_vendor.d/10_nvidia.json"
+                      "/share/vulkan/icd.d/nvidia_icd.json"
+                      "/share/vulkan/implicit_layer.d/nvidia_layers.json"))))
                (add-after 'install 'patch-elf
                  (lambda _
                    (let* ((ld.so (string-append #$(this-package-input "glibc")
