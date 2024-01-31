@@ -81,6 +81,14 @@
                                    "libnvidia-egl-gbm\\.so\\."
                                    ;; egl-wayland
                                    "libnvidia-egl-wayland\\.so\\."
+                                   ;; libglvnd
+                                   "libEGL\\.so\\."
+                                   "libGL\\.so\\."
+                                   "libGLESv1_CM\\.so\\."
+                                   "libGLESv2\\.so\\."
+                                   "libGLX\\.so\\."
+                                   "libGLdispatch\\.so\\."
+                                   "libOpenGL\\.so\\."
                                    ;; nvidia-settings
                                    "libnvidia-gtk[23]\\.so\\."
                                    ;; opencl-icd-loader
@@ -319,6 +327,7 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                                         (string-append (ungexp (this-package-input "gcc") "lib") "/lib")
                                         (string-append #$(this-package-input "glibc") "/lib")
                                         (string-append #$(this-package-input "libdrm") "/lib")
+                                        (string-append #$(this-package-input "libglvnd") "/lib")
                                         (string-append #$(this-package-input "libx11") "/lib")
                                         (string-append #$(this-package-input "libxext") "/lib")
                                         (string-append #$(this-package-input "wayland") "/lib"))
@@ -419,6 +428,7 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
            `(,gcc "lib")
            glibc
            libdrm
+           libglvnd-for-nvda
            libx11
            libxext
            wayland))
@@ -673,7 +683,8 @@ configuration, creating application profiles, gpu monitoring and more.")
                (use-modules (guix build union))
                (union-build
                 #$output
-                '#$(list (this-package-input "mesa")
+                '#$(list (this-package-input "libglvnd")
+                         (this-package-input "mesa")
                          (this-package-input "nvidia-driver"))))))
     (native-search-paths
      (list
