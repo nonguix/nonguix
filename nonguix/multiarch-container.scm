@@ -494,14 +494,11 @@ application."
                 "/run/current-system/profile/share"
                 "/sbin"
                 "/usr/lib"
-                "/usr/share/vulkan/icd.d"))
+                "/usr/share"))
              (for-each
               new-symlink
               `((,ld.so.cache . "/etc/ld.so.cache")
                 (,ld.so.conf . "/etc/ld.so.conf") ;; needed?
-                ;; For MangoHud implicit layers.
-                ((,guix-env "share/vulkan/implicit_layer.d") .
-                 "/usr/share/vulkan/implicit_layer.d")
                 ((,guix-env "etc/ssl") . "/etc/ssl")
                 ((,guix-env "etc/ssl") . "/run/current-system/profile/etc/ssl")
                 ((,union32 "lib") . "/lib")
@@ -519,15 +516,27 @@ application."
                 ((,union64 "share/glib-2.0") . "/usr/share/glib-2.0") ; Heroic interface.
                 ((,union64 "share/drirc.d") . "/usr/share/drirc.d")
                 ((,union64 "share/fonts") . "/run/current-system/profile/share/fonts")
-                ((,union64 "etc/fonts") . "/etc/fonts")
-                ((,union64 "share/vulkan/explicit_layer.d") .
-                 "/usr/share/vulkan/explicit_layer.d")))
+                ((,union64 "etc/fonts") . "/etc/fonts")))
              (for-each
               (cut file-symlink <> "/usr/share/vulkan/icd.d")
               (append-map
                get-files
                `((,union32 "share/vulkan/icd.d")
                  (,union64 "share/vulkan/icd.d"))))
+             (for-each
+              (cut file-symlink <> "/usr/share/vulkan/explicit_layer.d")
+              (append-map
+               get-files
+               `((,union64 "share/vulkan/explicit_layer.d")
+                 (,union32 "share/vulkan/explicit_layer.d"))))
+             (for-each
+              (cut file-symlink <> "/usr/share/vulkan/implicit_layer.d")
+              (append-map
+               get-files
+               `((,union32 "share/vulkan/implicit_layer.d")
+                 (,union64 "share/vulkan/implicit_layer.d")
+                 ;; For MangoHud implicit layers.
+                 (,guix-env "share/vulkan/implicit_layer.d"))))
              ;; TODO: This is not the right place for this.
              ;; Newer versions of Steam won't startup if they can't copy to here
              ;; (previous would output this error but continue).
