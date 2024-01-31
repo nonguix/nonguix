@@ -8,21 +8,26 @@
   #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module ((guix licenses) :prefix license:)
-  #:use-module (nonguix build-system chromium-binary))
+  #:use-module (nonguix build-system chromium-binary)
+  #:use-module (ice-9 match))
 
 (define-public vscodium
   (package
     (name "vscodium")
-    (version "1.85.0.23343")
+    (version "1.85.2.24019")
     (source
      (origin
        (method url-fetch)
        (uri
-        (string-append
-         "https://github.com/VSCodium/vscodium/releases/download/" version
-         "/VSCodium-linux-x64-" version ".tar.gz"))
+        (let ((arch (match (or (%current-target-system) (%current-system))
+                      ("aarch64-linux" "arm64")
+                      ("armhf-linux" "armhf")
+                      (_ "x64"))))
+          (string-append
+           "https://github.com/VSCodium/vscodium/releases/download/" version
+           "/VSCodium-linux-" arch "-" version ".tar.gz")))
        (sha256
-        (base32 "16m7a2j9rmnp9pqpyyy2dx09paj1qh0h4gb1dhhwakw7w0zjlxn5"))))
+        (base32 "0nd9hipz1jhjdv6hrm6q2jpppanh8nmkpy9zpayymy4dwif8a49q"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list #:validate-runpath? #f ; TODO: fails on wrapped binary and included other files
@@ -80,6 +85,7 @@
                        (,(string-join
                           (list (string-append #$output "/opt/vscodium"))
                           ":")))))))))
+    (supported-systems '("armhf-linux" "aarch64-linux" "x86_64-linux"))
     (native-inputs
      (list tar))
     (inputs
