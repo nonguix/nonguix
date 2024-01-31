@@ -658,6 +658,11 @@ configuration, creating application profiles, gpu monitoring and more.")
      "These are the libraries of the evil NVIDIA driver, packaged in such a
 way that you can use the transformation option @code{--with-graft=mesa=nvda}
 to use the NVIDIA driver with a package that requires mesa.")
+    (native-inputs '())
+    (propagated-inputs
+     (append
+      (package-propagated-inputs mesa)
+      (package-propagated-inputs nvidia-driver)))
     (inputs (list mesa nvidia-driver))
     (outputs '("out"))))
 
