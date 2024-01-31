@@ -621,17 +621,18 @@ configuration, creating application profiles, gpu monitoring and more.")
                (use-modules (guix build union)
                             (srfi srfi-1)
                             (ice-9 regex))
-               (union-build #$output
-                            (list #$(this-package-input "mesa")
-                                  #$(this-package-input "nvidia-driver"))
-                            #:resolve-collision
-                            (lambda (files)
-                              (let ((file (if (string-match "nvidia-driver"
-                                                            (first files))
-                                              (first files)
-                                              (last files))))
-                                (format #t "chosen ~a ~%" file)
-                                file))))))
+               (union-build
+                #$output
+                '#$(list (this-package-input "mesa")
+                         (this-package-input "nvidia-driver"))
+                #:resolve-collision
+                (lambda (files)
+                  (let ((file (if (string-match "nvidia-driver"
+                                                (first files))
+                                  (first files)
+                                  (last files))))
+                    (format #t "chosen ~a ~%" file)
+                    file))))))
     (native-search-paths
      (list
       ;; https://github.com/NVIDIA/egl-wayland/issues/39
