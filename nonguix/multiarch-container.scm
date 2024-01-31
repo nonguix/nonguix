@@ -455,7 +455,9 @@ application."
          `((guix build utils))
        #~(begin
            (use-modules (guix build utils)
-                        (ice-9 getopt-long))
+                        (ice-9 getopt-long)
+                        (srfi srfi-1)
+                        (srfi srfi-26))
            (define (path->str path)
              (if (list? path)
                  (string-join path "/")
@@ -465,9 +467,13 @@ application."
                    (dest (path->str (cdr pair))))
                (unless (file-exists? dest)
                  (symlink target dest))))
-           (define (icd-symlink file)
+           (define (file-symlink file dir)
+             (mkdir-p dir)
              (new-symlink
-              `(,file . ("/usr/share/vulkan/icd.d" ,(basename file)))))
+              `(,file . (,dir ,(basename file)))))
+           ;; Use stat to follow links from packages like MangoHud.
+           (define (get-files dir)
+             (find-files (path->str dir) #:stat stat))
            (define fhs-option-spec
              '((asound32 (value #f))))
            (let* ((guix-env (getenv "GUIX_ENVIRONMENT"))
@@ -517,12 +523,11 @@ application."
                 ((,union64 "share/vulkan/explicit_layer.d") .
                  "/usr/share/vulkan/explicit_layer.d")))
              (for-each
-              icd-symlink
-              ;; Use stat to follow links from packages like MangoHud.
-              `(,@(find-files (string-append union32 "/share/vulkan/icd.d")
-                              #:directories? #t #:stat stat)
-                ,@(find-files (string-append union64 "/share/vulkan/icd.d")
-                              #:directories? #t #:stat stat)))
+              (cut file-symlink <> "/usr/share/vulkan/icd.d")
+              (append-map
+               get-files
+               `((,union32 "share/vulkan/icd.d")
+                 (,union64 "share/vulkan/icd.d"))))
              ;; TODO: This is not the right place for this.
              ;; Newer versions of Steam won't startup if they can't copy to here
              ;; (previous would output this error but continue).
