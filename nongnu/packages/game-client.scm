@@ -223,6 +223,10 @@ implementation with gogdl and Amazon Games using Nile.")
           steam-gameruntime-libs
           fhs-min-libs))
 
+(define steam-nvidia-container-libs
+  (modify-inputs steam-container-libs
+    (replace "mesa" nvda)))
+
 (define heroic-extra-client-libs
   `(("curl" ,curl)                      ; Required for Heroic to download e.g. Wine.
     ("which" ,which)                    ; Heroic complains about trying to use which (though works).
@@ -265,8 +269,13 @@ all games will be installed.")))
    (name "steam-nvidia")
    ;; Steam's .desktop files expect a "steam" executable, so provide that.
    (binary-name "steam")
-   (union64 (replace-mesa (ngc-union64 steam-container)))
-   (union32 (replace-mesa (ngc-union32 steam-container)))))
+   (union64
+    (fhs-union steam-nvidia-container-libs
+               #:name "fhs-union-64"))
+   (union32
+    (fhs-union steam-nvidia-container-libs
+               #:name "fhs-union-32"
+               #:system "i686-linux"))))
 
 (define-public steam (nonguix-container->package steam-container))
 (define-public steam-nvidia (nonguix-container->package steam-nvidia-container))
@@ -305,8 +314,14 @@ installed.")))
   (nonguix-container
    (inherit heroic-container)
    (name "heroic-nvidia")
-   (union64 (replace-mesa (ngc-union64 heroic-container)))
-   (union32 (replace-mesa (ngc-union32 heroic-container)))))
+   (union64
+    (fhs-union `(,@heroic-extra-client-libs
+                 ,@steam-nvidia-container-libs)
+               #:name "fhs-union-64"))
+   (union32
+    (fhs-union steam-nvidia-container-libs
+               #:name "fhs-union-32"
+               #:system "i686-linux"))))
 
 (define-public heroic (nonguix-container->package heroic-container))
 (define-public heroic-nvidia (nonguix-container->package heroic-nvidia-container))
