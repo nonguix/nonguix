@@ -291,6 +291,7 @@ in a sandboxed FHS environment."
                                  "^SDL_"
                                  "^STEAM_"
                                  "^SSL_" ; SSL certificate environment, needed by curl for Heroic.
+                                 "^TZ"   ; For setting time zone.
                                  "^XAUTHORITY$"
                                  ;; Matching all ^XDG_ vars causes issues
                                  ;; discussed in 80decf05.
