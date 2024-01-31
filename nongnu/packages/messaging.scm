@@ -1,6 +1,6 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2021, 2022 PantherX OS Team <team@pantherx.org>
-;;; Copyright © 2022, 2023 John Kehayias <john.kehayias@protonmail.com>
+;;; Copyright © 2022, 2023, 2024 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2022 Evgenii Lepikhin <johnlepikhin@gmail.com>
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2023 Raven Hallsby <karl@hallsby.org>
@@ -36,7 +36,7 @@
 (define-public element-desktop
   (package
     (name "element-desktop")
-    (version "1.11.51")
+    (version "1.11.57")
     (source
      (origin
        (method url-fetch)
@@ -45,7 +45,7 @@
          "https://packages.riot.im/debian/pool/main/e/" name "/" name "_" version
          "_amd64.deb"))
        (sha256
-        (base32 "018i2ba66g4lr7cm9psnrkjhw6y5jpfa5imdfa34xlpbf0pglp6r"))))
+        (base32 "05318i6z5kkzi01ygr77g5ij0hs4xmy0j23hznkqc4zia02q1vgx"))))
     (supported-systems '("x86_64-linux"))
     (build-system chromium-binary-build-system)
     (arguments
