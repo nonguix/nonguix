@@ -614,6 +614,46 @@ configuration, creating application profiles, gpu monitoring and more.")
          #~(modify-phases #$phases
              (delete 'shrink-runpath))))))))
 
+(define-public mesa-for-nvda
+  (hidden-package
+   (package
+     (inherit mesa)
+     (propagated-inputs
+      (modify-inputs (package-propagated-inputs mesa)
+        (prepend libglvnd-for-nvda)))
+     (arguments
+      (substitute-keyword-arguments (package-arguments mesa)
+        ((#:configure-flags flags #~'())
+         #~(cons* "-Dglvnd=true" #$flags))
+        ((#:phases phases #~%standard-phases)
+         #~(modify-phases #$phases
+             (add-after 'install 'fix-egl-vendor-icd
+               (lambda _
+                 (substitute* (string-append
+                               #$output "/share/glvnd/egl_vendor.d/50_mesa.json")
+                   (("libEGL_mesa\\.so\\.." all)
+                    (string-append #$output "/lib/" all)))))
+             (add-after 'set-layer-path-in-manifests 'add-architecture-to-filename
+               (lambda _
+                 (for-each
+                  (lambda (path)
+                    (let* ((out #$output)
+                           (system #$(or (%current-target-system)
+                                         (%current-system)))
+                           (dash (string-index system #\-))
+                           (arch (string-take system dash))
+
+                           (dot  (string-index-right path #\.))
+                           (base (string-take path dot))
+                           (ext  (string-drop path (+ 1 dot))))
+                      ;; <...>/50_mesa.json -> <...>/50_mesa.x86_64.json
+                      (rename-file
+                       (string-append out path)
+                       (string-append out base "." arch "." ext))))
+                  '("/share/glvnd/egl_vendor.d/50_mesa.json"
+                    "/share/vulkan/explicit_layer.d/VkLayer_MESA_overlay.json"
+                    "/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json")))))))))))
+
 ;; nvda is used as a name because it has the same length as mesa which is
 ;; required for grafting
 (define-public nvda
@@ -622,7 +662,7 @@ configuration, creating application profiles, gpu monitoring and more.")
     (name "nvda")
     (version (string-pad-right
               (package-version nvidia-driver)
-              (string-length (package-version mesa))
+              (string-length (package-version mesa-for-nvda))
               #\0))
     (source #f)
     (build-system trivial-build-system)
@@ -630,21 +670,11 @@ configuration, creating application profiles, gpu monitoring and more.")
      (list #:modules '((guix build union))
            #:builder
            #~(begin
-               (use-modules (guix build union)
-                            (srfi srfi-1)
-                            (ice-9 regex))
+               (use-modules (guix build union))
                (union-build
                 #$output
                 '#$(list (this-package-input "mesa")
-                         (this-package-input "nvidia-driver"))
-                #:resolve-collision
-                (lambda (files)
-                  (let ((file (if (string-match "nvidia-driver"
-                                                (first files))
-                                  (first files)
-                                  (last files))))
-                    (format #t "chosen ~a ~%" file)
-                    file))))))
+                         (this-package-input "nvidia-driver"))))))
     (native-search-paths
      (list
       ;; https://github.com/NVIDIA/egl-wayland/issues/39
@@ -674,9 +704,9 @@ to use the NVIDIA driver with a package that requires mesa.")
     (native-inputs '())
     (propagated-inputs
      (append
-      (package-propagated-inputs mesa)
+      (package-propagated-inputs mesa-for-nvda)
       (package-propagated-inputs nvidia-driver)))
-    (inputs (list mesa nvidia-driver))
+    (inputs (list mesa-for-nvda nvidia-driver))
     (outputs '("out"))))
 
 (define mesa/fake
