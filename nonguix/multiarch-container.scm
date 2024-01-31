@@ -277,6 +277,7 @@ in a sandboxed FHS environment."
                                  ;; need to be shared with the container as
                                  ;; well; this is not needed currently.
                                  "^LD_LIBRARY_PATH$"
+                                 "^LIBVA_DRIVERS_PATH$" ; For VA-API drivers.
                                  "^MANGOHUD" ; For MangoHud configuration.
                                  "^PRESSURE_VESSEL_" ; For pressure vessel options.
                                  "_PROXY$"
@@ -356,6 +357,8 @@ in a sandboxed FHS environment."
            ;; path, so set this path to where the drivers will actually be
            ;; located in the container.
            (setenv "VDPAU_DRIVER_PATH" "/lib64/vdpau")
+           ;; Likewise, for VA-API drivers.
+           (setenv "LIBVA_DRIVERS_PATH" "/lib64/dri:/lib/dri")
            (format #t "\n* Launching ~a in sandbox: ~a.\n\n"
                    #$(package-name (ngc-wrap-package container)) sandbox-home)
            (when DEBUG
