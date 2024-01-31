@@ -315,6 +315,7 @@ in a sandboxed FHS environment."
                           ,@(exists-> "/dev/nvidia-modeset")
                           ,@(exists-> "/etc/machine-id")
                           "/etc/localtime" ; Needed for correct time zone.
+                          "/etc/os-release" ; Needed for distro info.
                           "/sys/class/drm" ; Needed for hw monitoring like MangoHud.
                           "/sys/class/hwmon" ; Needed for hw monitoring like MangoHud.
                           "/sys/class/hidraw" ; Needed for devices like the Valve Index.
