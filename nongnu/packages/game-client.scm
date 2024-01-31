@@ -243,6 +243,17 @@ implementation with gogdl and Amazon Games using Nile.")
 (define steam-ld.so.cache
   (ld.so.conf->ld.so.cache steam-ld.so.conf))
 
+(define steam-nvidia-ld.so.conf
+  (packages->ld.so.conf
+   (list (fhs-union steam-nvidia-container-libs
+                    #:name "fhs-union-64")
+         (fhs-union steam-nvidia-container-libs
+                    #:name "fhs-union-32"
+                    #:system "i686-linux"))))
+
+(define steam-nvidia-ld.so.cache
+  (ld.so.conf->ld.so.cache steam-nvidia-ld.so.conf))
+
 (define-public steam-container
   (nonguix-container
    (name "steam")
@@ -269,6 +280,8 @@ all games will be installed.")))
    (name "steam-nvidia")
    ;; Steam's .desktop files expect a "steam" executable, so provide that.
    (binary-name "steam")
+   (ld.so.conf steam-nvidia-ld.so.conf)
+   (ld.so.cache steam-nvidia-ld.so.cache)
    (union64
     (fhs-union steam-nvidia-container-libs
                #:name "fhs-union-64"))
@@ -314,6 +327,8 @@ installed.")))
   (nonguix-container
    (inherit heroic-container)
    (name "heroic-nvidia")
+   (ld.so.conf steam-nvidia-ld.so.conf)
+   (ld.so.cache steam-nvidia-ld.so.cache)
    (union64
     (fhs-union `(,@heroic-extra-client-libs
                  ,@steam-nvidia-container-libs)
