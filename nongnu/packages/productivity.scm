@@ -24,17 +24,17 @@
 (define-public anytype
   (package
     (name "anytype")
-    (version "0.37.3")
+    (version "0.38")
     (source
      (origin
        (method url-fetch)
        (uri
         (string-append "https://download.anytype.io?action=download"
-                       "&key=desktop&id=142685264"))
+                       "&key=desktop&id=148487107"))
        (file-name (string-append "anytype-" version ".deb"))
        (sha256
         (base32
-         "197v4dsn21yfi9dhcrqdznz3vfzicd79fc4abbpifacgb4fxcxq8"))))
+         "1xc57ppk3l16mq2a53scf79m8hx43x21kac96ws66awlkz14swc7"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list
@@ -58,6 +58,11 @@
           ("usr/share/" "/share"))
       #:phases
       #~(modify-phases %standard-phases
+          (add-after 'binary-unpack 'strip-python
+            (lambda _
+              (delete-file
+               (string-append "opt/Anytype/resources/app.asar.unpacked/"
+                              "node_modules/keytar/build/node_gyp_bins/python3"))))
           (add-before 'install 'patch-assets
             (lambda _
               (let* ((bin (string-append #$output "/bin"))
