@@ -602,6 +602,18 @@ configuration, creating application profiles, gpu monitoring and more.")
 ;;;
 
 
+(define-public libglvnd-for-nvda
+  (hidden-package
+   (package
+     (inherit libglvnd)
+     (arguments
+      (substitute-keyword-arguments (package-arguments libglvnd)
+        ((#:configure-flags flags #~'())
+         #~(cons* "-Dc_link_args=-Wl,-rpath=$ORIGIN" #$flags))
+        ((#:phases phases #~%standard-phases)
+         #~(modify-phases #$phases
+             (delete 'shrink-runpath))))))))
+
 ;; nvda is used as a name because it has the same length as mesa which is
 ;; required for grafting
 (define-public nvda
