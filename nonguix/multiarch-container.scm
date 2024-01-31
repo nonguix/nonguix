@@ -518,6 +518,18 @@ application."
                 ((,union64 "share/fonts") . "/run/current-system/profile/share/fonts")
                 ((,union64 "etc/fonts") . "/etc/fonts")))
              (for-each
+              (cut file-symlink <> "/usr/share/egl/egl_external_platform.d")
+              (append-map
+               get-files
+               `((,union32 "share/egl/egl_external_platform.d")
+                 (,union64 "share/egl/egl_external_platform.d"))))
+             (for-each
+              (cut file-symlink <> "/usr/share/glvnd/egl_vendor.d")
+              (append-map
+               get-files
+               `((,union32 "share/glvnd/egl_vendor.d")
+                 (,union64 "share/glvnd/egl_vendor.d"))))
+             (for-each
               (cut file-symlink <> "/usr/share/vulkan/icd.d")
               (append-map
                get-files
