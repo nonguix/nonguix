@@ -260,8 +260,9 @@ in a sandboxed FHS environment."
                 (home (getenv "HOME"))
                 (sandbox-home (or (getenv "GUIX_SANDBOX_HOME")
                                   (string-append home "/" #$(ngc-sandbox-home container))))
+                (wayland-display (or (getenv "WAYLAND_DISPLAY")
+                                     "wayland-0"))
                 (preserved-env '("^DBUS_"
-                                 "^DISPLAY$"
                                  "^DRI_PRIME$"
                                  "^GDK_SCALE$" ; For UI scaling.
                                  "^GUIX_LOCPATH$" ; For pressure-vessel locales.
@@ -293,8 +294,11 @@ in a sandboxed FHS environment."
                                  "^XAUTHORITY$"
                                  ;; Matching all ^XDG_ vars causes issues
                                  ;; discussed in 80decf05.
+                                 "^XDG_CURRENT_DESKTOP$"
                                  "^XDG_DATA_HOME$"
                                  "^XDG_RUNTIME_DIR$"
+                                 "^XDG_SESSION_(CLASS|TYPE)$"
+                                 "^(WAYLAND_)?DISPLAY$"
                                  #$@(ngc-preserved-env container) ; Environment from container.
                                  ;; The following are useful for debugging.
                                  "^CAPSULE_DEBUG$"
@@ -333,6 +337,7 @@ in a sandboxed FHS environment."
                          ,@(exists-> (string-append home "/.config/pulse"))
                          ,@(exists-> (string-append xdg-runtime "/pulse"))
                          ,@(exists-> (string-append xdg-runtime "/bus"))
+                         ,@(exists-> (string-append xdg-runtime "/" wayland-display))
                          ,@(exists-> (getenv "XAUTHORITY"))
                          #$@(ngc-shared container)))
                 (DEBUG (equal? (getenv "DEBUG") "1"))
