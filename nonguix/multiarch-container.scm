@@ -291,7 +291,6 @@ in a sandboxed FHS environment."
                                  "^SDL_"
                                  "^STEAM_"
                                  "^SSL_" ; SSL certificate environment, needed by curl for Heroic.
-                                 "^VDPAU_DRIVER_PATH$" ; For VDPAU drivers.
                                  "^XAUTHORITY$"
                                  ;; Matching all ^XDG_ vars causes issues
                                  ;; discussed in 80decf05.
@@ -353,11 +352,9 @@ in a sandboxed FHS environment."
            ;; the "usual" path, probably so they are included in the
            ;; pressure-vessel container.
            (setenv "GUIX_LOCPATH" "/usr/lib/locale")
-           ;; By default VDPAU drivers are searched for in libvdpau's store
-           ;; path, so set this path to where the drivers will actually be
-           ;; located in the container.
-           (setenv "VDPAU_DRIVER_PATH" "/lib64/vdpau")
-           ;; Likewise, for VA-API drivers.
+           ;; By default VA-API drivers are searched for in mesa's store path,
+           ;; so set this path to where the drivers will actually be located in
+           ;; the container.
            (setenv "LIBVA_DRIVERS_PATH" "/lib64/dri:/lib/dri")
            (format #t "\n* Launching ~a in sandbox: ~a.\n\n"
                    #$(package-name (ngc-wrap-package container)) sandbox-home)
@@ -571,7 +568,7 @@ application."
              ;; games).  Wait to set this inside the container to not cause
              ;; issues on foreign distros, see
              ;; <https://gitlab.com/nonguix/nonguix/-/issues/303>
-             (setenv "LD_LIBRARY_PATH" "/lib64:/lib")
+             (setenv "LD_LIBRARY_PATH" "/lib64:/lib:/lib64/vdpau:/lib/vdpau")
 
              ;; Process FHS-specific command line options.
              (let* ((options (getopt-long (or fhs-args '("")) fhs-option-spec))
