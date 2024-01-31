@@ -63,10 +63,7 @@
                     "libqt6_shim.so"
                     "libvk_swiftshader.so"
                     "libvulkan.so.1"
-                    "WidevineCdm/_platform_specific/linux_x64/libwidevinecdm.so"
-                    #$@(if (string=? repo "stable")
-                           '("nacl_helper")
-                           '()))))
+                    "WidevineCdm/_platform_specific/linux_x64/libwidevinecdm.so")))
         #:install-plan
          #~'(("opt/" "/share")
              ("usr/share/" "/share"))
