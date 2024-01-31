@@ -58,6 +58,21 @@
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1))
 
+(define-public %nvidia-environment-variable-regexps
+  '("^__GL_"                            ; NVIDIA OpenGL settings.
+    "^__GLX_VENDOR_LIBRARY_NAME$"       ; For GLVND.
+    ;; NVIDIA PRIME Render Offload.
+    "^__NV_PRIME_RENDER_OFFLOAD(_PROVIDER)?$"
+    "^__VK_LAYER_NV_optimus$"
+    ;; NVIDIA NGX.
+    "^__NGX_CONF_FILE$"
+    "^__NV_SIGNED_LOAD_CHECK$"
+    "^PROTON_ENABLE_NGX_UPDATER$"
+    ;; NVIDIA VDPAU settings.
+    "^VDPAU_NVIDIA_"
+    ;; GSYNC control for Vulkan direct-to-display applications.
+    "^VKDirectGSYNC(Compatible)?Allowed$"))
+
 (define nvidia-version "515.76")
 
 (define computed-origin-method

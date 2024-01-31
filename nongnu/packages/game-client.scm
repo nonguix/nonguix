@@ -288,7 +288,8 @@ all games will be installed.")))
    (union32
     (fhs-union steam-nvidia-container-libs
                #:name "fhs-union-32"
-               #:system "i686-linux"))))
+               #:system "i686-linux"))
+   (preserved-env %nvidia-environment-variable-regexps)))
 
 (define-public steam (nonguix-container->package steam-container))
 (define-public steam-nvidia (nonguix-container->package steam-nvidia-container))
@@ -336,7 +337,8 @@ installed.")))
    (union32
     (fhs-union steam-nvidia-container-libs
                #:name "fhs-union-32"
-               #:system "i686-linux"))))
+               #:system "i686-linux"))
+   (preserved-env %nvidia-environment-variable-regexps)))
 
 (define-public heroic (nonguix-container->package heroic-container))
 (define-public heroic-nvidia (nonguix-container->package heroic-nvidia-container))
