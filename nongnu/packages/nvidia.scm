@@ -72,12 +72,27 @@
 ;;;
 
 
-;; Extract the driver installer and make it a new origin instance for reusing.
-(define (make-nvidia-source version installer)
+(define (nvidia-source-unbundle-libraries version)
+  #t)
+
+(define* (make-nvidia-source
+          version hash
+          #:optional (get-cleanup-snippet nvidia-source-unbundle-libraries))
+  "Given VERSION and HASH of an NVIDIA driver installer, return an <origin> for
+its unpacked checkout.  GET-CLEANUP-SNIPPET is a procedure that accepts the
+VERSION as argument and returns a G-expression."
+  (define installer
+    (origin
+      (method url-fetch)
+      (uri (string-append
+            "https://us.download.nvidia.com/XFree86/Linux-x86_64/"
+            version "/NVIDIA-Linux-x86_64-" version ".run"))
+      (sha256 hash)))
   (origin
     (method (@@ (guix packages) computed-origin-method))
     (file-name (string-append "nvidia-driver-" version "-checkout"))
     (sha256 #f)
+    (snippet (get-cleanup-snippet version))
     (uri
      (delay
        (with-imported-modules '((guix build utils))
@@ -102,16 +117,9 @@
               #$output)))))))
 
 (define-public nvidia-source
-  (let ((version nvidia-version))
-    (make-nvidia-source
-     version
-     (origin
-       (method url-fetch)
-       (uri (string-append
-             "https://us.download.nvidia.com/XFree86/Linux-x86_64/"
-             version "/NVIDIA-Linux-x86_64-" version ".run"))
-       (sha256
-        (base32 "0i5zyvlsjnfkpfqhw6pklp0ws8nndyiwxrg4pj04jpwnxf6a38n6"))))))
+  (make-nvidia-source
+   nvidia-version
+   (base32 "0i5zyvlsjnfkpfqhw6pklp0ws8nndyiwxrg4pj04jpwnxf6a38n6")))
 
 
 ;;;
