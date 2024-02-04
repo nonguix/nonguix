@@ -34,10 +34,17 @@
            (provision '(nvidia))
            (requirement '(udev))
            (one-shot? #t)
+           (modules '(((guix build utils) #:select (invoke/quiet))
+                      ((rnrs io ports) #:select (get-line))))
            (start
             #~(lambda _
-                (when (file-exists? #$nvidia-smi)
-                  (system* #$nvidia-smi))))))))
+                (when (file-exists? "/proc/driver/nvidia")
+                  (let ((modprobe (call-with-input-file
+                                      "/proc/sys/kernel/modprobe" get-line)))
+                    (false-if-exception
+                     (begin
+                       (invoke/quiet modprobe "--" "nvidia_uvm")
+                       (invoke/quiet #$nvidia-smi)))))))))))
 
 (define nvidia-service-type
   (service-type
@@ -52,8 +59,6 @@
           (service-extension firmware-service-type
                              (compose list nvidia-configuration-firmware))
           (service-extension linux-loadable-module-service-type
-                             (compose list nvidia-configuration-module))
-          (service-extension kernel-module-loader-service-type
-                             (const '("nvidia_uvm")))))
+                             (compose list nvidia-configuration-module))))
    (default-value (nvidia-configuration))
    (description "Prepare system environment for NVIDIA driver.")))
