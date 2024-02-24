@@ -218,6 +218,11 @@ implementation with gogdl and Amazon Games using Nile.")
     ("python" ,python)                  ; Required for KillingFloor2 and Wreckfest.
     ("spdlog" ,spdlog)))                ; Required for MangoHud.
 
+(define steam-container-libs
+  (append steam-client-libs
+          steam-gameruntime-libs
+          fhs-min-libs))
+
 (define heroic-extra-client-libs
   `(("curl" ,curl)                      ; Required for Heroic to download e.g. Wine.
     ("which" ,which)                    ; Heroic complains about trying to use which (though works).
@@ -225,13 +230,9 @@ implementation with gogdl and Amazon Games using Nile.")
 
 (define steam-ld.so.conf
   (packages->ld.so.conf
-   (list (fhs-union `(,@steam-client-libs
-                      ,@steam-gameruntime-libs
-                      ,@fhs-min-libs)
+   (list (fhs-union steam-container-libs
                     #:name "fhs-union-64")
-         (fhs-union `(,@steam-client-libs
-                      ,@steam-gameruntime-libs
-                      ,@fhs-min-libs)
+         (fhs-union steam-container-libs
                     #:name "fhs-union-32"
                     #:system "i686-linux"))))
 
@@ -246,14 +247,10 @@ implementation with gogdl and Amazon Games using Nile.")
    (ld.so.conf steam-ld.so.conf)
    (ld.so.cache steam-ld.so.cache)
    (union64
-    (fhs-union `(,@steam-client-libs
-                 ,@steam-gameruntime-libs
-                 ,@fhs-min-libs)
+    (fhs-union steam-container-libs
                #:name "fhs-union-64"))
    (union32
-    (fhs-union `(,@steam-client-libs
-                 ,@steam-gameruntime-libs
-                 ,@fhs-min-libs)
+    (fhs-union steam-container-libs
                #:name "fhs-union-32"
                #:system "i686-linux"))
    (link-files '("share"))
@@ -289,15 +286,11 @@ all games will be installed.")))
    ;; this is easier and works.
    (union64
     (fhs-union `(,@heroic-extra-client-libs
-                 ,@steam-client-libs
-                 ,@steam-gameruntime-libs
-                 ,@fhs-min-libs)
+                 ,@steam-container-libs)
                #:name "fhs-union-64"))
    ;; Don't include heroic-client-libs as they are not needed in 32-bit.
    (union32
-    (fhs-union `(,@steam-client-libs
-                 ,@steam-gameruntime-libs
-                 ,@fhs-min-libs)
+    (fhs-union steam-container-libs
                #:name "fhs-union-32"
                #:system "i686-linux"))
    (link-files '("share"))
