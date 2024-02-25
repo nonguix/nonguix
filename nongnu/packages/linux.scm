@@ -118,6 +118,7 @@ some freedo package or an output of package-version procedure."
       (inherit
        (customize-linux
         #:name name
+        #:linux freedo
         #:source (origin
                    (method url-fetch)
                    (uri url)
