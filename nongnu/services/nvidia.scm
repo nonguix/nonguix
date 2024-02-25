@@ -28,19 +28,16 @@
 
 (define (nvidia-shepherd-service config)
   (let ((nvidia-driver (nvidia-configuration-driver config))
-        (nvidia-smi (file-append nvidia-driver "/bin/nvidia-smi"))
-        (rmmod (file-append kmod "/bin/rmmod")))
+        (nvidia-smi (file-append nvidia-driver "/bin/nvidia-smi")))
     (list (shepherd-service
            (documentation "Prepare system environment for NVIDIA driver.")
            (provision '(nvidia))
-           (requirement '(udev user-processes))
+           (requirement '(udev))
+           (one-shot? #t)
            (start
             #~(lambda _
                 (when (file-exists? #$nvidia-smi)
-                  (system* #$nvidia-smi))))
-           (stop
-            #~(lambda _
-                (system* #$rmmod "nvidia_uvm")))))))
+                  (system* #$nvidia-smi))))))))
 
 (define nvidia-service-type
   (service-type
