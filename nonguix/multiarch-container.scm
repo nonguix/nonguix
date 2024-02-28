@@ -522,6 +522,7 @@ application."
                 ((,union64 "share/mime") . "/usr/share/mime") ; Steam tray icon.
                 ((,union64 "share/glib-2.0") . "/usr/share/glib-2.0") ; Heroic interface.
                 ((,union64 "share/drirc.d") . "/usr/share/drirc.d")
+                ((,union64 "share/fonts") . "/usr/share/fonts")
                 ((,union64 "share/fonts") . "/run/current-system/profile/share/fonts")
                 ((,union64 "etc/fonts") . "/etc/fonts")))
              (for-each
