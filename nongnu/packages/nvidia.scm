@@ -72,6 +72,16 @@
 ;;;
 
 
+(define* (nvidia-source-hash version #:optional (package "nvidia-driver"))
+  (define %nvidia-source-hashes
+    '(("515.76" .
+       (("nvidia-driver" .
+         "0i5zyvlsjnfkpfqhw6pklp0ws8nndyiwxrg4pj04jpwnxf6a38n6")
+        ("nvidia-settings" .
+         "1hplc42115c06cc555cjmw3c9371qn7ibwjpqjybcf6ixfd6lryq")))))
+  (let ((hashes (assoc-ref %nvidia-source-hashes version)))
+    (assoc-ref hashes package)))
+
 (define (nvidia-source-unbundle-libraries version)
   #~(begin
       (use-modules (guix build utils))
@@ -139,7 +149,7 @@ VERSION as argument and returns a G-expression."
 (define-public nvidia-source
   (make-nvidia-source
    nvidia-version
-   (base32 "0i5zyvlsjnfkpfqhw6pklp0ws8nndyiwxrg4pj04jpwnxf6a38n6")))
+   (base32 (nvidia-source-hash nvidia-version))))
 
 
 ;;;
@@ -551,9 +561,7 @@ userspace tools from the corresponding driver release.")
               (file-name (git-file-name name version))
               (modules '((guix build utils)))
               (snippet '(delete-file-recursively "src/jansson"))
-              (sha256
-               (base32
-                "1hplc42115c06cc555cjmw3c9371qn7ibwjpqjybcf6ixfd6lryq"))))
+              (sha256 (base32 (nvidia-source-hash version name)))))
     (build-system gnu-build-system)
     (arguments
      (list #:tests? #f ;no test suite
