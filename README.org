@@ -220,6 +220,75 @@ firmware, and blacklisting of conflicting modules:
             ...))
     ...)
 #+END_SRC
+
+** NVIDIA graphics card
+
+NVIDIA graphics card support in Nonguix consists of a system service =nvidia-service-type= and a package =nvda= for application setup.
+
+The following code serves as an example for system setup:
+
+#+BEGIN_SRC scheme
+  (use-modules (gnu services gnome)
+               (gnu services xorg)
+               (nongnu packages nvidia)
+               (nongnu services nvidia))
+
+  (operating-system
+    (kernel-arguments '("modprobe.blacklist=nouveau"
+                        ;; Set this if the card is not used for displaying or
+                        ;; you're using Wayland:
+                        "nvidia_drm.modeset=1"))
+    (services
+     (cons* (service nvidia-service-type)
+            ;; Configure desktop environment, GNOME for example.
+            (service gnome-desktop-service-type
+                     ;; Enable NVIDIA support, only do this when the card is
+                     ;; used for displaying.
+                     (gnome-desktop-configuration
+                      (gnome (replace-mesa gnome))))
+            ;; Configure Xorg server, only do this when the card is used for
+            ;; displaying.
+            (set-xorg-configuration
+             (xorg-configuration
+              (modules (cons nvda %default-xorg-modules))
+              (drivers '("nvidia"))))
+            ...))
+    ...)
+#+END_SRC
+
+For application setup, =mesa= has to be replaced with =nvda= for every individual package that requires the NVIDIA driver, this can be done with grafting (which doesn't rebuild packages) or rewriting inputs (which rebuilds packages) (see [[https://guix.gnu.org/manual/devel/en/guix.html#Package-Transformation-Options][Package Transformation Options]] in GNU Guix Reference Manual).  For example:
+
+#+BEGIN_SRC shell
+  guix build mesa-utils --with-graft=mesa=nvda
+  guix build mesa-utils --with-input=mesa=nvda
+#+END_SRC
+
+The above transformation can be used within an one-off software environment spawned by =guix shell= as well, for correct environment variables, the =nvda= package may be added into the environment:
+
+#+BEGIN_SRC shell
+  guix shell mesa-utils nvda --with-graft=mesa=nvda \
+       -- glxinfo
+#+END_SRC
+
+To graft mesa with nvda programmatically, use =replace-mesa= defined in =(nongnu packages nvidia)=:
+
+#+BEGIN_SRC scheme
+  (use-modules (nongnu packages nvidia))
+
+  ;; Replace mesa with nvda for a single package.
+  (replace-mesa <some-package>)
+
+  ;; Replace mesa with nvda for a package list.
+  (map replace-mesa (list <some-package> ...))
+
+  ;; A package with mesa replaced is still a package, it can be part of a
+  ;; package list.
+  (list (replace-mesa <some-package>)
+        ...)
+#+END_SRC
+
+When the card is not used for displaying, environment variables =__GLX_VENDOR_LIBRARY_NAME=nvidia= and =__NV_PRIME_RENDER_OFFLOAD=1= may be set.
+
 ** Substitutes for nonguix
 
 A Nonguix substitute server is available at [[https://substitutes.nonguix.org]].
