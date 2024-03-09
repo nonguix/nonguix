@@ -740,10 +740,19 @@ configuration, creating application profiles, gpu monitoring and more.")
       (search-path-specification
        (variable "XDG_DATA_DIRS")
        (files '("share")))))
+    (synopsis "Nonguix's user-facing NVIDIA driver package")
     (description
-     "These are the libraries of the evil NVIDIA driver, packaged in such a
-way that you can use the transformation option @code{--with-graft=mesa=nvda}
-to use the NVIDIA driver with a package that requires mesa.")
+     "This package provides a drop-in replacement for @code{mesa} and is
+intended to be installed by @code{nvidia-service-type}.
+
+To actually use the NVIDIA card, replacement must be applied for individual
+packages, this can be done either by rewriting inputs with
+@code{--with-input=mesa=nvda} or grafting with @code{--with-graft=mesa=nvda}.
+For a programmatical way, the procedure @code{replace-mesa} can be used.
+
+Additionally, if the NVIDIA card is not used for displaying, environment
+variables @code{__GLX_VENDOR_LIBRARY_NAME=nvidia} and
+@code{__NV_PRIME_RENDER_OFFLOAD=1} may be set.")
     (native-inputs '())
     (propagated-inputs
      (append
