@@ -525,9 +525,15 @@ To enable GSP mode manually, add @code{\"NVreg_EnableGpuFirmware=1\"} to
                                   '())
                             ,@make-flags)))))))
     (home-page "https://www.nvidia.com")
-    (synopsis "Proprietary NVIDIA kernel modules")
+    (synopsis "Proprietary NVIDIA driver (kernel modules)")
     (description
-     "This package provides the evil NVIDIA proprietary kernel modules.")
+     "This package provides kernel modules of the proprietary NVIDIA driver.
+Module setup can be done with @code{nvidia-service-type}, to actually use these
+modules, also add @code{modprobe.blacklist=nouveau} to @code{kernel-arguments}
+field of the @code{operating-system} configuration.
+
+If the NVIDIA card is not used for displaying, or on a Wayland environment,
+add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
     (license
      (license:nonfree
       (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
