@@ -540,7 +540,8 @@ add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
 
 (define-public nvidia-module-open
   (let ((base nvidia-module))
-    (package/inherit base
+    (package
+      (inherit base)
       (name "nvidia-module-open")
       (arguments
        (substitute-keyword-arguments (package-arguments base)
@@ -550,12 +551,20 @@ add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
          ;; <https://github.com/llvm/llvm-project/issues/55820>
          ((#:source-directory _) "kernel-open")))
       (home-page "https://github.com/NVIDIA/open-gpu-kernel-modules")
-      (synopsis "NVIDIA kernel module")
+      (synopsis "Open source NVIDIA kernel modules")
       (description
-       "This package provides NVIDIA open-gpu-kernel-modules.  However, they
-are only for the latest GPU architectures Turing and Ampere.  Also they still
-require firmware file @code{gsp.bin} to be loaded as well as closed source
-userspace tools from the corresponding driver release.")
+       "This package provides open source NVIDIA kernel modules, however
+proprietary firmware and libraries are still necessary, and these modules
+require GPU System Processor to be present (Turing or later architectures) and
+enabled (see also the description of @code{nvidia-firmware} package).
+
+Module setup can be done with @code{nvidia-service-type} (with @code{module}
+field of @code{nvidia-configuration} set to @code{nvidia-module-open}), to
+actually use these modules, also add @code{modprobe.blacklist=nouveau} to
+@code{kernel-arguments} field of the @code{operating-system} configuration.
+
+If the NVIDIA card is not used for displaying, or on a Wayland environment,
+add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
       (license license-gnu:gpl2))))
 
 
