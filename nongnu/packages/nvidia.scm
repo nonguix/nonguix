@@ -443,12 +443,11 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
            libxext
            wayland))
     (home-page "https://www.nvidia.com")
-    (synopsis "Proprietary NVIDIA driver")
+    (synopsis "Proprietary NVIDIA driver (libraries)")
     (description
-     "This is the evil NVIDIA driver.  Don't forget to add @code{service
-nvidia-service-type} to your @file{config.scm}.  Further xorg should be
-configured by adding: @code{(modules (cons* nvidia-driver
-%default-xorg-modules)) (drivers '(\"nvidia\"))} to @code{xorg-configuration}.")
+     "This package provides libraries of the proprietary NVIDIA driver.  It's
+mainly used as a dependency of other packages.  For user-facing purpose, use
+@code{nvda} instead.")
     (license
      (license:nonfree
       (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
