@@ -2,6 +2,7 @@
 ;;; Copyright © 2022-2023 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2022 Petr Hodina <phodina@protonmail.com>
 ;;; Copyright © 2023 Krzysztof Baranowski <pharcosyle@gmail.com>
+;;; Copyright © 2024 Efraim Flashner <efraim@flashner.co.il>
 
 (define-module (nongnu packages firmware)
   #:use-module (gnu packages compression)
@@ -134,16 +135,18 @@ HDMI to USB Type-C Bridge in the PinePhone.")
       (build-system copy-build-system)
       (arguments
        `(#:substitutable? #f
-         #:install-plan '( ;Bluetooth firmware
-                           ("BCM4345C5.hcd" "usr/lib/firmware/brcm/")
+         #:install-plan '(;;Bluetooth firmware
+                          ("BCM4345C5.hcd" "/lib/firmware/brcm/")
                           ;; WiFi firmware
-                          ("fw_bcm43456c5_ag.bin" "usr/lib/firmware/brcm/")
+                          ("fw_bcm43456c5_ag.bin" "/lib/firmware/brcm/")
+                          ("fw_bcm43456c5_ag.bin"
+                           "/lib/firmware/brcm/brcmfmac43456-sdio.bin")
                           ("brcmfmac43456-sdio.clm_blob"
-                           "usr/lib/firmware/brcm/")
+                           "/lib/firmware/brcm/")
                           ("brcmfmac43456-sdio.AP6256.txt"
-                           "usr/lib/firmware/brcm/")
+                           "/lib/firmware/brcm/")
                           ("brcmfmac43456-sdio.AP6256.txt"
-                           "usr/lib/firmware/brcm/brcmfmac43456-sdio.pine64,pinebook-pro.txt"))))
+                           "/lib/firmware/brcm/brcmfmac43456-sdio.pine64,pinebook-pro.txt"))))
       (synopsis "Firmware for the wifi/bt module AP6256")
       (description
        "This package provides Firmware for the wifi/bt module AP6256,
