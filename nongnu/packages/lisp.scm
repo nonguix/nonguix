@@ -1,16 +1,14 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2022 Pierre Neidhardt <mail@ambrevar.xyz>
-;;; Copyright © 2023 André A. Gomes <andremegafone@gmail.com>
+;;; Copyright © 2023, 2024 André A. Gomes <andremegafone@gmail.com>
 
 (define-module (nongnu packages lisp)
   #:use-module (ice-9 match)
   #:use-module (gnu packages bash)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages tls)
-  #:use-module (gnu packages node)
   #:use-module (gnu packages lisp)
   #:use-module (gnu packages lisp-xyz)
-  ;; #:use-module (gnu packages lisp-check)
   #:use-module (nongnu packages electron)
   #:use-module (guix build-system copy)
   #:use-module (guix build-system gnu)
@@ -125,8 +123,8 @@ then open a browser at http://localhost:PORT, where PORT is the indicated port."
               "https://franz.com/ftp/pub/legal/ACL-Express-20170301.pdf"))))
 
 (define-public sbcl-cl-electron
-  (let ((commit "458a60d8c9baae71906294ffae891c3d0686c672")
-        (revision "2"))
+  (let ((commit "f2245dc1450a6ad416984cf932be50e00957390a")
+        (revision "3"))
     (package
       (name "sbcl-cl-electron")
       (version (git-version "0.0.0" revision commit))
@@ -138,13 +136,22 @@ then open a browser at http://localhost:PORT, where PORT is the indicated port."
                (commit commit)))
          (file-name (git-file-name "cl-electron" version))
          (sha256
-          (base32 "1ya6y55kv0g3h19ifnmwbc752p00s9mj1b1n4ljw4n7ycxmdpb24"))))
+          (base32 "0c18xbwwnjaiwzd01dprdrwzp27nwihaf7pmkql1f5yk43x3ajs0"))))
       (build-system asdf-build-system/sbcl)
-      (native-inputs (list ;; sbcl-lisp-unit2
-                           sbcl))
-      (inputs (list electron node
+      (inputs (list electron
                     sbcl-cl-json sbcl-iolib sbcl-cl-str sbcl-nclasses
-                    sbcl-parenscript sbcl-bordeaux-threads))
+                    sbcl-cl-ppcre sbcl-bordeaux-threads sbcl-lparallel
+                    sbcl-parenscript sbcl-spinneret))
+      (arguments
+       '(#:tests? #f
+         #:asd-systems '("cl-electron" "cl-electron/demos")
+         #:phases
+         (modify-phases %standard-phases
+           (add-after 'unpack 'fix-paths
+             (lambda* (#:key inputs #:allow-other-keys)
+               (substitute* "source/core.lisp"
+                 (("\"electron\"")
+                  (string-append "\"" (assoc-ref inputs "electron") "/bin/electron\""))))))))
       (synopsis "Common Lisp interface to Electron")
       (home-page "https://github.com/atlas-engineer/cl-electron")
       (description "@command{cl-electron} is a binding to Electron for
