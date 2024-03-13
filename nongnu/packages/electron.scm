@@ -1,6 +1,8 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2023 Pierre Neidhardt <mail@ambrevar.xyz>
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
+;;; Copyright © 2024 Andre A. Gomes <andremegafone@gmail.com>
+;;; Copyright © 2024 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 
 (define-module (nongnu packages electron)
   #:use-module (nonguix build-system chromium-binary)
@@ -13,23 +15,27 @@
   #:use-module (gnu packages gtk)
   #:use-module (gnu packages video))
 
-(define-public electron
+(define (electron-source version hash)
+  (origin
+    (method url-fetch/zipbomb)
+    (uri
+     (string-append
+      "https://github.com/electron/electron/releases/download/v"
+      version "/electron-v" version "-"
+      (match (or (%current-system) (%current-target-system))
+        ("x86_64-linux" "linux-x64")
+        ("i686-linux" "linux-ia32")
+        ("aarch64-linux" "linux-arm64")
+        ("armhf-linux" "linux-armv7l"))
+      ".zip"))
+    (sha256 (base32 hash))))
+
+(define-public electron-27
   (package
     (name "electron")
-    (version "27.1.0")
-    (source (origin
-              (method url-fetch/zipbomb)
-              (uri
-               (string-append
-                "https://github.com/electron/electron/releases/download/v"
-                version "/electron-v" version "-"
-                (match (or (%current-system) (%current-target-system))
-                  ("x86_64-linux" "linux-x64")
-                  ("i686-linux" "linux-ia32")
-                  ("aarch64-linux" "linux-arm64")
-                  ("armhf-linux" "linux-armv7l"))
-                ".zip"))
-              (sha256 (base32 "08illknzcikzzsb6i7z1p2xgb20jjc5cx9hynll25f44q9pg48b6"))))
+    (version "27.3.6")
+    (source (electron-source version
+                             "12hjn1bfk8c25f54kk561mkjl7hsk8b16rj7a7gczswjdpx6fpi0"))
     (build-system chromium-binary-build-system)
     (arguments
      `(#:wrapper-plan
@@ -81,3 +87,5 @@ Chromium and is used by the Atom editor and many other apps.")
     (license (license:nonfree
               (string-append "https://github.com/electron/electron/blob/v"
                              version "/LICENSE")))))
+
+(define-public electron electron-27)
