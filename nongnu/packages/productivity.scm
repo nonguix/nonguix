@@ -24,17 +24,17 @@
 (define-public anytype
   (package
     (name "anytype")
-    (version "0.38")
+    (version "0.39.0")
     (source
      (origin
        (method url-fetch)
        (uri
-        (string-append "https://download.anytype.io?action=download"
-                       "&key=desktop&id=148487107"))
+        (string-append "https://anytype-release.fra1.cdn.digitaloceanspaces.com/"
+                       name "_" version "_amd64.deb"))
        (file-name (string-append "anytype-" version ".deb"))
        (sha256
         (base32
-         "1xc57ppk3l16mq2a53scf79m8hx43x21kac96ws66awlkz14swc7"))))
+         "10y037qwm6k28min2sgpshrlpirc1p0zn3b4syxrrz494x5g2ivi"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list
@@ -52,6 +52,7 @@
                "libGLESv2.so"
                "libvk_swiftshader.so"
                "libvulkan.so.1"
+               "resources/app.asar.unpacked/dist/nativeMessagingHost"
                "resources/app.asar.unpacked/node_modules/keytar/build/Release/keytar.node"))
       #:install-plan
       #~'(("opt/" "/share")
