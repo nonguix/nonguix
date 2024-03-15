@@ -255,9 +255,7 @@ on hardware which requires nonfree software to function."))))
                           (append %default-extra-linux-options
                                   ;; NOTE: These are configs expected by Guix
                                   ;; but missing from XanMod defconfig.
-                                  '(("CONFIG_BLK_DEV_NVME" . #t)
-                                    ("CONFIG_CRYPTO_XTS" . m)
-                                    ("CONFIG_VIRTIO_CONSOLE" . m))))))
+                                  '(("CONFIG_BLK_DEV_NVME" . #t))))))
                   (display extra-configuration port)
                   (close-port port))
                 (invoke "make" "oldconfig")
