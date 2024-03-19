@@ -532,27 +532,34 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-build-id "20240304165820")
+(define %firefox-build-id "20240318140215")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "123.0.1")
+    (version "124.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "073lbl2gs7c08kr9h6r2jvl3cvj84h3pdh6aj151c3synravkp6m"))))
+        (base32 "1n692gfy61j4f3y81lyk16nm5gs8x84szadlrp70in1s28si4nil"))))
     (arguments
      (substitute-keyword-arguments (package-arguments firefox-esr)
        ((#:phases phases)
         #~(modify-phases #$phases
             (replace 'set-build-id
               (lambda _
-                (setenv "MOZ_BUILD_DATE" #$%firefox-build-id)))))))
+                (setenv "MOZ_BUILD_DATE" #$%firefox-build-id)))
+            (replace 'remove-cargo-frozen-flag
+              (lambda _
+                ;; Remove --frozen flag from cargo invokation, otherwise it'll
+                ;; complain that it's not able to change Cargo.lock.
+                ;; https://bugzilla.mozilla.org/show_bug.cgi?id=1726373
+                (substitute* "build/RunCbindgen.py"
+                  (("args.append\\(\"--frozen\"\\)") "pass"))))))))
     (native-inputs
      (modify-inputs (package-native-inputs firefox-esr)
        (replace "rust" rust-firefox)
@@ -562,7 +569,7 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
      "Full-featured browser client built from Firefox source tree, without
 the official icon and the name \"firefox\".")))
 
-;; As of Firefox 121.0, Firefox uses Wayland by default. This means we no longer need a seperate package
-;; for Firefox on Wayland.
+;; As of Firefox 121.0, Firefox uses Wayland by default. This means we no
+;; longer need a seperate package for Firefox on Wayland.
 (define-public firefox-wayland
   (deprecated-package "firefox-wayland" firefox))
