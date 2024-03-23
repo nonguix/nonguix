@@ -115,3 +115,35 @@ lets you focus on your code.")
    (description "Clj-kondo performs static analysis on Clojure, ClojureScript
 and EDN, without the need of a running REPL.")
    (license license:epl1.0)))
+
+(define-public clojure-lsp
+  (package
+    (name "clojure-lsp")
+    (version "2024.03.13-13.11.00")
+    (source (origin
+              (method url-fetch/zipbomb)
+              (uri (string-append "https://github.com/clojure-lsp/clojure-lsp"
+                                  "/releases/download/" version
+                                  "/clojure-lsp-native-static-linux-amd64.zip"))
+              (sha256
+               (base32
+                "1l6w55aragyf8rzy087iqw97xnpih5syjwhf0jwbgrqps2k44ms5"))))
+    (build-system binary-build-system)
+    (arguments
+     `(#:install-plan
+       '(("./clojure-lsp" "/bin/"))
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'chmod
+           (lambda _
+             (chmod "./clojure-lsp" #o755))))))
+    (inputs (list `(,gcc "lib") zlib))
+    (supported-systems '("x86_64-linux"))
+    (home-page "https://github.com/clojure-lsp/clojure-lsp")
+    (synopsis "Clojure & ClojureScript Language Server (LSP) implementation")
+    (description "This package provides a Language Server for Clojure and ClojureScript
+languages.  The goal of this project is to bring great editing tools for
+Clojure/Clojurescript to all editors and programatically via its CLI and API.
+It aims to work alongside you to help you navigate, identify and fix errors,
+perform refactors and more.")
+    (license license:expat)))
