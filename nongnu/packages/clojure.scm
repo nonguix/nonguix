@@ -87,7 +87,7 @@ lets you focus on your code.")
 (define-public clj-kondo
  (package
    (name "clj-kondo")
-   (version "2023.10.20")
+   (version "2024.03.13")
    (source (origin
              (method url-fetch/zipbomb)
              (uri (string-append
@@ -95,11 +95,11 @@ lets you focus on your code.")
                    version "/clj-kondo-" version "-linux-amd64.zip"))
              (sha256
               (base32
-               "1zb4bkmhv5mh18z8h82qa1a0m95pd5dwdxg31pqgs6lnlca3vsph"))))
+               "0qdimdf854wsy19i39j18f01b3dhj4zccslymbkn8j9rm90k91m3"))))
    (build-system binary-build-system)
    (arguments
     (list #:patchelf-plan `'(("clj-kondo" ("gcc" "zlib")))
-          #:install-plan `'(("clj-kondo" "/bin/"))
+          #:install-plan `'(("./clj-kondo" "/bin/"))
           #:phases #~(modify-phases %standard-phases
                        (add-after 'unpack 'chmod
                          (lambda _
