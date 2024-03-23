@@ -147,3 +147,35 @@ Clojure/Clojurescript to all editors and programatically via its CLI and API.
 It aims to work alongside you to help you navigate, identify and fix errors,
 perform refactors and more.")
     (license license:expat)))
+
+(define-public babashka
+  (package
+    (name "babashka")
+    (version "1.3.189")
+    (source (origin
+              (method url-fetch/tarbomb)
+              (uri (string-append "https://github.com/babashka/babashka"
+                                  "/releases/download/v" version "/babashka-"
+                                  version "-linux-amd64.tar.gz"))
+              (sha256
+               (base32
+                "1gzra3y5iljjqi4rj1qxr3yniqla3qnhv881gkzrp788fwsvlmwv"))))
+    (build-system binary-build-system)
+    (arguments
+     `(#:patchelf-plan
+       '(("bb" ("gcc" "zlib")))
+       #:install-plan
+       '(("./bb" "/bin/"))
+       #:phases
+       (modify-phases %standard-phases
+         (add-after 'unpack 'chmod
+           (lambda _
+             (chmod "bb" #o755))))))
+    (inputs (list `(,gcc "lib") zlib))
+    (supported-systems '("x86_64-linux"))
+    (home-page "https://github.com/babashka/babashka")
+    (synopsis "Native, fast starting Clojure interpreter for scripting")
+    (description "Babashka is a native Clojure interpreter for scripting with
+fast startup.  Its main goal is to leverage Clojure in places where you would
+be using bash otherwise.")
+    (license license:epl1.0)))
