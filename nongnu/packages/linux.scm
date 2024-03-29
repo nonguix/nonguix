@@ -319,24 +319,25 @@ stable, responsive and smooth desktop experience.")))
 (define-public linux-firmware
   (package
     (name "linux-firmware")
-    (version "20240115")
+    (version "20240312")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://kernel.org/linux/kernel/firmware/"
                                   "linux-firmware-" version ".tar.xz"))
               (sha256
                (base32
-                "13b75kd075famc58pvx4r9268pxn69nyihx7p3i6i7mvkgqayz5b"))))
+                "152bpl3lzd7jb2z1cl1sfax6jm71bspn7bwc00lci5qqmma7lcmj"))))
     (build-system gnu-build-system)
     (arguments
      `(#:tests? #f
+       #:strip-binaries? #f
+       #:validate-runpath? #f
        #:make-flags (list (string-append "DESTDIR=" (assoc-ref %outputs "out")))
        #:phases
        (modify-phases %standard-phases
          (replace 'install
            (lambda* (#:key (make-flags '()) #:allow-other-keys)
-             (apply invoke "make" "install-nodedup" make-flags)))
-         (delete 'validate-runpath))))
+             (apply invoke "make" "install-nodedup" make-flags))))))
     (home-page
      "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git")
     (synopsis "Nonfree firmware blobs for Linux")
@@ -353,7 +354,7 @@ if your hardware is supported by one of the smaller firmware packages.")
   `(lambda _
      (use-modules (ice-9 regex))
      (substitute* "WHENCE"
-       (("^(File|Link): *([^ ]*)(.*)" _ type file rest)
+       (("^(File|RawFile|Link): *([^ ]*)(.*)" _ type file rest)
         (string-append (if (string-match ,keep file) type "Skip") ": " file rest)))))
 
 (define-public amdgpu-firmware
