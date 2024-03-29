@@ -329,15 +329,15 @@ stable, responsive and smooth desktop experience.")))
                 "152bpl3lzd7jb2z1cl1sfax6jm71bspn7bwc00lci5qqmma7lcmj"))))
     (build-system gnu-build-system)
     (arguments
-     `(#:tests? #f
-       #:strip-binaries? #f
-       #:validate-runpath? #f
-       #:make-flags (list (string-append "DESTDIR=" (assoc-ref %outputs "out")))
-       #:phases
-       (modify-phases %standard-phases
-         (replace 'install
-           (lambda* (#:key (make-flags '()) #:allow-other-keys)
-             (apply invoke "make" "install-nodedup" make-flags))))))
+     (list #:tests? #f
+           #:strip-binaries? #f
+           #:validate-runpath? #f
+           #:make-flags #~(list (string-append "DESTDIR=" #$output))
+           #:phases
+           #~(modify-phases %standard-phases
+               (replace 'install
+                 (lambda* (#:key make-flags #:allow-other-keys)
+                   (apply invoke "make" "install-nodedup" make-flags))))))
     (home-page
      "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git")
     (synopsis "Nonfree firmware blobs for Linux")
@@ -351,23 +351,23 @@ if your hardware is supported by one of the smaller firmware packages.")
 
 (define (select-firmware keep)
   "Modify linux-firmware copy list to retain only files matching KEEP regex."
-  `(lambda _
-     (use-modules (ice-9 regex))
-     (substitute* "WHENCE"
-       (("^(File|RawFile|Link): *([^ ]*)(.*)" _ type file rest)
-        (string-append (if (string-match ,keep file) type "Skip") ": " file rest)))))
+  #~(lambda _
+      (use-modules (ice-9 regex))
+      (substitute* "WHENCE"
+        (("^(File|RawFile|Link): *([^ ]*)(.*)" _ type file rest)
+         (string-append (if (string-match #$keep file) type "Skip") ": " file rest)))))
 
 (define-public amdgpu-firmware
   (package
     (inherit linux-firmware)
     (name "amdgpu-firmware")
     (arguments
-     `(#:license-file-regexp "LICENSE.amdgpu"
-       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
-           ((#:phases phases)
-            `(modify-phases ,phases
-               (add-after 'unpack 'select-firmware
-                 ,(select-firmware "^amdgpu/")))))))
+     (cons* #:license-file-regexp "LICENSE.amdgpu"
+            (substitute-keyword-arguments (package-arguments linux-firmware)
+              ((#:phases phases)
+               #~(modify-phases #$phases
+                   (add-after 'unpack 'select-firmware
+                     #$(select-firmware "^amdgpu/")))))))
     (home-page "http://support.amd.com/en-us/download/linux")
     (synopsis "Nonfree firmware for AMD graphics chips")
     (description "Nonfree firmware for AMD graphics chips.  While most AMD
@@ -385,12 +385,12 @@ advanced 3D.")
     (inherit amdgpu-firmware)
     (name "radeon-firmware")
     (arguments
-     `(#:license-file-regexp "LICENSE.radeon"
-       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
-           ((#:phases phases)
-            `(modify-phases ,phases
-               (add-after 'unpack 'select-firmware
-                 ,(select-firmware "^radeon/")))))))
+     (cons* #:license-file-regexp "LICENSE.radeon"
+            (substitute-keyword-arguments (package-arguments linux-firmware)
+              ((#:phases phases)
+               #~(modify-phases #$phases
+                   (add-after 'unpack 'select-firmware
+                     #$(select-firmware "^radeon/")))))))
     (synopsis "Nonfree firmware for older AMD graphics chips")
     (description "Nonfree firmware for AMD graphics chips.  While most AMD
 graphics cards can be run with the free Mesa, some cards require a nonfree
@@ -442,12 +442,12 @@ and modules, userspace libraries, and bootloader/GPU firmware.")
     (inherit linux-firmware)
     (name "atheros-firmware")
     (arguments
-     `(#:license-file-regexp "LICEN[CS]E.*[Aa]th"
-       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
-           ((#:phases phases)
-            `(modify-phases ,phases
-               (add-after 'unpack 'select-firmware
-                 ,(select-firmware "^(ar[3579]|ath[1369]|htc_[79]|qca/|wil6)")))))))
+     (cons* #:license-file-regexp "LICEN[CS]E.*[Aa]th"
+            (substitute-keyword-arguments (package-arguments linux-firmware)
+              ((#:phases phases)
+               #~(modify-phases #$phases
+                   (add-after 'unpack 'select-firmware
+                     #$(select-firmware "^(ar[3579]|ath[1369]|htc_[79]|qca/|wil6)")))))))
     (synopsis "Nonfree firmware blobs for Atheros wireless cards")
     (description "Nonfree firmware blobs for Atheros wireless cards.  This
 package contains nonfree firmware for the following chips:
@@ -618,12 +618,12 @@ WLAN.TF.2.1-00021-QCARMSWP-1 (ath10k/QCA9377/hw1.0/firmware-6.bin)
     (inherit linux-firmware)
     (name "ibt-hw-firmware")
     (arguments
-     `(#:license-file-regexp "LICENCE.ibt_firmware"
-       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
-           ((#:phases phases)
-            `(modify-phases ,phases
-               (add-after 'unpack 'select-firmware
-                 ,(select-firmware "^intel/ibt-")))))))
+     (cons* #:license-file-regexp "LICENCE.ibt_firmware"
+            (substitute-keyword-arguments (package-arguments linux-firmware)
+              ((#:phases phases)
+               #~(modify-phases #$phases
+                   (add-after 'unpack 'select-firmware
+                     #$(select-firmware "^intel/ibt-")))))))
     (home-page "http://www.intel.com/support/wireless/wlan/sb/CS-016675.htm")
     (synopsis "Non-free firmware for Intel bluetooth chips")
     (description "This firmware is required by the btintel kernel module to
@@ -639,12 +639,12 @@ laptops).")
     (inherit linux-firmware)
     (name "iwlwifi-firmware")
     (arguments
-     `(#:license-file-regexp "LICENCE.iwlwifi_firmware"
-       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
-           ((#:phases phases)
-            `(modify-phases ,phases
-               (add-after 'unpack 'select-firmware
-                 ,(select-firmware "^iwlwifi-")))))))
+     (cons* #:license-file-regexp "LICENCE.iwlwifi_firmware"
+            (substitute-keyword-arguments (package-arguments linux-firmware)
+              ((#:phases phases)
+               #~(modify-phases #$phases
+                   (add-after 'unpack 'select-firmware
+                     #$(select-firmware "^iwlwifi-")))))))
     (home-page "https://wireless.wiki.kernel.org/en/users/drivers/iwlwifi")
     (synopsis "Nonfree firmware for Intel wifi chips")
     (description "The proprietary iwlwifi kernel module is required by many
@@ -660,12 +660,12 @@ support for 5GHz and 802.11ac, among others.")
     (inherit linux-firmware)
     (name "i915-firmware")
     (arguments
-     `(#:license-file-regexp "LICENCE.i915"
-       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
-           ((#:phases phases)
-            `(modify-phases ,phases
-               (add-after 'unpack 'select-firmware
-                 ,(select-firmware "^i915/")))))))
+     (cons* #:license-file-regexp "LICENCE.i915"
+            (substitute-keyword-arguments (package-arguments linux-firmware)
+              ((#:phases phases)
+               #~(modify-phases #$phases
+                   (add-after 'unpack 'select-firmware
+                     #$(select-firmware "^i915/")))))))
     (home-page "https://01.org/linuxgraphics/gfx-docs/drm/gpu/i915.html")
     (synopsis "Nonfree firmware for Intel integrated graphics")
     (description "This package contains the various firmware for Intel
@@ -680,13 +680,12 @@ integrated graphics chipsets, including GuC, HuC and DMC.")
     (inherit linux-firmware)
     (name "realtek-firmware")
     (arguments
-     `(#:license-file-regexp "LICENCE.rtlwifi_firmware.txt"
-       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
-           ((#:phases phases)
-            `(modify-phases ,phases
-               (add-after 'unpack 'select-firmware
-                 ,(select-firmware
-                   "^(rtlwifi|rtl_nic|rtl_bt|rtw88|rtw89)/")))))))
+     (cons* #:license-file-regexp "LICENCE.rtlwifi_firmware.txt"
+            (substitute-keyword-arguments (package-arguments linux-firmware)
+              ((#:phases phases)
+               #~(modify-phases #$phases
+                   (add-after 'unpack 'select-firmware
+                     #$(select-firmware "^(rtlwifi|rtl_nic|rtl_bt|rtw88|rtw89)/")))))))
     (home-page "https://wireless.wiki.kernel.org/en/users/drivers/rtl819x")
     (synopsis "Nonfree firmware for Realtek ethernet, wifi, and bluetooth chips")
     (description
@@ -1227,12 +1226,12 @@ your CPU.")
     (inherit linux-firmware)
     (name "amd-microcode")
     (arguments
-     `(#:license-file-regexp "LICENSE.amd-ucode"
-       ,@(substitute-keyword-arguments (package-arguments linux-firmware)
-           ((#:phases phases)
-            `(modify-phases ,phases
-               (add-after 'unpack 'select-firmware
-                 ,(select-firmware "^amd-ucode/")))))))
+     (cons* #:license-file-regexp "LICENSE.amd-ucode"
+            (substitute-keyword-arguments (package-arguments linux-firmware)
+              ((#:phases phases)
+               #~(modify-phases #$phases
+                   (add-after 'unpack 'select-firmware
+                     #$(select-firmware "^amd-ucode/")))))))
     (synopsis "Processor microcode firmware for AMD CPUs")
     (description "Updated system processor microcode for AMD x86-64
 processors.  AMD releases microcode updates to correct processor behavior as
