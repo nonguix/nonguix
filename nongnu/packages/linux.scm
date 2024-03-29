@@ -29,6 +29,7 @@
 
 (define-module (nongnu packages linux)
   #:use-module (gnu packages)
+  #:use-module (gnu packages admin)
   #:use-module (gnu packages base)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages cpio)
@@ -332,12 +333,9 @@ stable, responsive and smooth desktop experience.")))
      (list #:tests? #f
            #:strip-binaries? #f
            #:validate-runpath? #f
-           #:make-flags #~(list (string-append "DESTDIR=" #$output))
-           #:phases
-           #~(modify-phases %standard-phases
-               (replace 'install
-                 (lambda* (#:key make-flags #:allow-other-keys)
-                   (apply invoke "make" "install-nodedup" make-flags))))))
+           #:make-flags #~(list (string-append "DESTDIR=" #$output))))
+    (native-inputs
+     (list rdfind))
     (home-page
      "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git")
     (synopsis "Nonfree firmware blobs for Linux")
@@ -364,7 +362,7 @@ if your hardware is supported by one of the smaller firmware packages.")
     (arguments
      (cons* #:license-file-regexp "LICENSE.amdgpu"
             (substitute-keyword-arguments (package-arguments linux-firmware)
-              ((#:phases phases)
+              ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
                      #$(select-firmware "^amdgpu/")))))))
@@ -387,7 +385,7 @@ advanced 3D.")
     (arguments
      (cons* #:license-file-regexp "LICENSE.radeon"
             (substitute-keyword-arguments (package-arguments linux-firmware)
-              ((#:phases phases)
+              ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
                      #$(select-firmware "^radeon/")))))))
@@ -444,7 +442,7 @@ and modules, userspace libraries, and bootloader/GPU firmware.")
     (arguments
      (cons* #:license-file-regexp "LICEN[CS]E.*[Aa]th"
             (substitute-keyword-arguments (package-arguments linux-firmware)
-              ((#:phases phases)
+              ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
                      #$(select-firmware "^(ar[3579]|ath[1369]|htc_[79]|qca/|wil6)")))))))
@@ -620,7 +618,7 @@ WLAN.TF.2.1-00021-QCARMSWP-1 (ath10k/QCA9377/hw1.0/firmware-6.bin)
     (arguments
      (cons* #:license-file-regexp "LICENCE.ibt_firmware"
             (substitute-keyword-arguments (package-arguments linux-firmware)
-              ((#:phases phases)
+              ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
                      #$(select-firmware "^intel/ibt-")))))))
@@ -641,7 +639,7 @@ laptops).")
     (arguments
      (cons* #:license-file-regexp "LICENCE.iwlwifi_firmware"
             (substitute-keyword-arguments (package-arguments linux-firmware)
-              ((#:phases phases)
+              ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
                      #$(select-firmware "^iwlwifi-")))))))
@@ -662,7 +660,7 @@ support for 5GHz and 802.11ac, among others.")
     (arguments
      (cons* #:license-file-regexp "LICENCE.i915"
             (substitute-keyword-arguments (package-arguments linux-firmware)
-              ((#:phases phases)
+              ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
                      #$(select-firmware "^i915/")))))))
@@ -682,7 +680,7 @@ integrated graphics chipsets, including GuC, HuC and DMC.")
     (arguments
      (cons* #:license-file-regexp "LICENCE.rtlwifi_firmware.txt"
             (substitute-keyword-arguments (package-arguments linux-firmware)
-              ((#:phases phases)
+              ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
                      #$(select-firmware "^(rtlwifi|rtl_nic|rtl_bt|rtw88|rtw89)/")))))))
@@ -1228,7 +1226,7 @@ your CPU.")
     (arguments
      (cons* #:license-file-regexp "LICENSE.amd-ucode"
             (substitute-keyword-arguments (package-arguments linux-firmware)
-              ((#:phases phases)
+              ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
                      #$(select-firmware "^amd-ucode/")))))))
