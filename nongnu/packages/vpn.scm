@@ -12,7 +12,7 @@
 (define-public zerotier
   (package
     (name "zerotier")
-    (version "1.8.4")
+    (version "1.12.2")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -21,16 +21,17 @@
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "101b1k9f3cpbgj0l87ya1cbqs9dv0qiayjap4m29fxyjra8hbkb8"))))
+                "0p5rpvh137gf5y9ylip7kxfl4argv34sr4wiiygvfk670rifnk57"))))
     (build-system gnu-build-system)
     (arguments
-     `(#:phases
+     `(#:make-flags (list "ZT_SSO_SUPPORTED=0") ; We don't need SSO/OIDC
+       #:phases
        (modify-phases %standard-phases
          ;; There is no ./configure
          (delete 'configure)
          (replace 'check
-           (lambda _
-             (invoke "make" "selftest")
+           (lambda* (#:key make-flags #:allow-other-keys)
+             (apply invoke "make" "selftest" make-flags)
              (invoke "./zerotier-selftest")))
          (replace 'install
            (lambda* (#:key outputs #:allow-other-keys)
