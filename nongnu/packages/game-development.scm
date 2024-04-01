@@ -1,16 +1,20 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2019, 2020 Pierre Neidhardt <mail@ambrevar.xyz>
 ;;; Copyright © 2022 Attila Lendvai <attila@lendvai.name>
+;;; Copyright © 2024 Timotej Lazar <timotej.lazar@araneo.si>
 
 (define-module (nongnu packages game-development)
   #:use-module (ice-9 match)
+  #:use-module (srfi srfi-1)
   #:use-module ((nonguix licenses) :prefix license:)
   #:use-module (guix packages)
   #:use-module (nonguix build-system binary)
   #:use-module (guix build-system gnu)
   #:use-module (guix download)
+  #:use-module (guix gexp)
   #:use-module (guix git-download)
   #:use-module (guix utils)
+  #:use-module ((guix licenses) :prefix license:)
   #:use-module (gnu packages audio)
   #:use-module (gnu packages base)
   #:use-module (gnu packages gcc)
@@ -159,128 +163,95 @@ development should opt for GLSL rather than Cg.")
               "https://raw.githubusercontent.com/ValveSoftware/source-sdk-2013/master/LICENSE"))))
 
 (define-public eduke32
-  ;; There are no official releases.
-  (let ((commit "188e14622cfe5c6f63b04b989b350bf2a29a893c")
-        (revision "1")
-        (duke-nukem-3d-directory "share/dukenukem3d"))
-    (package
-      (name "eduke32")
-      (version (git-version "0" revision commit))
-      (source
-       (origin
-         (method git-fetch)
-         (uri (git-reference
-               (url "https://voidpoint.io/terminx/eduke32.git")
-               (commit commit)))
-         (file-name (git-file-name name version))
-         (sha256
-          (base32 "0wy4bppiw4q2hn0v38msrjyvj2hzfvigakc23c2wqfnbl7rm0hrz"))
-         ;; Unbundle libxmp.
-         (modules '((guix build utils)))
-         (snippet
-          '(begin (delete-file-recursively "source/libxmp-lite") #t))))
-      (build-system gnu-build-system)
-      (arguments
-       `(#:tests? #f
-         ;; Add glu to rpath so that SDL can dlopen it.
-         #:make-flags (list (string-append "LDFLAGS=-Wl,-rpath="
-                                           (assoc-ref %build-inputs "glu") "/lib"))
-         #:phases
-         (modify-phases %standard-phases
-           (add-after 'unpack 'unbundle-libxmp
-             (lambda _
-               (substitute* "GNUmakefile"
-                 (("-I\\$\\(libxmplite_inc\\)")
-                  (string-append "-I" (assoc-ref %build-inputs "libxmp") "/include"))
-                 (("^ *audiolib_deps \\+= libxmplite.*$") "")
-                 (("-logg") "-logg -lxmp"))
-               (with-directory-excursion "source/audiolib/src"
-                 (for-each (lambda (file) (substitute* file (("libxmp-lite/") "")))
-                                   '("multivoc.cpp" "xmp.cpp")))
-               #t))
-           (delete 'configure)
-           (replace 'install
-             (lambda* (#:key inputs outputs #:allow-other-keys)
-               (let* ((out (assoc-ref outputs "out"))
-                      (glu (assoc-ref inputs "glu"))
-                      (eduke (string-append out "/bin/eduke32"))
-                      (eduke-real (string-append out "/bin/.eduke32-real")))
-                 ;; TODO: Install custom .desktop file?  Need icon.
-                 ;; See https://aur.archlinux.org/cgit/aur.git/tree/PKGBUILD?h=eduke32.
-                 (install-file "eduke32" (string-append out "/bin"))
-                 (install-file "mapster32" (string-append out "/bin"))
-                 (install-file "package/common/buildlic.txt"
-                               (string-append out "/share/licenses"))
-                 ;; Wrap program:
-                 ;; - Make sure current directory is writable, else eduke32 will segfault.
-                 ;; - Add ../share/dukenukem3d to the dir search list.
-                 ;; TODO: Skip store duke3d.grp When ~/.config/eduke32/duke3d.grp is found.
-                 (rename-file eduke eduke-real)
-                 (call-with-output-file eduke
-                   (lambda (p)
-                     (format p "\
-#!~a
-mkdir -p ~~/.config/eduke32
-cd ~~/.config/eduke32
-exec -a \"$0\" ~a\
- -g \"${0%/*}\"/../~a/*.grp\
- -g \"${0%/*}\"/../~a/*.zip\
- -g \"${0%/*}\"/../~a/*.map\
- -g \"${0%/*}\"/../~a/*.con\
- -g \"${0%/*}\"/../~a/*.def\
- \"$@\"~%"
-                             (which "bash") eduke-real
-                             ,duke-nukem-3d-directory
-                             ,duke-nukem-3d-directory
-                             ,duke-nukem-3d-directory
-                             ,duke-nukem-3d-directory
-                             ,duke-nukem-3d-directory)))
-                 (chmod eduke #o755)))))))
-      (native-inputs
-       `(("pkg-config" ,pkg-config)))
-      (inputs
-       `(("sdl-union" ,(sdl-union (list sdl2 sdl2-mixer)))
-         ("alsa-lib" ,alsa-lib)
-         ("glu" ,glu)
-         ("libvorbis" ,libvorbis)
-         ("libvpx" ,libvpx)
-         ("libxmp" ,libxmp)
-         ("flac" ,flac)
-         ("gtk+" ,gtk+-2)))
-      (synopsis "Engine of the classic PC first person shooter Duke Nukem 3D")
-      (description "EDuke32 is a free homebrew game engine and source port of the
-classic PC first person shooter Duke Nukem 3D—Duke3D for short.  A thousands
-of features and upgrades were added for regular players and additional editing
-capabilities and scripting extensions for homebrew developers and mod
-creators.  EDuke32 is open source but non-free software.
+  (package
+    (name "eduke32")
+    (version "20240316-10564-0bc78c53d")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append "https://dukeworld.com/eduke32/synthesis/"
+                           version "/eduke32_src_" version ".tar.xz"))
+       (sha256
+        (base32 "1a9fw1kfriyrybjxl72b2434w3yiz2nxg6541lnyhzbdka2cp2lf"))
+       (modules '((guix build utils)))
+       (snippet
+        ;; Remove bundled libxmp and platform-specific stuff.
+        #~(for-each delete-file-recursively '("platform" "source/libxmp-lite")))))
+    (build-system gnu-build-system)
+    (arguments
+     (list #:license-file-regexp "buildlic.txt"
+           #:tests? #f
+           #:phases
+           #~(modify-phases %standard-phases
+               (add-after 'unpack 'link-license
+                 (lambda _
+                   ;; Ensure the install-license-files phase can find it.
+                   (link "package/common/buildlic.txt" "buildlic.txt")))
+               (add-after 'unpack 'unbundle-libxmp
+                 (lambda _
+                   (substitute* "Common.mak"
+                     (("^LIBS :=" match) (string-append match " -lxmp")))
+                   (with-directory-excursion "source/audiolib/src"
+                     (for-each (lambda (file) (substitute* file (("libxmp-lite/") "")))
+                               '("multivoc.cpp" "xmp.cpp")))))
+               (add-after 'unpack 'fix-share-path
+                 (lambda _
+                   (substitute* "source/duke3d/src/common.cpp"
+                     (("/usr/local/share/games") (string-append #$output "/share")))))
+               (delete 'configure)
+               (replace 'install
+                 (lambda _
+                   (let ((bin (string-append #$output "/bin")))
+                     (install-file "eduke32" bin)
+                     (install-file "mapster32" bin)
+                     (install-file "package/sdk/m32help.hlp"
+                                   (string-append #$output "/share/eduke32"))))))))
+    (inputs (list alsa-lib
+                  flac
+                  glu
+                  gtk+-2
+                  libvorbis
+                  libvpx
+                  libxmp
+                  sdl2
+                  sdl2-mixer))
+    (native-inputs
+     (list gdk-pixbuf pkg-config))
+    (synopsis "Engine of the classic PC first person shooter Duke Nukem 3D")
+    (description "EDuke32 is a free homebrew game engine and source port of
+the classic PC first person shooter Duke Nukem 3D—Duke3D for short.  A
+thousands of features and upgrades were added for regular players and
+additional editing capabilities and scripting extensions for homebrew
+developers and mod creators.  EDuke32 is open source but non-free software.
 
 This package does not contain any game file.  You can either install packages
 with game files or or put @file{.grp} game files manually in
 @file{~/.config/eduke32/}.")
-      (home-page "https://eduke32.com/")
-      (license (license:nonfree
-                "https://eduke32.com/buildlic.txt")))))
+    (home-page "https://eduke32.com")
+    (license
+     (list license:gpl2
+           (license:nonfree "file://package/common/buildlic.txt")))))
 
 (define-public fury
-  (package
-    (inherit eduke32)
+  (package/inherit eduke32
     (name "fury")
     (arguments
      (substitute-keyword-arguments (package-arguments eduke32)
-       ((#:make-flags flags ''()) `(cons* "FURY=1" ,flags))
-       ((#:phases phases '%standard-phases)
-        `(modify-phases ,phases
-           (replace 'install
-             (lambda _
-               (let* ((out (assoc-ref %outputs "out")))
-                 (install-file "fury" (string-append out "/bin"))
-                 (install-file "mapster32" (string-append out "/bin"))
-                 (install-file "package/common/buildlic.txt"
-                               (string-append out "/share/licenses")))
-               #t))))))
+       ((#:make-flags flags #~'())
+        #~(cons* "FURY=1" #$flags))
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (add-after 'unpack 'disable-sdl-static
+              (lambda _
+                (substitute* "GNUmakefile"
+                  (("SDL_STATIC := 1") ""))))
+            (replace 'install
+              (lambda _
+                (install-file "fury" (string-append #$output "/bin"))))))))
+    (inputs
+       (alist-delete "libvpx" (package-inputs eduke32)))
     (synopsis "Game engine for the first-person shooter Ion Fury")
     (description
-     (string-append
-      "This is the @code{eduke32} engine built with support for the Ion Fury
+     "This is the @code{eduke32} engine built with support for the Ion Fury
 game.  Game data is not provided.  Run @command{fury} with the option
-@option{-j} to specify the directory containing @file{fury.grp}."))))
+@option{-j} to specify the directory containing @file{fury.grp}.")))
