@@ -532,20 +532,20 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-build-id "20240416141733")
+(define %firefox-build-id "20240422125740")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "125.0.1")
+    (version "125.0.2")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "046d84j46qi51i1nc1ysmjma0br1sd5smhsnv3y066w1c3ng4kr7"))))
+        (base32 "16gpd6n52lshvkkha41z7xicggj64dw0qhr5gd07bcxsc4rmdl39"))))
     (arguments
      (substitute-keyword-arguments (package-arguments firefox-esr)
        ((#:phases phases)
