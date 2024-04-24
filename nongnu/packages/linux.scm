@@ -768,8 +768,8 @@ package contains nonfree firmware for the following chips:
   (deprecated-package "rtl-bt-firmware" realtek-firmware))
 
 (define-public rtl8192eu-linux-module
-  (let ((commit "a928f08c1dd4f9a1e84d85811a543e974551bc4f")
-        (revision "6"))
+  (let ((commit "3af9a868a0ca622d830966ac83aea2bf17cd0d65")
+        (revision "7"))
     (package
       (name "rtl8192eu-linux-module")
       (version (git-version "0.0.0" revision commit))
@@ -782,7 +782,7 @@ package contains nonfree firmware for the following chips:
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "1q26kyic4glmgy0hbaq46r067m6cqf7d41chgivyxn8y32rf1fgc"))))
+           "0d2qzf7xbipjdp1zm2ffqhnda8wasqriqnv6dkl0mhqn2f8za3i8"))))
       (build-system linux-module-build-system)
       (arguments
        `(#:make-flags
