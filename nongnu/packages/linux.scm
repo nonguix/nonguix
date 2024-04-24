@@ -848,8 +848,8 @@ network adapters.")
       (license gpl2))))
 
 (define-public rtl8821cu-linux-module
-  (let ((commit "a41ef7cabd1aa36fa2b4eb63a71cf719bff11b72")
-        (revision "1"))
+  (let ((commit "4f6004af4c4171882f37e2e5d8fb3609fe260617")
+        (revision "2"))
     (package
       (name "rtl8821cu-linux-module")
       (version (git-version "0.0.0" revision commit))
@@ -861,7 +861,7 @@ network adapters.")
                (commit commit)))
          (file-name (git-file-name name version))
          (sha256
-          (base32 "0fnv4gm4adnf8gbjzc2lljh2a3i111159qira3w0qm1zhyqadaq0"))))
+          (base32 "09ig0rrkkn00i3d1n6p62n1610kcjgb2h9kbcqdsrmpnlnw5kfl2"))))
       (build-system linux-module-build-system)
       (arguments
        (list
