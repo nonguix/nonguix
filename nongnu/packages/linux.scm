@@ -1150,7 +1150,7 @@ chipsets from Broadcom:
 (define-public facetimehd
   (package
     (name "facetimehd")
-    (version "0.6.8")
+    (version "0.6.8.1")
     (source
      (origin
        (method git-fetch)
@@ -1160,7 +1160,7 @@ chipsets from Broadcom:
        (file-name (git-file-name "facetimehd" version))
        (sha256
         (base32
-         "1g0ky9w5klkjndf30mjymq78r6yls9gri9x702nn8qkmgkjbqdsg"))))
+         "18x12g55bw99ap9cw54v50s5m39dli4nx41jfhb35551mn0jp4c7"))))
     (build-system linux-module-build-system)
     (arguments
      '(#:tests? #f))
