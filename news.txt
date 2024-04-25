@@ -9,6 +9,16 @@
 (channel-news
  (version 0)
 
+ (entry (commit "be61a1829a19724299e46d6e3c1038229039c3ee")
+        (title
+         (en "Nvidia driver package/service updates and changes"))
+        (body
+         (en "In addition to the Nvidia driver package being updated to 550.67,
+the service, procedures, and configuration has changed.  Please see the new
+directions in the Nonguix README.org for how to use the Nvidia driver in your
+system configuration, and of course report any issues with these changes or
+improvements for the documentation.")))
+
  (entry (commit "8078757b887a7691644b119913c3f7b41661775d")
         (title
          (en "New @code{GUIX_SANDBOX_EXTRA_SHARES} variable for nonguix containers (Steam)"))
