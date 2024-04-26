@@ -10,14 +10,14 @@
 (define-public unrar
   (package
     (name "unrar")
-    (version "6.2.2")
+    (version "7.0.9")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://www.rarlab.com/rar/unrarsrc-"
                                   version ".tar.gz"))
               (sha256
                (base32
-                "1mbw20lh300r541dz4m84rvq7b542mnb70yc29afrjj6waknqza7"))))
+                "09l336li4q7yrpjq22q6da2vrynpqbyb4a9fdxa02k65wkwi6p2h"))))
     (build-system gnu-build-system)
     (arguments
      '(#:tests? #f                      ; No tests.
