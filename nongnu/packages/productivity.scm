@@ -24,7 +24,7 @@
 (define-public anytype
   (package
     (name "anytype")
-    (version "0.39.0")
+    (version "0.40.0")
     (source
      (origin
        (method url-fetch)
@@ -34,7 +34,7 @@
        (file-name (string-append "anytype-" version ".deb"))
        (sha256
         (base32
-         "10y037qwm6k28min2sgpshrlpirc1p0zn3b4syxrrz494x5g2ivi"))))
+         "01q6dzks8hjb2whdkj7c816fji7rn5dpx00ss7rxgvxb5rdz19gr"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list
@@ -52,8 +52,8 @@
                "libGLESv2.so"
                "libvk_swiftshader.so"
                "libvulkan.so.1"
-               "resources/app.asar.unpacked/dist/nativeMessagingHost"
-               "resources/app.asar.unpacked/node_modules/keytar/build/Release/keytar.node"))
+               "resources/app.asar.unpacked/node_modules/keytar/build/Release/keytar.node"
+               "resources/app.asar.unpacked/node_modules/keytar/build/Release/obj.target/keytar.node"))
       #:install-plan
       #~'(("opt/" "/share")
           ("usr/share/" "/share"))
