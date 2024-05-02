@@ -1,5 +1,5 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
-;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
+;;; Copyright © 2023, 2024 Giacomo Leidi <goodoldpaul@autistici.org>
 
 (define-module (nongnu packages editors)
   #:use-module (gnu packages base)
@@ -14,20 +14,27 @@
 (define-public vscodium
   (package
     (name "vscodium")
-    (version "1.87.0.24060")
+    (version "1.88.1.24104")
     (source
-     (origin
-       (method url-fetch)
-       (uri
-        (let ((arch (match (or (%current-target-system) (%current-system))
-                      ("aarch64-linux" "arm64")
-                      ("armhf-linux" "armhf")
-                      (_ "x64"))))
-          (string-append
-           "https://github.com/VSCodium/vscodium/releases/download/" version
-           "/VSCodium-linux-" arch "-" version ".tar.gz")))
-       (sha256
-        (base32 "1lw7j8h0i96mg8si8dmi55ldbz5j63zb93qf1g59siavx84f1zpd"))))
+     (let ((arch (match (or (%current-target-system) (%current-system))
+                   ("aarch64-linux" "arm64")
+                   ("armhf-linux" "armhf")
+                   (_ "x64")))
+           (hash (match (or (%current-target-system) (%current-system))
+                   ("aarch64-linux"
+                    "0412222l9r81f3aa3zlzrg42hzslvvck5kds7zrmpssjrd41jxfh")
+                   ("armhf-linux"
+                    "1sblaigrxscx4l1kln1zxzm5da5lr50y1k6qb4igq6wxbdx55iay")
+                   (_
+                    "1n3gb12asid2qwwzf9fj974ws9n7has9l23ni8jscx9cp63l5rbl"))))
+       (origin
+        (method url-fetch)
+        (uri
+         (string-append
+          "https://github.com/VSCodium/vscodium/releases/download/" version
+          "/VSCodium-linux-" arch "-" version ".tar.gz"))
+        (sha256
+         (base32 hash)))))
     (build-system chromium-binary-build-system)
     (arguments
      (list #:validate-runpath? #f ; TODO: fails on wrapped binary and included other files
