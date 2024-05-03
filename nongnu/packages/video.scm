@@ -17,7 +17,7 @@
 (define-public gmmlib
   (package
     (name "gmmlib")
-    (version "22.3.15")
+    (version "22.3.19")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -26,7 +26,7 @@
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "0qmdprqarqdz8z6s1av2vmd7ma5yaswxkxzdjci57fgyylqkjlri"))))
+                "0p3wp6xcvpb4jzw4fsf6554qy91iblmq9y50ph3iy29m19q6nznb"))))
     (build-system cmake-build-system)
     (arguments
      ;; Tests are run as part of the normal build step
