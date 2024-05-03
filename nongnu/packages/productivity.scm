@@ -1,6 +1,6 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
-;;; Copyright © 2024 Karl Hallsby <karl@hallsby.com
+;;; Copyright © 2024, 2025 Raven Hallsby <karl@hallsby.com>
 
 (define-module (nongnu packages productivity)
   #:use-module (gnu packages base)
@@ -10,6 +10,8 @@
   #:use-module (gnu packages glib)
   #:use-module (gnu packages gtk)
   #:use-module (gnu packages image)
+  #:use-module (gnu packages imagemagick)
+  #:use-module (gnu packages inkscape)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages pciutils)
   #:use-module (gnu packages photo)
@@ -20,6 +22,7 @@
   #:use-module (guix download)
   #:use-module (guix gexp)
   #:use-module (guix packages)
+  #:use-module (ice-9 match)
   #:use-module (nonguix build-system chromium-binary)
   #:use-module ((nonguix licenses) #:prefix license:)
   #:use-module ((guix licenses) #:prefix free-license:))
@@ -234,3 +237,104 @@ references and bibliographies for any text editor, and directly inside Word,
 LibreOffice, and Google Docs for over 10,000 citation styles.")
     (home-page "https://www.zotero.org")
     (license free-license:agpl3)))
+
+(define-public obsidian
+  (package
+    (name "obsidian")
+    (version "1.8.7")
+    (source
+     (origin
+       (method url-fetch)
+       (uri
+        (string-append "https://github.com/obsidianmd/obsidian-releases/releases/download/"
+                       "v" version "/obsidian-" version
+                       (match (or (%current-target-system) (%current-system))
+                         ("x86_64-linux" "") ; x86_64 does not have any special indication
+                         ("aarch64-linux" "-arm64")
+                         ;; We should provide a default case.
+                         (_ "unsupported"))
+                       ".tar.gz"))
+       (file-name (string-append "obsidian-" version ".tar.gz"))
+       (sha256
+        (base32
+         (match (or (%current-target-system) (%current-system))
+           ("x86_64-linux" "1kwhi5c56l97brp590f4qbi1z45ljm7g03wl3wdbz64mfn8zgqxl")
+           ("aarch64-linux" "0gk34q3bjbxyihmji9qkpypzby2jy607iz2jdwk14sp9riz31zr5")
+           ;; We need a valid base case for base32
+           (_ "0000000000000000000000000000000000000000000000000000"))))))
+    (build-system chromium-binary-build-system)
+    (arguments
+     (list
+      #:validate-runpath? #f ; TODO: fails on wrapped binary (.obsidian-real)
+      #:substitutable? #f
+      #:wrapper-plan
+      #~(list "obsidian")
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-before 'install-wrapper 'install-entrypoint
+            (lambda _
+              (let* ((bin (string-append #$output "/bin")))
+                (mkdir-p bin)
+                (symlink (string-append #$output "/obsidian")
+                         (string-append bin "/obsidian")))))
+          ;; NOTE: Obsidian's icon SVG does not conform to SVG standards.
+          (add-after 'install 'create-desktop-icons
+            (lambda* (#:key inputs outputs #:allow-other-keys)
+              (let ((convert (search-input-file inputs "/bin/convert"))
+                    (svg (assoc-ref inputs "obsidian-logo-gradient.svg"))
+                    (sizes (list "32x32" "48x48" "64x64" "128x128" "256x256"
+                                 "512x512")))
+                (for-each
+                 (lambda (size)
+                   (mkdir-p (string-append #$output "/share/icons/hicolor/"
+                                           size
+                                           "/apps"))
+                   (invoke convert
+                           "-background" "none"
+                           "-resize" size
+                           svg
+                           (string-append #$output "/share/icons/hicolor/"
+                                          size
+                                          "/apps/obsidian.png")))
+                 sizes))))
+          (add-after 'install 'create-desktop-file
+            (lambda _
+              (make-desktop-entry-file
+               (string-append #$output "/share/applications/obsidian.desktop")
+               #:name "Obsidian"
+               #:type "Application"
+               #:generic-name "Markdown Editor"
+               #:exec (string-append #$output "/obsidian")
+               #:icon "obsidian"
+               #:keywords '("obsidian")
+               #:categories '("Application" "Office")
+               #:terminal #f
+               #:startup-notify #t
+               #:startup-w-m-class "obsidian"
+               #:mime-type "x-scheme-handler/obsidian"
+               #:comment
+               '(("en" "Knowledge base")
+                 (#f "Knowledge base"))))))))
+    (native-inputs
+     ;; imagemagick & inkscape needed to create desktop icons. We use the
+     ;; stable versions because we only need them for generating icons.
+     (list imagemagick/stable inkscape/stable))
+    (inputs
+     (list
+      (origin
+        (method url-fetch)
+        (uri "https://obsidian.md/images/obsidian-logo-gradient.svg")
+        (sha256
+         (base32 "100j8fcrc5q8zv525siapminffri83s2khs2hw4kdxwrdjwh36qi")))))
+    (synopsis "Markdown-based knowledge base")
+    (supported-systems '("x86_64-linux" "aarch64-linux"))
+    (description "Obsidian is a powerful knowledge base that works on top of a
+local folder of plain text Markdown files.  Obsidian makes following
+connections frictionless, and with the connections in place, you can explore
+all of your knowledge in the interactive graph view.  Obsidian supports
+CommonMark and GitHub Flavored Markdown (GFM), along with other useful
+notetaking features such as tags, LaTeX mathematical expressions, mermaid
+diagrams, footnotes, internal links and embedding Obsidian notes or external
+files.  Obsidian also has a plugin system to expand its capabilities.")
+    (home-page "https://obsidian.md")
+    (license (license:nonfree "https://obsidian.md/license"))))
