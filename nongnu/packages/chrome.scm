@@ -146,7 +146,7 @@
   (make-google-chrome "stable" "125.0.6422.76" "0msccf0x9dgplm3r7llra7xk08f0an1r5v1fi5m5pmzilk0q9cc4"))
 
 (define-public google-chrome-beta
-  (make-google-chrome "beta" "124.0.6367.18" "18gv6s4v6g8nw80rfiamz0xx6bwzn567xvmmn95xx70lhcvz9s34"))
+  (make-google-chrome "beta" "126.0.6478.17" "01dkji4wlh26srjxi83k7y8pkplm3l7cl76vnnvhh0v6m3cqvcqj"))
 
 (define-public google-chrome-unstable
   (make-google-chrome "unstable" "125.0.6368.2" "0cfsq2qh9apbafapxqdz8sb65mm6yqxpcl7kwx9g9yi0sngqcxsz"))
