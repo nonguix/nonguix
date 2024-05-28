@@ -34,7 +34,9 @@
                               ("x86_64-linux" "linux_x86_64")
                               ("i686-linux" "linux_i686")
                               ("aarch64-linux" "linux_aarch64")
-                              ("armhf-linux" "linux_armv7l"))
+                              ("armhf-linux" "linux_armv7l")
+                              ;; We need a default case
+                              (_ "unsupported"))
                             ".tar.xz"))
         (sha256
          (base32
@@ -42,7 +44,9 @@
             ("x86_64-linux" "1hd7fbk0px45fxhqa7nqcnij8ls2fhpjp60v840vy2zqs9fkcr52")
             ("i686-linux" "11vk32mxyda9xl08pp2ivd1vsahnw6w7d08in4syz6iannfwp19b")
             ("aarch64-linux" "0zpkaiwwxn8yh3s1d22qswshbgaxx5d8iy17hb3w256zgb722yjw")
-            ("armhf-linux" "18174b1lgsk73gxhala471ppzbrpa1cs953b5par998yqgh74znk"))))))
+            ("armhf-linux" "18174b1lgsk73gxhala471ppzbrpa1cs953b5par998yqgh74znk")
+            ;; We need a valid base32 default case
+            (_ "0000000000000000000000000000000000000000000000000000"))))))
     (build-system binary-build-system)
     (arguments
      (list #:strip-binaries? #f ;allocated section `.dynsym' not in segment
