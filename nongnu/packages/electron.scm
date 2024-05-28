@@ -26,7 +26,9 @@
         ("x86_64-linux" "linux-x64")
         ("i686-linux" "linux-ia32")
         ("aarch64-linux" "linux-arm64")
-        ("armhf-linux" "linux-armv7l"))
+        ("armhf-linux" "linux-armv7l")
+        ;; We need a default case
+        (_ "unsupported"))
       ".zip"))
     (sha256 (base32 hash))))
 
