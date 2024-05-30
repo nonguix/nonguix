@@ -216,7 +216,7 @@ on hardware which requires nonfree software to function."))))
                             (xanmod-defconfig "config_x86-64-v1"))
 
   (define %default-extra-linux-options
-    (@@ (gnu packages linux) %default-extra-linux-options))
+    ((@@ (gnu packages linux) default-extra-linux-options) version))
 
   (define config->string
     (@@ (gnu packages linux) config->string))
