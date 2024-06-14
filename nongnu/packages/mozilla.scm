@@ -72,12 +72,26 @@
   #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xorg))
 
-;; Define the versions of rust needed to build firefox, trying to match
-;; upstream.  See the file taskcluster/ci/toolchain/rust.yml at
-;; https://searchfox.org under the particular firefox release, like
-;; mozilla-esr102.
-(define-public rust-firefox-esr rust) ; 1.60 is the default in Guix
-(define-public rust-firefox rust) ; 1.65 is the minimum
+(define firefox-rust-1.76
+  (let ((base-rust ((@@ (gnu packages rust) rust-bootstrapped-package)
+                    rust-1.75 "1.76.0"
+                    "08f06shp6l72qrv5fwg1is7yzr6kwj8av0l9h5k243bz781zyp4y")))
+    (package
+      (inherit base-rust)
+      ;; Need llvm >= 16.0
+      (inputs (modify-inputs (package-inputs base-rust)
+                             (replace "llvm" llvm-17))))))
+
+;;; Define the versions of rust needed to build firefox, trying to match
+;;; upstream.  See table at [0], `Uses' column for the specific version.
+;;; Using `rust' will likely lead to a newer version then listed in the table,
+;;; but since in Guix only the latest packaged Rust is officially supported,
+;;; it is a tradeoff worth making.
+;;; 0: https://firefox-source-docs.mozilla.org/writing-rust-code/update-policy.html
+(define-public rust-firefox-esr rust)
+;; The released official binary uses 1.77, but larger changes are required,
+;; and since 1.76 is supported as well, us it.
+(define-public rust-firefox firefox-rust-1.76)
 
 (define icu4c-73
   (package
@@ -532,20 +546,20 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-build-id "20240527195430")
+(define %firefox-build-id "20240610130632")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "126.0.1")
+    (version "127.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "0fr679rcwshwpfxidc55b2xsn4pmrr7p9ix4rr2mv2k7kwsjcc7n"))))
+        (base32 "08a3k7lr6z4gxn5rcjnwpimzcr1w2bm13bzxg0wm1jj6y2ghhsza"))))
     (arguments
      (substitute-keyword-arguments (package-arguments firefox-esr)
        ((#:phases phases)
