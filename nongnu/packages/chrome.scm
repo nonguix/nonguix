@@ -121,6 +121,7 @@
             flac
             font-liberation
             gdk-pixbuf
+            gtk
             harfbuzz
             libexif
             libglvnd
