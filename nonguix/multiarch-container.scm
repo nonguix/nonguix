@@ -269,10 +269,13 @@ in a sandboxed FHS environment."
                `(,file) '()))
          (let* ((run #$(file-append fhs-internal "/bin/" (ngc-internal-name container)))
                 (manifest-file #$(file-append fhs-manifest))
+                (xdg-data-home (getenv "XDG_DATA_HOME"))
                 (xdg-runtime (getenv "XDG_RUNTIME_DIR"))
                 (home (getenv "HOME"))
                 (sandbox-home (or (getenv "GUIX_SANDBOX_HOME")
-                                  (string-append home "/" #$(ngc-sandbox-home container))))
+                                  (if xdg-data-home
+                                      (in-vicinity xdg-data-home "guix-sandbox-home")
+                                      (in-vicinity home #$(ngc-sandbox-home container)))))
                 (wayland-display (or (getenv "WAYLAND_DISPLAY")
                                      "wayland-0"))
                 (preserved-env '("^DBUS_"
