@@ -136,7 +136,7 @@
          (build chromium-binary-build)
          (arguments (append
                      (strip-keyword-arguments private-keywords arguments)
-                     (list #:wrap-inputs host-inputs))))))
+                     (list #:wrap-inputs (alist-delete "source" host-inputs)))))))
 
 (define* (chromium-binary-build name inputs
                        #:key
