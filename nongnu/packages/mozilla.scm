@@ -72,16 +72,6 @@
   #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xorg))
 
-(define firefox-rust-1.76
-  (let ((base-rust ((@@ (gnu packages rust) rust-bootstrapped-package)
-                    rust-1.75 "1.76.0"
-                    "08f06shp6l72qrv5fwg1is7yzr6kwj8av0l9h5k243bz781zyp4y")))
-    (package
-      (inherit base-rust)
-      ;; Need llvm >= 16.0
-      (inputs (modify-inputs (package-inputs base-rust)
-                             (replace "llvm" llvm-17))))))
-
 ;;; Define the versions of rust needed to build firefox, trying to match
 ;;; upstream.  See table at [0], `Uses' column for the specific version.
 ;;; Using `rust' will likely lead to a newer version then listed in the table,
@@ -89,9 +79,8 @@
 ;;; it is a tradeoff worth making.
 ;;; 0: https://firefox-source-docs.mozilla.org/writing-rust-code/update-policy.html
 (define-public rust-firefox-esr rust)
-;; The released official binary uses 1.77, but larger changes are required,
-;; and since 1.76 is supported as well, us it.
-(define-public rust-firefox firefox-rust-1.76)
+;; The `rust' package is too old.
+(define-public rust-firefox rust-1.77)
 
 (define icu4c-73
   (package
