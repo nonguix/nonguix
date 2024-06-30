@@ -72,7 +72,7 @@
                       (string-append apps "/" #$name ".desktop")
                       #:name "VSCodium"
                       #:generic-name "Text Editor"
-                      #:exec (string-append #$output "/bin/codium")
+                      #:exec (string-append #$output "/bin/codium --ozone-platform-hint=auto")
                       #:icon "code"
                       #:type "Application"
                       #:actions '("new-empty-window")
