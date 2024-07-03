@@ -11,11 +11,15 @@
   #:use-module (gnu packages elf)
   #:use-module (gnu packages fontutils)
   #:use-module (gnu packages gcc)
+  #:use-module (gnu packages gl)
   #:use-module (gnu packages glib)
   #:use-module (gnu packages gtk)
   #:use-module (gnu packages icu4c)
   #:use-module (gnu packages linux)
+  #:use-module (gnu packages ncurses)
   #:use-module (gnu packages nss)
+  #:use-module (gnu packages pciutils)
+  #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xorg)
   #:use-module (gnu packages xml)
   #:use-module (guix build utils)
@@ -28,38 +32,41 @@
   #:use-module (ice-9 regex)
   #:use-module (ice-9 match)
   #:use-module (nongnu packages dotnet)
-  #:use-module (nongnu packages ncurses)
   #:use-module ((nonguix licenses) #:prefix license:))
 
-(define-public dyalog-apl
+(define-public dyalog
   (package
-    (name "dyalog-apl")
-    (version "18.2.45405")
+    (name "dyalog")
+    (version "19.0.50027")
     (source
       (origin
         (method url-fetch)
-        (uri (string-append
-               "https://www.dyalog.com/uploads/php/download.dyalog.com/"
-               "download.php?file=" (version-major+minor version)
-               "/linux_64_" version "_unicode.x86_64.deb"))
+        (uri (string-append "https://www.dyalog.com/uploads/php/"
+               "download.dyalog.com/download.php?file=19.0/linux_64_" version
+               "_unicode.x86_64.deb"))
         (sha256
-          (base32 "0qx6z4n9p0dfrk0wwh66s8z8m91cq4inwan8w03gqqis60cxc3x4"))))
+          (base32 "1h18lq2fgq2fgj4zbq1nssi421xhw4r7pxlq06mdklgbc79pbq6y"))))
     (build-system gnu-build-system)
     (outputs '("out" "fonts"))
     (inputs (list alsa-lib
                   at-spi2-atk
                   at-spi2-core
                   atk
+                  cairo
+                  coreutils
                   cups
                   dbus
-                  dotnet-core-3.1
+                  dotnet
                   fontconfig
+                  eudev
                   expat
                   (list gcc "lib")
+                  gdk-pixbuf
                   glib
                   glibc
-                  gtk+-2
-                  icu4c
+                  gtk+
+                  icu4c-70 ; incompatible with 71
+                  libdrm
                   libx11
                   libxcb
                   libxcomposite
@@ -68,14 +75,18 @@
                   libxext
                   libxfixes
                   libxi
+                  libxkbcommon
                   libxrender
                   libxscrnsaver
                   libxtst
                   libxrandr
-                  ncurses/tinfo-5
+                  mesa
+                  ncurses/tinfo
                   nspr
                   nss
                   pango
+                  pciutils
+                  sed
                   unixodbc))
     (native-inputs (list binutils bzip2 patchelf tar))
     (arguments
@@ -114,11 +125,11 @@
                     (truetype (string-append fonts "/share/fonts/truetype"))
                     (dotnet (assoc-ref inputs "dotnet"))
                     (dotnet-root (string-append dotnet "/share/dotnet"))
-                    (icu4c (assoc-ref inputs "icu4c"))
-                    (icu4c-lib (string-append icu4c "/lib"))
                     (in (string-append "opt/mdyalog/"
                                        ,(version-major+minor version)
-                                       "/64/unicode/")))
+                                       "/64/unicode/"))
+                    (subdir (lambda (dir)
+                              (lambda (pkg) (string-append pkg dir)))))
                (mkdir-p lib)
                (copy-recursively in lib)
                (delete-file-recursively (string-append lib "/fonts"))
@@ -134,7 +145,20 @@
                         (string-append bin "/dyalogscript"))
                (wrap-program (string-append lib "/dyalog")
                  `("DOTNET_ROOT" = (,dotnet-root))
-                 `("LD_LIBRARY_PATH" ":" suffix (,icu4c-lib)))
+                 `("LD_LIBRARY_PATH" ":" suffix
+                   (,@(map (subdir "/lib")
+                           (list (assoc-ref inputs "eudev")
+                                 (assoc-ref inputs "gdk-pixbuf")
+                                 (assoc-ref inputs "gtk+")
+                                 (assoc-ref inputs "icu4c")
+                                 (assoc-ref inputs "ncurses-with-tinfo")
+                                 (assoc-ref inputs "libx11")
+                                 (assoc-ref inputs "mesa")
+                                 (assoc-ref inputs "pciutils"))))))
+               (wrap-program (string-append lib "/mapl")
+                 `("PATH" = (,@(map (subdir "/bin")
+                                    (list (assoc-ref inputs "coreutils")
+                                          (assoc-ref inputs "sed"))))))
                #t)))
          (add-after 'install 'patch-elf-files
            (lambda* (#:key inputs outputs #:allow-other-keys)
@@ -142,7 +166,7 @@
                     (lib (string-append out "/lib/dyalog"))
                     (glibc (assoc-ref inputs "glibc"))
                     (ld.so (string-append glibc ,(glibc-dynamic-linker)))
-                    (rpath (pk (string-join
+                    (rpath (string-join
                              (cons* lib
                                     (string-append lib "/lib")
                                     (string-append (assoc-ref inputs "nss")
@@ -154,6 +178,7 @@
                                            "at-spi2-atk"
                                            "at-spi2-core"
                                            "atk"
+                                           "cairo"
                                            "cups"
                                            "dbus"
                                            "expat"
@@ -162,6 +187,7 @@
                                            "glib"
                                            "glibc"
                                            "gtk+"
+                                           "libdrm"
                                            "libx11"
                                            "libxcb"
                                            "libxcomposite"
@@ -170,15 +196,17 @@
                                            "libxext"
                                            "libxfixes"
                                            "libxi"
+                                           "libxkbcommon"
                                            "libxrender"
                                            "libxscrnsaver"
                                            "libxtst"
                                            "libxrandr"
+                                           "mesa"
                                            "ncurses-with-tinfo"
                                            "nspr"
                                            "pango"
                                            "unixodbc")))
-                             ":")))
+                             ":"))
                     (elf-file?* (lambda (file stat) (elf-file? file))))
 
                (define* (file-segments file #:key type)
@@ -220,3 +248,6 @@ APL in the wild.  The interpreter boasts world-class performance benchmarks,
 excellent tooling integration, and support for modern APL features.")
      (license (license:nonfree
                 "https://www.dyalog.com/prices-and-licences.htm"))))
+
+(define-public dyalog-apl
+  (deprecated-package "dyalog-apl" dyalog))
