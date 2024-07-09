@@ -78,9 +78,9 @@
 ;;; but since in Guix only the latest packaged Rust is officially supported,
 ;;; it is a tradeoff worth making.
 ;;; 0: https://firefox-source-docs.mozilla.org/writing-rust-code/update-policy.html
-(define-public rust-firefox-esr rust)
 ;; The `rust' package is too old.
-(define-public rust-firefox rust-1.77)
+(define-public rust-firefox-esr rust-1.77)
+(define-public rust-firefox     rust-1.77)
 
 (define icu4c-73
   (package
@@ -100,19 +100,19 @@
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-esr-build-id "20240610131531")
+(define %firefox-esr-build-id "20240708134620")
 
 (define-public firefox-esr
   (package
     (name "firefox-esr")
-    (version "115.12.0esr")
+    (version "128.0esr")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "1vx88wc10fjkvqdqf3ab65qk3km7z0mlyf9plxjhabxvl0jid7mm"))))
+        (base32 "0z399hi9ziiafhfxjmc2w5cvd4lk0slyr4b8frkhcq7qpb7pvfn5"))))
     (build-system gnu-build-system)
     (arguments
      (list
@@ -234,7 +234,7 @@
               ;; complain that it's not able to change Cargo.lock.
               ;; https://bugzilla.mozilla.org/show_bug.cgi?id=1726373
               (substitute* "build/RunCbindgen.py"
-                (("\"--frozen\",") ""))))
+                (("args.append\\(\"--frozen\"\\)") "pass"))))
           (delete 'bootstrap)
           (add-before 'configure 'patch-SpeechDispatcherService.cpp
             (lambda _
@@ -476,7 +476,7 @@
         alsa-lib
         autoconf-2.13
         `(,rust-firefox-esr "cargo")
-        clang
+        clang-18
         llvm
         wasm32-wasi-clang-toolchain
         m4
@@ -486,7 +486,7 @@
         pkg-config
         python
         rust-firefox-esr
-        rust-cbindgen-0.24
+        rust-cbindgen-0.26
         which
         yasm))
     (home-page "https://mozilla.org/firefox/")
@@ -555,19 +555,11 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
         #~(modify-phases #$phases
             (replace 'set-build-id
               (lambda _
-                (setenv "MOZ_BUILD_DATE" #$%firefox-build-id)))
-            (replace 'remove-cargo-frozen-flag
-              (lambda _
-                ;; Remove --frozen flag from cargo invokation, otherwise it'll
-                ;; complain that it's not able to change Cargo.lock.
-                ;; https://bugzilla.mozilla.org/show_bug.cgi?id=1726373
-                (substitute* "build/RunCbindgen.py"
-                  (("args.append\\(\"--frozen\"\\)") "pass"))))))))
+                (setenv "MOZ_BUILD_DATE" #$%firefox-build-id)))))))
     (native-inputs
      (modify-inputs (package-native-inputs firefox-esr)
        (replace "rust" rust-firefox)
-       (replace "rust:cargo" `(,rust-firefox "cargo"))
-       (replace "rust-cbindgen" rust-cbindgen-0.26)))
+       (replace "rust:cargo" `(,rust-firefox "cargo"))))
     (description
      "Full-featured browser client built from Firefox source tree, without
 the official icon and the name \"firefox\".")))
