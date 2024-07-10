@@ -17,7 +17,7 @@
 ;;; Copyright © 2020-2023 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2020 Zhu Zihao <all_but_last@163.com>
 ;;; Copyright © 2021 pineapples <guixuser6392@protonmail.com>
-;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
+;;; Copyright © 2021, 2024 Brice Waegeneire <brice@waegenei.re>
 ;;; Copyright © 2021, 2022, 2023 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2022 Pierre Langlois <pierre.langlois@gmx.com>
 ;;; Copyright © 2023 Tomas Volf <wolf@wolfsden.cz>
@@ -287,6 +287,9 @@
 
               (setenv "MOZ_NOSPAM" "1")
 
+              ;; WM_CLASS (default is "$MOZ_APP_NAME-$MOZ_UPDATE_CHANNEL").
+              (setenv "MOZ_APP_REMOTINGNAME" "Firefox")
+
               (setenv "MOZBUILD_STATE_PATH" (getcwd))
 
               (let* ((mozconfig (string-append (getcwd) "/mozconfig"))
@@ -401,7 +404,7 @@
                   (("NewWindow") "new-window")
                   (("NewPrivateWindow") "new-private-window")
                   (("StartupNotify=true")
-                   "StartupNotify=true\nStartupWMClass=Navigator"))
+                   "StartupNotify=true\nStartupWMClass=Firefox"))
                 (install-file desktop-file applications))))
           (add-after 'install-desktop-entry 'install-icons
             (lambda* (#:key outputs #:allow-other-keys)
