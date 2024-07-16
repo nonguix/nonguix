@@ -79,11 +79,19 @@
 (define %nvidia-settings-hashes
   '(("550.120" . "1d8rxpk2z9apkvm7vsr7j93rfizh8bgm4h6rlha3m2j818zwixvw")))
 
-(define (nvidia-source-unbundle-libraries version)
-  #~(begin
-      (use-modules (guix build utils))
-      (for-each delete-file
-                (find-files "." (string-join
+(define nvidia-driver-snippet
+  ;; Note: delay to cope with cyclic module imports at the top level.
+  (delay
+    #~(begin
+        (use-modules (guix build utils) (ice-9 ftw) (srfi srfi-1))
+        (set-path-environment-variable
+         "PATH" '("bin")
+         '#+(list bash-minimal coreutils-minimal grep tar zstd))
+        (let* ((this-file (last (scandir (getcwd)))))
+          (invoke "sh" this-file "--extract-only" "--target" "extractdir")
+          (for-each delete-file
+                    (find-files "extractdir"
+                                (string-join
                                  '(;; egl-gbm
                                    "libnvidia-egl-gbm\\.so\\."
                                    ;; egl-wayland
@@ -100,54 +108,28 @@
                                    "libnvidia-gtk[23]\\.so\\."
                                    ;; opencl-icd-loader
                                    "libOpenCL\\.so\\.")
-                                 "|")))))
+                                 "|")))
+          (with-directory-excursion "extractdir"
+            (invoke "tar" "cvfa" (string-append this-file ".tar")
+                    "--mtime=1" "--owner=root:0" "--group=root:0" ;determinism
+                    "--sort=name" ".")
+            (invoke "zstd" (string-append this-file ".tar")))
+          (rename-file
+           (string-append "extractdir/" this-file ".tar.zst") this-file)))))
 
-(define* (make-nvidia-source
-          version hash
-          #:optional (get-cleanup-snippet nvidia-source-unbundle-libraries))
-  "Given VERSION and HASH of an NVIDIA driver installer, return an <origin> for
-its unpacked checkout.  GET-CLEANUP-SNIPPET is a procedure that accepts the
-VERSION as argument and returns a G-expression."
-  (define installer
-    (origin
-      (method url-fetch)
-      (uri (string-append
-            "https://us.download.nvidia.com/XFree86/Linux-x86_64/"
-            version "/NVIDIA-Linux-x86_64-" version ".run"))
-      (sha256 hash)))
+(define (nvidia-source version)
+  "Given VERSION of an NVIDIA driver installer, return an <origin> for
+its unpacked checkout."
   (origin
-    (method (@@ (guix packages) computed-origin-method))
-    (file-name (string-append "nvidia-driver-" version "-checkout"))
-    (sha256 #f)
-    (snippet (get-cleanup-snippet version))
-    (uri
-     (delay
-       (with-imported-modules '((guix build utils))
-         #~(begin
-             (use-modules (guix build utils)
-                          (ice-9 ftw))
-             (set-path-environment-variable
-              "PATH" '("bin")
-              '#+(list bash-minimal
-                       coreutils
-                       gawk
-                       grep
-                       tar
-                       which
-                       xz
-                       zstd))
-             (setenv "XZ_OPT" (string-join (%xz-parallel-args)))
-             (invoke "sh" #$installer "-x")
-             (copy-recursively
-              (car (scandir (canonicalize-path (getcwd))
-                            (lambda (file)
-                              (not (member file '("." ".."))))))
-              #$output)))))))
-
-(define-public nvidia-source
-  (make-nvidia-source
-   nvidia-version
-   (base32 (assoc-ref %nvidia-driver-hashes nvidia-version))))
+    (method url-fetch)
+    (uri (string-append
+          "https://us.download.nvidia.com/XFree86/Linux-x86_64/"
+          version "/NVIDIA-Linux-x86_64-" version ".run"))
+    (file-name (string-append "NVIDIA-Linux-x86_64-" version))
+    (sha256
+     (base32 (assoc-ref %nvidia-driver-hashes version)))
+    (modules '((guix build utils)))
+    (snippet (force nvidia-driver-snippet))))
 
 
 ;;;
@@ -248,7 +230,7 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
   (package
     (name "nvidia-driver")
     (version nvidia-version)
-    (source nvidia-source)
+    (source (nvidia-source version))
     (build-system copy-build-system)
     (arguments
      (list #:modules '((guix build copy-build-system)
@@ -274,6 +256,9 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                ("nvidia_layers.json" "share/vulkan/implicit_layer.d/"))
            #:phases
            #~(modify-phases %standard-phases
+               (replace 'unpack
+                 (lambda* (#:key source #:allow-other-keys)
+                   (invoke "tar" "xvf" source)))
                (delete 'strip)
                (add-after 'unpack 'create-misc-files
                  (lambda* (#:key inputs #:allow-other-keys)
@@ -476,7 +461,10 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
                                               (package-version this-package))))
              #:phases
              #~(modify-phases %standard-phases
-                 (delete 'strip))))
+                 (delete 'strip)
+                 (replace 'unpack
+                   (lambda* (#:key source #:allow-other-keys)
+                     (invoke "tar" "xvf" source))))))
       (propagated-inputs '())
       (inputs '())
       (native-inputs '())
@@ -500,7 +488,7 @@ To enable GSP mode manually, add @code{\"NVreg_EnableGpuFirmware=1\"} to
   (package
     (name "nvidia-module")
     (version nvidia-version)
-    (source nvidia-source)
+    (source (nvidia-source version))
     (build-system linux-module-build-system)
     (arguments
      (list #:linux linux-lts
@@ -510,6 +498,9 @@ To enable GSP mode manually, add @code{\"NVreg_EnableGpuFirmware=1\"} to
            #~(list (string-append "CC=" #$(cc-for-target)))
            #:phases
            #~(modify-phases %standard-phases
+               (replace 'unpack
+                 (lambda* (#:key source #:allow-other-keys)
+                   (invoke "tar" "xvf" source)))
                (delete 'strip)
                (add-before 'configure 'fixpath
                  (lambda* (#:key (source-directory ".") #:allow-other-keys)
@@ -576,20 +567,22 @@ add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
 ;;; ‘nvidia-settings’ packages
 ;;;
 
+(define (nvidia-settings-source name version)
+  (origin
+    (method git-fetch)
+    (uri (git-reference
+          (url "https://github.com/NVIDIA/nvidia-settings")
+          (commit version)))
+    (file-name (git-file-name name version))
+    (modules '((guix build utils)))
+    (snippet '(delete-file-recursively "src/jansson"))
+    (sha256 (base32 (assoc-ref %nvidia-settings-hashes version)))))
 
 (define-public nvidia-settings
   (package
     (name "nvidia-settings")
     (version nvidia-version)
-    (source (origin
-              (method git-fetch)
-              (uri (git-reference
-                    (url "https://github.com/NVIDIA/nvidia-settings")
-                    (commit version)))
-              (file-name (git-file-name name version))
-              (modules '((guix build utils)))
-              (snippet '(delete-file-recursively "src/jansson"))
-              (sha256 (base32 (assoc-ref %nvidia-settings-hashes version)))))
+    (source (nvidia-settings-source name version))
     (build-system gnu-build-system)
     (arguments
      (list #:tests? #f ;no test suite
