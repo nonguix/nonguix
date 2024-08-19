@@ -114,7 +114,7 @@ view logs.")
 (define-public kompose
   (package
     (name "kompose")
-    (version "1.30.0")
+    (version "1.34.0")
     (source (origin
               (method url-fetch)
               (uri (string-append
@@ -122,7 +122,7 @@ view logs.")
                     version "/kompose-linux-amd64"))
               (sha256
                (base32
-                "0sy3ci7s2dkjigasyv01nm1vg30wwhmdc0cmglzb23ws8bfrfjlh"))))
+                "0wg1ks3flb5rbpazich7v052s3zm8fwja044r67sky3bxxihx3f5"))))
     (build-system copy-build-system)
     (arguments
      (list
