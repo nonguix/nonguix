@@ -79,14 +79,14 @@ Helm Chart for Kubernetes.")
 (define-public kubectl
   (package
     (name "kubectl")
-    (version "1.30.3")
+    (version "1.31.0")
     (source (origin
               (method url-fetch)
               (uri (string-append
                     "https://dl.k8s.io/release/v" version "/bin/linux/amd64/kubectl"))
               (sha256
                (base32
-                "1rf79s2m1d953aprcchg4vz6iw26ni9cirj36rn2csr3plb3in5b"))))
+                "0dr40ckdj65ka6ndp8knyprh1k0nx6vg8yyg7p6c1lc49b3as9vw"))))
     (build-system copy-build-system)
     (arguments
      (list
