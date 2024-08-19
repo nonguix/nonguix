@@ -148,14 +148,14 @@ such as Kubernetes (or OpenShift).")
 (define-public helm-kubernetes
   (package
     (name "helm-kubernetes")
-    (version "3.12.3")
+    (version "3.15.4")
     (source (origin
               (method url-fetch)
               (uri (string-append
                     "https://get.helm.sh/helm-v" version "-linux-amd64.tar.gz"))
               (sha256
                (base32
-                "1d99c506shnz5cr9xhkrla5r82nan7v3hz631jqflicd376i68qv"))))
+                "1afgf08z6hgy07kjk8fj7xkr8ma4qk2f1r33901nzz87zkn0yh0i"))))
     (build-system copy-build-system)
     (arguments
      (list
