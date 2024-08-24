@@ -237,10 +237,10 @@ SF Compact is the system font for watchOS and includes a rounded variant."))
 (define-public font-apple-sf-mono
   (apple-font
    #:font-name "SF Mono"
-   #:archive-timestamp "20230710073457"
+   #:archive-timestamp "20240527221346"
    #:file "SF-Mono"
-   #:version "19.0d6e1"
-   #:hash "0vjdpl3xyxl2rmfrnjsxpxdizpdr4canqa1nm63s5d3djs01iad6"
+   #:version "20.0d8e1"
+   #:hash "0cxj1wk6nbz1ysi0cg1w79b7ja48n00dypxkrsc3mvrn1vmdb4dm"
    #:description "This monospaced variant of San Francisco enables alignment
 between rows and columns of text, and is used in coding environments like Xcode.
 SF Mono features six weights and supports Latin, Greek, and Cyrillic scripts."))
