@@ -213,10 +213,10 @@ Included fonts:
 (define-public font-apple-sf-pro
   (apple-font
    #:font-name "SF Pro"
-   #:archive-timestamp "20230710073336"
+   #:archive-timestamp "20240527221252"
    #:file "SF-Pro"
-   #:version "19.0d6e1"
-   #:hash "19qa6fs6x5614sqw9a6idlizzsssw8256crz1ps2p2n6gwp2fvaq"
+   #:version "20.0d8e1"
+   #:hash "153k3q8h5mpd358b1lsa8ha32qxv7vc2q661k20j4nnf3ndjkv9j"
    #:description "This neutral, flexible, sans-serif typeface is the system
 font for iOS, iPad OS, macOS and tvOS.  SF Pro features nine weights, variable
 optical sizes for optimal legibility, four widths, and includes a rounded
