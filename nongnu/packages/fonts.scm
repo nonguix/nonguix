@@ -278,10 +278,10 @@ graphic display face at larger sizes."))
 (define-public font-apple-sf-symbols
   (apple-font
    #:font-name "SF Symbols"
-   #:archive-timestamp "20230710073513"
-   #:file "SF-Symbols-5"
-   #:version "5"
-   #:hash "1bwlq1nf75bv0x36qdk371r2pd5slf3jlv50wgsl0kpj1dds22sf"
+   #:archive-timestamp "20240701100406"
+   #:file "SF-Symbols-6"
+   #:version "6"
+   #:hash "1hyghp03zpsiks2p6kmghnmg28kkjj3qqk2hgwva855kly6r4hv8"
    #:description "With over 5,000 symbols, SF Symbols is a library of
 iconography designed to integrate seamlessly with San Francisco, the system
 font for Apple platforms.  Symbols come in nine weights and three scales, and
