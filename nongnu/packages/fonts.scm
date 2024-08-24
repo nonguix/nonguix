@@ -261,10 +261,10 @@ based on the point size, and includes a rounded variant."))
 (define-public font-apple-new-york
   (apple-font
    #:font-name "New York"
-   #:archive-timestamp "20230710073506"
+   #:archive-timestamp "20240527221356"
    #:file "NY"
    #:version "17.0d5e1"
-   #:hash "1hgxyizpgam7y1xh36fsypd3a1nn417wdnnfk1zahq9vhxrrds2w"
+   #:hash "06d8pnfp4z5nb82mh7g7pnz5m4njph3zy17ww1m8x0m34hn50zdn"
    #:description "A companion to San Francisco, this serif typeface is based on
 essential aspects of historical type styles.  New York features six weights,
 supports Latin, Greek and Cyrillic scripts, and features variable optical sizes
