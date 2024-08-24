@@ -248,10 +248,10 @@ SF Mono features six weights and supports Latin, Greek, and Cyrillic scripts."))
 (define-public font-apple-sf-arabic
   (apple-font
    #:font-name "SF Arabic"
-   #:archive-timestamp "20230710073501"
+   #:archive-timestamp "20240527221359"
    #:file "SF-Arabic"
-   #:version "19.0d6e1"
-   #:hash "0phl3wi0lq7djcg8nqg1ml1f73bsfjzmvd2n8hkl6dbprmw614jp"
+   #:version "20.0d8e1"
+   #:hash "0sm7w5i19n3jdj6d04344nxizqacg264rladjiwhxhwa3ksfbxsn"
    #:description "A contemporary interpretation of the Naskh style with a
 rational and flexible design, this extension of San Francisco is the Arabic
 system font on Apple platforms.  Like San Francisco, SF Arabic features nine
