@@ -226,10 +226,10 @@ scripts."))
 (define-public font-apple-sf-compact
   (apple-font
    #:font-name "SF Compact"
-   #:archive-timestamp "20230710073418"
+   #:archive-timestamp "20240527221317"
    #:file "SF-Compact"
-   #:version "19.0d6e1"
-   #:hash "02127drlqvwscq6vaphmvsp85cn8j4zfhi0kb9a3fzc0z8b95hdq"
+   #:version "20.0d8e1"
+   #:hash "01j7k95rnmg667hyhj88fxqrgsah2mnk2ws7fmclif92mqcgwirj"
    #:description "Sharing many features with SF Pro, SF Compact features an
 efficient, compact design that is optimized for small sizes and narrow columns.
 SF Compact is the system font for watchOS and includes a rounded variant."))
