@@ -27,7 +27,7 @@
 (define-public anytype
   (package
     (name "anytype")
-    (version "0.42.3")
+    (version "0.42.4")
     (source
      (origin
        (method url-fetch)
@@ -37,7 +37,7 @@
        (file-name (string-append "anytype-" version ".deb"))
        (sha256
         (base32
-         "14n29syg628ygh3716qffygrdl7zkv96c01h958g9arkrfipxi5r"))))
+         "17a2z6fd977wr9jswqfdq0y5i8blfxmbf4974b5m00cr1lxjkb6n"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list
@@ -62,6 +62,16 @@
           ("usr/share/" "/share"))
       #:phases
       #~(modify-phases %standard-phases
+          (add-after 'binary-unpack 'disable-auto-updates
+            (lambda _
+              (delete-file "opt/Anytype/resources/app-update.yml")))
+          ;; We don't need regedit, a node library to interact with Windows
+          ;; hosts.
+          (add-after 'binary-unpack 'strip-regedit
+            (lambda _
+              (delete-file-recursively
+               (string-append "opt/Anytype/resources/app.asar.unpacked/"
+                              "node_modules/regedit"))))
           (add-after 'binary-unpack 'strip-python
             (lambda _
               (delete-file
