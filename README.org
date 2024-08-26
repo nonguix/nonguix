@@ -96,20 +96,18 @@ your configuration.
 For some hardware the official Guix installation image won't do
 (e.g. unsupported wifi).  You can find a pre-generated installation image
 (time and version in line with upstream Guix), running the nonfree Linux
-kernel and nonfree firmware, on the [[https://gitlab.com/nonguix/nonguix/-/releases][Releases page]].  Or, you can generate an
-installation image from a local checkout of this repository, at a more recent
-commit, with the following command:
+kernel and nonfree firmware, on the [[https://gitlab.com/nonguix/nonguix/-/releases][Releases page]] (see below for important
+note if you use the 1.4.0 release or those created prior to April 2024).  Or,
+you can generate an installation image from a local checkout of this
+repository, at a more recent commit, with the following command:
 
 #+begin_src sh
 guix system image --image-type=iso9660 /path/to/this/channel/nongnu/system/install.scm
 #+end_src
 
 Like the official Guix installation image, this will produce a read-only image
-with any changes made stored in memory.  As indicated below, you will need to
-run ~guix pull~ to download the Nonguix package descriptions, so will need
-enough memory to hold the cached channel code which can be several hundred
-megabytes.  As an alternative, you can create a writable image with the
-following command:
+with any changes made stored in memory.  Alternatively, a writable image can
+be created with the following command:
 
 #+begin_src sh
 guix system image --image-size=7.2GiB /path/to/this/channel/nongnu/system/install.scm
@@ -126,11 +124,14 @@ Either type of image can be written to a USB thumbdrive with:
 dd if=/path/to/disk-image of=/dev/sdb bs=4M status=progress oflag=sync
 #+END_SRC
 
-The installation media produced by the above method does not automatically
-configure your channels specification.  You need to add Nonguix "manually"
-into ~/etc/guix/channels.scm~ and then run ~guix pull~ to make Guix aware of
-Nonguix scheme libraries. Below is Guile scheme code to include Nonguix in the
-channel specification.
+*** Important note for 1.4.0
+The installation media for 1.4.0 or those produced manually before commit
+[[https://gitlab.com/nonguix/nonguix/-/commit/80b273e86a19ceaee6d9b6650ed56e853409a799#note_2075084624][80b273e8]] (April 2024) do not automatically configure your channels
+specification.  You need to add Nonguix "manually" into ~/etc/guix/channels.scm~
+and then run ~guix pull~ to make Guix aware of Nonguix scheme libraries. This
+will require enough memory to hold the cached channel code which can be
+several hundred megabytes. Below is Guile scheme code to include Nonguix in
+the channel specification.
 
 #+BEGIN_SRC scheme
 (use-modules (ice-9 pretty-print))
