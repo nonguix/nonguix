@@ -82,22 +82,6 @@
 (define-public rust-firefox-esr rust-1.77)
 (define-public rust-firefox     rust-1.77)
 
-(define icu4c-73
-  (package
-    (inherit icu4c)
-    (version "73.1")
-    (source (origin
-              (method url-fetch)
-              (uri (string-append
-                    "https://github.com/unicode-org/icu/releases/download/release-"
-                    (string-map (lambda (x) (if (char=? x #\.) #\- x)) version)
-                    "/icu4c-"
-                    (string-map (lambda (x) (if (char=? x #\.) #\_ x)) version)
-                    "-src.tgz"))
-              (sha256
-               (base32
-                "0iccpdvc0kvpww5a31k9gjkqigyz016i7v80r9zamd34w4fl6mx4"))))))
-
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
 (define %firefox-esr-build-id "20240805130522")
