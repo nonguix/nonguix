@@ -141,7 +141,6 @@ implementation with gogdl and Amazon Games using Nile.")
              (substitute* "Makefile"
                (("-fns ")
                 "-fns $(DESTDIR)"))))
-         (delete 'patch-dot-desktop-files)
          (add-after 'unpack 'patch-startscript
            (lambda _
              (substitute* "bin_steam.sh"
@@ -157,8 +156,9 @@ implementation with gogdl and Amazon Games using Nile.")
                (substitute* (string-append path "steam-asound32.desktop")
                  (("Exec=steam %U") "Exec=steam %U -- --asound32")
                  (("Name=Steam") "Name=Steam (32-bit ALSA)")))))
+         (delete 'patch-dot-desktop-files)
          ;; Steamdeps installs missing packages, which doesn't work with Guix.
-         (add-after 'install-binaries 'post-install
+         (add-after 'install 'post-install
            (lambda* (#:key inputs outputs #:allow-other-keys)
              (let ((out (assoc-ref %outputs "out")))
                (delete-file (string-append out "/lib/steam/bin_steamdeps.py"))
