@@ -83,7 +83,7 @@
                   ((guix elf) #:select (elf-segments parse-elf PT_INTERP))
                   ((ice-9 binary-ports) #:select (get-bytevector-n))
                   ((srfi srfi-1) #:select (last))
-                  ,@%gnu-build-system-modules)
+                  ,@%default-gnu-imported-modules)
        #:tests? #f
        #:phases
        (modify-phases %standard-phases
