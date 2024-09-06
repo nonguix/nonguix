@@ -67,25 +67,25 @@ various IDEs and plugins.")
     (license license:expat)))
 
 (define-public dotnet
-  (let ((dotnet-sdk-version "6.0.9"))
+  (let ((dotnet-sdk-version "8.0.8"))
     (package
       (name "dotnet")
-      (version "6.0.401")
+      (version "8.0.401")
       (source
        (origin
          (method url-fetch/tarbomb)
          (uri
-          (string-append "https://download.visualstudio.microsoft.com/download/pr/8159607a-e686-4ead-ac99-b4c97290a5fd/ec6070b1b2cc0651ebe57cf1bd411315/dotnet-sdk-"
-                         version
-                         "-linux-x64.tar.gz"))
+          (string-append "https://download.visualstudio.microsoft.com/"
+                         "download/pr/db901b0a-3144-4d07-b8ab-6e7a43e7a791/"
+                         "4d9d1b39b879ad969c6c0ceb6d052381/dotnet-sdk-"
+                         version "-linux-x64.tar.gz"))
          (sha256
-          (base32
-           "05yr64ffcaf48ripxzcv9nwlzp7r83cy9hz17dm5c0317lhksqch"))))
+          (base32 "1ygr563apl2776yjabn0plsvx5fcmb5wb0fnldrqwb9b5n8d6cb2"))))
       (build-system binary-build-system)
       (arguments
        `(#:patchelf-plan
-         `(("dotnet"
-            ("gcc:lib" "zlib"))
+         ;; TODO: Make this a more compact procedure.
+         `(("dotnet" ("gcc:lib" "zlib"))
            (,,(string-append "shared/Microsoft.NETCore.App/"
                              dotnet-sdk-version
                              "/libSystem.Net.Security.Native.so")
@@ -94,6 +94,18 @@ various IDEs and plugins.")
                              dotnet-sdk-version
                              "/libSystem.Security.Cryptography.Native.OpenSsl.so")
             ("openssl"))
+           (,,(string-append "shared/Microsoft.NETCore.App/"
+                             dotnet-sdk-version
+                             "/libSystem.Native.so")
+            ("gcc:lib"))
+           (,,(string-append "shared/Microsoft.NETCore.App/"
+                             dotnet-sdk-version
+                             "/libSystem.Globalization.Native.so")
+            ("gcc:lib"))
+           (,,(string-append "shared/Microsoft.NETCore.App/"
+                             dotnet-sdk-version
+                             "/libSystem.Net.Security.Native.so")
+            ("gcc:lib"))
            (,,(string-append "shared/Microsoft.NETCore.App/"
                              dotnet-sdk-version
                              "/libSystem.IO.Compression.Native.so")
@@ -109,11 +121,11 @@ various IDEs and plugins.")
                              dotnet-sdk-version "/libclrjit.so")
             ("gcc:lib"))
            (,,(string-append "shared/Microsoft.NETCore.App/"
+                             dotnet-sdk-version "/libclrgc.so")
+            ("gcc:lib"))
+           (,,(string-append "shared/Microsoft.NETCore.App/"
                              dotnet-sdk-version "/libcoreclr.so")
             ("gcc:lib" "icu4c"))
-           (,,(string-append "shared/Microsoft.NETCore.App/"
-                             dotnet-sdk-version "/libdbgshim.so")
-            ("gcc:lib"))
            (,,(string-append "shared/Microsoft.NETCore.App/"
                              dotnet-sdk-version "/libhostpolicy.so")
             ("gcc:lib"))
