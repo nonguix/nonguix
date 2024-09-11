@@ -1184,7 +1184,7 @@ driver:
 (define-public intel-microcode
   (package
     (name "intel-microcode")
-    (version "20240813")
+    (version "20240910")
     (source
      (origin
        (method git-fetch)
@@ -1195,7 +1195,7 @@ driver:
              (commit (string-append "microcode-" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "0ldqzbf4072kidz4gi6yjgrydr5qxg3wpmivfxklz78c9rmicr9v"))))
+        (base32 "1axz80j985rx1jqh8dzn4idl7azlhbxr9hckhykbdhaxrlmjlzbj"))))
     (build-system copy-build-system)
     (arguments
      (list #:install-plan
