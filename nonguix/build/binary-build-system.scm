@@ -2,12 +2,14 @@
 ;;; Copyright © 2019 Julien Lepiller <julien@lepiller.eu>
 ;;; Copyright © 2022 Attila Lendvai <attila@lendvai.name>
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
+;;; Copyright © 2024 Ashish SHUKLA <ashish.is@lostca.se>
 
 (define-module (nonguix build binary-build-system)
   #:use-module ((guix build gnu-build-system) #:prefix gnu:)
   #:use-module (nonguix build utils)
   #:use-module (guix build utils)
   #:use-module (ice-9 match)
+  #:use-module (srfi srfi-1)
   #:export (%standard-phases
             binary-build))
 
@@ -139,11 +141,14 @@ The inputs are optional when the file is an executable."
 
 (define (unpack-deb deb-file)
   (invoke "ar" "x" deb-file)
-  (invoke "tar" "xvf" "data.tar.xz")
-  (invoke "rm" "-rfv" "control.tar.gz"
-          "data.tar.xz"
-          deb-file
-          "debian-binary"))
+  (let ((data-file (find file-exists?
+                         (list "data.tar.xz" "data.tar.gz"
+                               "data.tar.bz2"))))
+    (invoke "tar" "xvf" data-file)
+    (invoke "rm" "-rfv" "control.tar.gz"
+            data-file
+            deb-file
+            "debian-binary")))
 
 (define* (binary-unpack #:key source #:allow-other-keys)
   (let* ((files (filter (lambda (f)
