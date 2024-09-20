@@ -222,3 +222,13 @@ codec APIs.")
       (package-description obs)
       "  This build of OBS includes embeded Chromium-based browser to enable
 Browser source."))))
+
+(define-public obs-nvenc
+  (let ((obs-ffmpeg-nvenc (replace-ffmpeg-nvenc obs)))
+    (package/inherit obs-ffmpeg-nvenc
+      (name "obs-nvenc")
+      (description
+       (string-append
+        (package-description obs)
+        "  This build of OBS includes the nonfree NVIDIA encoder for FFmpeg
+@code{h264_nvenc} and @code{hevc_nvenc} hardware encoding on NVIDIA GPUs.")))))
