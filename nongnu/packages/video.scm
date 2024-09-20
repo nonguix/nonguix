@@ -41,6 +41,10 @@
       "  This build of FFmpeg includes the nonfree NVIDIA encoder for
 @code{h264_nvenc} and @code{hevc_nvenc} hardware encoding on NVIDIA GPUs."))))
 
+(define-public replace-ffmpeg-nvenc
+  (package-input-rewriting
+   `((,ffmpeg . ,ffmpeg-nvenc))))
+
 (define-public gmmlib
   (package
     (name "gmmlib")
