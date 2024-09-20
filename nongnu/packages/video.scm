@@ -1,18 +1,21 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2022 Jelle Licht <jlicht@fsfe.org>
 ;;; Copyright © 2024 Oleg Pykhalov <go.wigust@gmail.com>
+;;; Copyright © 2024 Murilo <murilo@disroot.org>
 
 (define-module (nongnu packages video)
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages video)
   #:use-module (guix build utils)
   #:use-module (guix build-system cmake)
+  #:use-module (guix build-system gnu)
   #:use-module (guix gexp)
   #:use-module (guix git-download)
   #:use-module (guix packages)
   #:use-module (guix utils)
   #:use-module ((guix licenses) #:prefix license:)
-  #:use-module (nongnu packages chromium))
+  #:use-module (nongnu packages chromium)
+  #:use-module (nongnu packages nvidia))
 
 (define-public gmmlib
   (package
@@ -94,6 +97,41 @@ graphics hardware.")
         (package-description intel-media-driver)
         "  This build of intel-media-driver includes nonfree blobs to fully enable the
 video decode capabilities of supported Intel GPUs."))))
+
+(define-public nv-codec-headers
+  (package
+    (name "nv-codec-headers")
+    (version "12.1.14.0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://git.videolan.org/git/ffmpeg/nv-codec-headers.git")
+             (commit (string-append "n" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "0sp4giwbhai9blgd2k7sb571xwmz2yx17w32vy0nyj86ccb2x5jq"))))
+    (arguments
+     (list
+      #:tests? #f ; No tests.
+      #:make-flags #~(list (string-append "PREFIX=" #$output))
+      #:phases #~(modify-phases %standard-phases
+                   (delete 'configure)
+                   (add-after 'unpack 'fix-paths
+                     (lambda* (#:key inputs #:allow-other-keys)
+                       (substitute* "include/ffnvcodec/dynlink_loader.h"
+                         (("lib.*\\.so\\.." lib)
+                          (search-input-file
+                           inputs (string-append "lib/" lib)))))))))
+    (build-system gnu-build-system)
+    (inputs (list nvidia-driver))
+    (home-page "https://git.videolan.org/?p=ffmpeg/nv-codec-headers.git")
+    (synopsis
+     "FFmpeg version of headers required to interface with NVIDIA's codec APIs")
+    (description
+     "This package provides the necessary headers for interfacing with NVIDIA's
+codec APIs.")
+    (license license:expat)))
 
 (define-public obs-with-cef
   (package
