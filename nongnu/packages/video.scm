@@ -17,6 +17,30 @@
   #:use-module (nongnu packages chromium)
   #:use-module (nongnu packages nvidia))
 
+(define-public ffmpeg-nvenc
+  (package/inherit ffmpeg
+    (name "ffmpeg-nvenc")
+    (inputs
+     (modify-inputs
+         (package-inputs ffmpeg)
+       (prepend nv-codec-headers)))
+    (arguments
+     (substitute-keyword-arguments (package-arguments ffmpeg)
+       ((#:configure-flags flags)
+        ;; Currently only interested in NVENC.
+        ;; Might be better to make a ffmpeg-nonfree with all nonfree codecs
+        ;; in the future.
+        #~(cons* "--enable-cuvid"
+                 "--enable-ffnvcodec"
+                 "--enable-encoder=hevc_nvenc"
+                 "--enable-encoder=h264_nvenc"
+                 #$flags))))
+    (description
+     (string-append
+      (package-description ffmpeg)
+      "  This build of FFmpeg includes the nonfree NVIDIA encoder for
+@code{h264_nvenc} and @code{hevc_nvenc} hardware encoding on NVIDIA GPUs."))))
+
 (define-public gmmlib
   (package
     (name "gmmlib")
