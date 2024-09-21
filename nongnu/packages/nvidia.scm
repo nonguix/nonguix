@@ -65,7 +65,7 @@
     ;; GSYNC control for Vulkan direct-to-display applications.
     "^VKDirectGSYNC(Compatible)?Allowed$"))
 
-(define-public nvidia-version "550.67")
+(define-public nvidia-version "550.120")
 
 
 ;;;
@@ -74,10 +74,10 @@
 
 
 (define %nvidia-driver-hashes
-  '(("550.67" . "1qnsyzplkxfcc2sj6fcw3ylfp0njvb5z1c0y4v80zzqwqw4il84r")))
+  '(("550.120" . "15sn0g3mzh4i8l4amqsdw3d0s1rpriwa13h94xvcxk2k8wkjh6c0")))
 
 (define %nvidia-settings-hashes
-  '(("550.67" . "18sij736liyhqysvsnqwb6r58pf0zbggxyvyc11psc4ljxg30h8m")))
+  '(("550.120" . "1d8rxpk2z9apkvm7vsr7j93rfizh8bgm4h6rlha3m2j818zwixvw")))
 
 (define (nvidia-source-unbundle-libraries version)
   #~(begin
