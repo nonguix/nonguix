@@ -1237,20 +1237,23 @@ documented in the respective processor revision guides.")
 (define-public sof-firmware
   (package
     (name "sof-firmware")
-    (version "2.2.6")
+    (version "2024.06")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://github.com/thesofproject/sof-bin/releases/download/v"
-                           version "/sof-bin-v" version ".tar.gz"))
+                           version "/sof-bin-" version ".tar.gz"))
        (sha256
         (base32
-         "018901g5hshrqf2d0rn7yhzxcy4gmdc4v6167df880kdcfkw48lk"))))
+         "1mnp0r1m1qgspgafqwxna90n9knxxclzcls9jnl3fs5mbcla672q"))))
     (build-system copy-build-system)
     (arguments
      `(#:install-plan
-       (list (list (string-append "sof-v" ,version) "lib/firmware/intel/sof")
-             (list (string-append "sof-tplg-v" ,version) "lib/firmware/intel/sof-tplg"))))
+       '(("sof" "lib/firmware/intel/sof")
+         ;; ("sof-ace-tplg" "lib/firmware/intel/sof-ipc4-tplg")
+         ("sof-ipc4" "lib/firmware/intel/sof-ipc4")
+         ("sof-ipc4-tplg" "lib/firmware/intel/sof-ipc4-tplg")
+         ("sof-tplg" "lib/firmware/intel/sof-tplg"))))
     (home-page "https://www.sofproject.org")
     (synopsis "Sound Open Firmware")
     (description "This package contains Linux firmwares and topology files for
