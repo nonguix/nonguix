@@ -1250,7 +1250,7 @@ documented in the respective processor revision guides.")
     (arguments
      `(#:install-plan
        '(("sof" "lib/firmware/intel/sof")
-         ;; ("sof-ace-tplg" "lib/firmware/intel/sof-ipc4-tplg")
+         ("sof-ace-tplg" "lib/firmware/intel/sof-ace-tplg")
          ("sof-ipc4" "lib/firmware/intel/sof-ipc4")
          ("sof-ipc4-tplg" "lib/firmware/intel/sof-ipc4-tplg")
          ("sof-tplg" "lib/firmware/intel/sof-tplg"))))
