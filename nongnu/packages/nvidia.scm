@@ -65,19 +65,10 @@
     ;; GSYNC control for Vulkan direct-to-display applications.
     "^VKDirectGSYNC(Compatible)?Allowed$"))
 
-(define-public nvidia-version "550.120")
-
 
 ;;;
 ;;; NVIDIA driver checkouts
 ;;;
-
-
-(define %nvidia-driver-hashes
-  '(("550.120" . "15sn0g3mzh4i8l4amqsdw3d0s1rpriwa13h94xvcxk2k8wkjh6c0")))
-
-(define %nvidia-settings-hashes
-  '(("550.120" . "1d8rxpk2z9apkvm7vsr7j93rfizh8bgm4h6rlha3m2j818zwixvw")))
 
 (define nvidia-driver-snippet
   ;; Note: delay to cope with cyclic module imports at the top level.
@@ -117,7 +108,7 @@
           (rename-file
            (string-append "extractdir/" this-file ".tar.zst") this-file)))))
 
-(define (nvidia-source version)
+(define (nvidia-source version hash)
   "Given VERSION of an NVIDIA driver installer, return an <origin> for
 its unpacked checkout."
   (origin
@@ -126,8 +117,7 @@ its unpacked checkout."
           "https://us.download.nvidia.com/XFree86/Linux-x86_64/"
           version "/NVIDIA-Linux-x86_64-" version ".run"))
     (file-name (string-append "NVIDIA-Linux-x86_64-" version))
-    (sha256
-     (base32 (assoc-ref %nvidia-driver-hashes version)))
+    (sha256 (base32 hash))
     (modules '((guix build utils)))
     (snippet (force nvidia-driver-snippet))))
 
@@ -229,8 +219,9 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
 (define-public nvidia-driver
   (package
     (name "nvidia-driver")
-    (version nvidia-version)
-    (source (nvidia-source version))
+    (version "550.120")
+    (source (nvidia-source
+             version "15sn0g3mzh4i8l4amqsdw3d0s1rpriwa13h94xvcxk2k8wkjh6c0"))
     (build-system copy-build-system)
     (arguments
      (list #:modules '((guix build copy-build-system)
@@ -487,8 +478,8 @@ To enable GSP mode manually, add @code{\"NVreg_EnableGpuFirmware=1\"} to
 (define-public nvidia-module
   (package
     (name "nvidia-module")
-    (version nvidia-version)
-    (source (nvidia-source version))
+    (version (package-version nvidia-driver))
+    (source (package-source nvidia-driver))
     (build-system linux-module-build-system)
     (arguments
      (list #:linux linux-lts
@@ -567,7 +558,7 @@ add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
 ;;; ‘nvidia-settings’ packages
 ;;;
 
-(define (nvidia-settings-source name version)
+(define (nvidia-settings-source name version hash)
   (origin
     (method git-fetch)
     (uri (git-reference
@@ -576,13 +567,14 @@ add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
     (file-name (git-file-name name version))
     (modules '((guix build utils)))
     (snippet '(delete-file-recursively "src/jansson"))
-    (sha256 (base32 (assoc-ref %nvidia-settings-hashes version)))))
+    (sha256 (base32 hash))))
 
 (define-public nvidia-settings
   (package
     (name "nvidia-settings")
-    (version nvidia-version)
-    (source (nvidia-settings-source name version))
+    (version "550.120")
+    (source (nvidia-settings-source
+             name version "1d8rxpk2z9apkvm7vsr7j93rfizh8bgm4h6rlha3m2j818zwixvw"))
     (build-system gnu-build-system)
     (arguments
      (list #:tests? #f ;no test suite
@@ -697,7 +689,6 @@ configuration, creating application profiles, gpu monitoring and more.")
 ;; required for grafting
 (define-public nvda
   (package
-    (inherit nvidia-driver)
     (name "nvda")
     (version (string-pad-right
               (package-version nvidia-driver)
@@ -756,7 +747,9 @@ variables @code{__GLX_VENDOR_LIBRARY_NAME=nvidia} and
       (package-propagated-inputs mesa-for-nvda)
       (package-propagated-inputs nvidia-driver)))
     (inputs (list mesa-for-nvda nvidia-driver))
-    (outputs '("out"))))
+    (outputs '("out"))
+    (license (package-license nvidia-driver))
+    (home-page (package-home-page nvidia-driver))))
 
 (define mesa/fake
   (package
