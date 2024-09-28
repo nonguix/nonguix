@@ -116,6 +116,10 @@ The inputs are optional when the file is an executable."
         (invoke "patchelf" "--set-rpath" rpath binary)))
     #t)
 
+  (display "Using patchelf version: ")
+  (force-output)
+  (invoke "patchelf" "--version")
+
   (when (and patchelf-plan
              (not (null? patchelf-plan)))
     (let ((interpreter (car (find-files (assoc-ref inputs "libc") "ld-linux.*\\.so")))
