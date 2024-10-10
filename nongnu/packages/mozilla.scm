@@ -23,6 +23,8 @@
 ;;; Copyright © 2023 Tomas Volf <wolf@wolfsden.cz>
 
 (define-module (nongnu packages mozilla)
+  #:use-module (srfi srfi-26)
+
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system cargo)
   #:use-module (guix build-system trivial)
@@ -522,7 +524,7 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-build-id "20240916090945")
+(define %firefox-build-id "20241010233931")
 
 (define-public firefox
   (package
@@ -534,6 +536,11 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
+       (patches
+        (list (search-path
+               (map (cut string-append <> "/nongnu/packages/patches")
+                    %load-path)
+               "firefox-CVE-2024-9680.patch")))
        (sha256
         (base32 "0w4z3fq5zhm63a0wmhvmqrj263bvy962dir25q3z0x5hx6hjawh2"))))
     (arguments
