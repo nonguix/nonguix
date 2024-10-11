@@ -668,6 +668,113 @@ integrated graphics chipsets, including GuC, HuC and DMC.")
                "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
                "/linux-firmware.git/plain/LICENCE.i915")))))
 
+(define-public mediatek-firmware
+  (package
+    (inherit linux-firmware)
+    (name "mediatek-firmware")
+    (arguments
+     (cons* #:license-file-regexp "LICENCE\\.(mediatek\
+|ralink_a_mediatek_company_firmware)"
+            (substitute-keyword-arguments (package-arguments linux-firmware)
+              ((#:phases phases #~%standard-phases)
+               #~(modify-phases #$phases
+                   (add-after 'unpack 'select-firmware
+                     #$(select-firmware "^mediatek/")))))))
+    (synopsis
+     "Nonfree firmware for MediaTek chips")
+    (description
+     "Nonfree firmware for MediaTek Ethernet, WiFi, Bluetooth, Video Processing
+Units (VPU), etc. chips.  This package contains nonfree firmware for the
+following drivers/chips:
+@table @code
+@item mt7601u
+MediaTek MT7601U firmware (mediatek/mt7601u.bin)
+@item btmtk_usb
+MediaTek Bluetooth USB driver firmware (mediatek/mt7650.bin,
+mediatek/mt7622pr2h.bin, mediatek/mt7668pr2h.bin)
+@item mtk-vpu
+MediaTek VPU video processing unit driver (mediatek/mt8173/vpu_d.bin
+and mediatek/mt8173/vpu_p.bin)
+@item mtk_scp
+MediaTek SCP System Control Processing Driver (mediatek/mt8183/scp.img,
+mediatek/mt8186/scp.img, mediatek/mt8192/scp.img and mediatek/mt8195/scp.img)
+@item mt76x0
+MediaTek MT76x0 Wireless MACs (mediatek/mt7610u.bin,
+mediatek/mt7610e.bin and mediatek/mt7650e.bin)
+@item mt76x2e
+MediaTek MT76x2 Wireless MACs
+(mediatek/mt7662.bin and mediatek/mt7662_rom_patch.bin)
+@item mt76x2u
+MediaTek MT76x2u Wireless MACs
+(mediatek/mt7662u.bin and mediatek/mt7662u_rom_patch.bin)
+@item mt7615e
+MediaTek MT7615e Wireless MACs (mediatek/mt7615_n9.bin,
+mediatek/mt7615_cr4.bin and mediatek/mt7615_rom_patch.bin)
+@item mt7622
+MediaTek MT7622 Wireless MACs (mediatek/mt7622_n9.bin and
+mediatek/mt7622_rom_patch.bin)
+@item mt7663
+MediaTek MT7663 Wireless MACs (mediatek/mt7663pr2h.bin,
+mediatek/mt7663_n9_v3.bin, mediatek/mt7663pr2h_rebb.bin and
+mediatek/mt7663_n9_rebb.bin)
+@item mt7915e
+MediaTek Wireless MACs for MT7915/MT7916/MT7986/MT7981
+(mediatek/mt7915_wm.bin, mediatek/mt7915_wa.bin, mediatek/mt7915_rom_patch.bin,
+mediatek/mt7915_eeprom.bin, mediatek/mt7915_eeprom_dbdc.bin,
+mediatek/mt7916_wm.bin, mediatek/mt7916_wa.bin, mediatek/mt7916_rom_patch.bin,
+mediatek/mt7916_eeprom.bin, mediatek/mt7986_wm.bin,
+mediatek/mt7986_wm_mt7975.bin, mediatek/mt7986_wa.bin,
+mediatek/mt7986_rom_patch.bin, mediatek/mt7986_rom_patch_mt7975.bin,
+mediatek/mt7986_wo_0.bin, mediatek/mt7986_wo_1.bin,
+mediatek/mt7986_eeprom_mt7976.bin, mediatek/mt7986_eeprom_mt7976_dbdc.bin,
+mediatek/mt7986_eeprom_mt7976_dual.bin, mediatek/mt7986_eeprom_mt7975_dual.bin,
+mediatek/mt7981_wm.bin, mediatek/mt7981_wa.bin, mediatek/mt7981_rom_patch.bin,
+and mediatek/mt7981_wo.bin)
+@item mt7921
+MediaTek MT7921 Wireless MACs
+(mediatek/WIFI_MT7961_patch_mcu_1_2_hdr.bin and
+mediatek/WIFI_RAM_CODE_MT7961_1.bin)
+@item mt7921
+MediaTek MT7921 bluetooth chipset (BT_RAM_CODE_MT7961_1_2_hdr.bin)
+@item mt7922
+MediaTek MT7922 Wireless MACs
+(mediatek/WIFI_MT7922_patch_mcu_1_1_hdr.bin and
+mediatek/WIFI_RAM_CODE_MT7922_1.bin)
+@item mt7922
+MediaTek MT7922 bluetooth chipset
+(mediatek/BT_RAM_CODE_MT7922_1_1_hdr.bin)
+@item mt7925
+MediaTek MT7925 Wireless MACs
+(mediatek/mt7925/WIFI_MT7925_PATCH_MCU_1_1_hdr.bin and
+mediatek/mt7925/WIFI_RAM_CODE_MT7925_1_1.bin)
+@item mt7925
+MediaTek MT7925 bluetooth chipset
+(mediatek/mt7925/BT_RAM_CODE_MT7925_1_1_hdr.bin)
+@item mt7988
+MediaTek MT7988 Internal 2.5G Ethernet Phy
+(mediatek/mt7988/i2p5ge-phy-pmb.bin)
+@item mt7996e
+MediaTek Wireless MACs for MT7996 (mediatek/mt7996/mt7996_wm.bin,
+mediatek/mt7996/mt7996_wa.bin, mediatek/mt7996/mt7996_rom_patch.bin,
+mediatek/mt7996/mt7996_dsp.bin and mediatek/mt7996/mt7996_eeprom.bin)
+@item mtk-sof
+MediaTek Sound Open Firmware driver (mediatek/sof/sof-mt8186.ri,
+mediatek/sof/sof-mt8186.ri, mediatek/sof/sof-mt8186.ldc,
+mediatek/sof-tplg/sof-mt8186.tplg, mediatek/sof/sof-mt8195.ri,
+mediatek/sof/sof-mt8195.ldc and
+mediatek/sof-tplg/sof-mt8195-mt6359-rt1019-rt5682.tplg)
+@end table")
+    (license
+     (list (nonfree
+            (string-append
+             "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+             "/linux-firmware.git/plain/LICENCE.mediatek"))
+           (nonfree
+            (string-append
+             "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+             "/linux-firmware.git/plain"
+             "/LICENCE.ralink_a_mediatek_company_firmware"))))))
+
 (define-public realtek-firmware
   (package
     (inherit linux-firmware)
