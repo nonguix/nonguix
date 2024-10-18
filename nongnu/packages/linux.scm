@@ -26,6 +26,7 @@
 ;;; Copyright © 2023 Ada Stevenson <adanskana@gmail.com>
 ;;; Copyright © 2023 Tomas Volf <~@wolfsden.cz>
 ;;; Copyright © 2023 PRESFIL <presfil@protonmail.com>
+;;; Copyright © 2024 Maxim Cournoyer <maxim.cournoyer@gmail.com>
 
 (define-module (nongnu packages linux)
   #:use-module (gnu packages)
@@ -338,8 +339,21 @@ stable, responsive and smooth desktop experience.")))
                    (substitute* "copy-firmware.sh"
                      (("./check_whence.py")
                       "true"))))
-               (delete 'configure))))
-    (native-inputs (list rdfind))
+               (delete 'configure)
+               (replace 'install
+                 ;; Use Zstd compression to reduce space requirements.
+                 (lambda* (#:key (parallel-build? #t) (make-flags '())
+                           #:allow-other-keys)
+                   (let ((num-jobs (if parallel-build?
+                                       (number->string (parallel-job-count))
+                                       "1")))
+                     ;; Use the best 'standard' compression level.
+                     (setenv "ZSTD_CLEVEL" "19")
+                     ;; Compress using multiple threads.
+                     (setenv "ZSTD_NBTHREADS" num-jobs)
+                     (apply invoke "make" "install-zst" "-j" num-jobs
+                            make-flags)))))))
+    (native-inputs (list rdfind zstd))
     (home-page
      "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git")
     (synopsis "Nonfree firmware blobs for Linux")
