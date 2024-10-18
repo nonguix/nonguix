@@ -1237,7 +1237,7 @@ documented in the respective processor revision guides.")
 (define-public sof-firmware
   (package
     (name "sof-firmware")
-    (version "2024.06")
+    (version "2024.09")
     (source
      (origin
        (method url-fetch)
@@ -1245,7 +1245,7 @@ documented in the respective processor revision guides.")
                            version "/sof-bin-" version ".tar.gz"))
        (sha256
         (base32
-         "1mnp0r1m1qgspgafqwxna90n9knxxclzcls9jnl3fs5mbcla672q"))))
+         "0866rg40gzlal90ykgs0x622vy3qrw1s3g0qfv80i41mh6gxjiza"))))
     (build-system copy-build-system)
     (arguments
      `(#:install-plan
