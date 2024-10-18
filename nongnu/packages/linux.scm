@@ -315,22 +315,31 @@ stable, responsive and smooth desktop experience.")))
 (define-public linux-firmware
   (package
     (name "linux-firmware")
-    (version "20240909")
+    (version "20241017")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://kernel.org/linux/kernel/firmware/"
                                   "linux-firmware-" version ".tar.xz"))
               (sha256
                (base32
-                "0wcn6rqmjq80cjjk1k8ygdamdc4xahi29cp0i7gymy1wi0cvsgwl"))))
+                "0wqj6labj16qimdcwjgavsim5a35335gi2yfk0mjy9w3bbpkhv52"))))
     (build-system gnu-build-system)
     (arguments
      (list #:tests? #f
            #:strip-binaries? #f
            #:validate-runpath? #f
-           #:make-flags #~(list (string-append "DESTDIR=" #$output))))
-    (native-inputs
-     (list rdfind))
+           #:make-flags #~(list (string-append "DESTDIR=" #$output))
+           #:phases
+           #~(modify-phases %standard-phases
+               (add-after 'unpack 'patch-out-check_whence.py
+                 (lambda _
+                   ;; The 'check_whence.py' script requires git (and the
+                   ;; repository metadata).
+                   (substitute* "copy-firmware.sh"
+                     (("./check_whence.py")
+                      "true"))))
+               (delete 'configure))))
+    (native-inputs (list rdfind))
     (home-page
      "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git")
     (synopsis "Nonfree firmware blobs for Linux")
