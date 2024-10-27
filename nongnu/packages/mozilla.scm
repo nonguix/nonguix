@@ -370,13 +370,17 @@
                                         '("mesa" "ffmpeg")))))
                      (pulseaudio-lib (string-append (assoc-ref inputs "pulseaudio")
                                                     "/lib"))
+                     ;; For sharing on Wayland
+                     (pipewire-lib (string-append (assoc-ref inputs "pipewire")
+                                                    "/lib"))
                      ;; For U2F and WebAuthn
                      (eudev-lib (string-append (assoc-ref inputs "eudev") "/lib"))
                      (gtk-share (string-append (assoc-ref inputs "gtk+")
                                                "/share")))
                 (wrap-program (car (find-files lib "^firefox$"))
                   `("LD_LIBRARY_PATH" prefix (,mesa-lib ,libnotify-lib ,libva-lib
-                                              ,pulseaudio-lib ,eudev-lib ,@rdd-whitelist))
+                                              ,pulseaudio-lib ,eudev-lib ,@rdd-whitelist
+                                              ,pipewire-lib))
                   `("XDG_DATA_DIRS" prefix (,gtk-share))
                   `("MOZ_LEGACY_PROFILES" = ("1"))
                   `("MOZ_ALLOW_DOWNGRADE" = ("1"))))))
