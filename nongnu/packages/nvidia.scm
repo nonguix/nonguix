@@ -892,8 +892,8 @@ nvidia-smi.")
      (list #:phases
            #~(modify-phases %standard-phases
                (replace 'unpack
-                 (lambda _
-                   (invoke "sh" #$source "--tar" "xvf"))))
+                 (lambda* (#:key source #:allow-other-keys)
+                   (invoke "sh" source "--tar" "xvf"))))
            #:install-plan
            ''(("payload/nvml/lib" "lib")
               ("payload/nvml/include" "include/nvidia/gdk")
