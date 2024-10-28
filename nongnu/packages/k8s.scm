@@ -29,8 +29,8 @@
       #:phases
       #~(modify-phases %standard-phases
           (replace 'unpack
-            (lambda _
-              (invoke "tar" "-xvf" #$source))))))
+            (lambda* (#:key source #:allow-other-keys)
+              (invoke "tar" "-xvf" source))))))
     (home-page "https://k9scli.io")
     (supported-systems '("x86_64-linux"))
     (synopsis "Kubernetes CLI To Manage Your Clusters In Style")
