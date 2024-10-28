@@ -197,8 +197,8 @@ define, install, and upgrade Kubernetes applications.")
       #:phases
       #~(modify-phases %standard-phases
           (replace 'unpack
-            (lambda _
-              (copy-file #$source "./kind")
+            (lambda* (#:key source #:allow-other-keys)
+              (copy-file source "./kind")
               (chmod "kind" #o644)))
           (add-before 'install 'chmod
             (lambda _
