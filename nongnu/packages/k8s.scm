@@ -132,8 +132,8 @@ view logs.")
       #:phases
       #~(modify-phases %standard-phases
           (replace 'unpack
-            (lambda _
-              (copy-file #$source "./kompose")))
+            (lambda* (#:key source #:allow-other-keys)
+              (copy-file source "./kompose")))
           (add-before 'install 'chmod
             (lambda _
               (chmod "kompose" #o555))))))
