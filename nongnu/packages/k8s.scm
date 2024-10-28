@@ -96,8 +96,8 @@ Helm Chart for Kubernetes.")
       #:phases
       #~(modify-phases %standard-phases
           (replace 'unpack
-            (lambda _
-              (copy-file #$source "./kubectl")
+            (lambda* (#:key source #:allow-other-keys)
+              (copy-file source "./kubectl")
               (chmod "kubectl" #o644)))
           (add-before 'install 'chmod
             (lambda _
