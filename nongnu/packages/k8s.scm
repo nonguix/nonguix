@@ -62,8 +62,8 @@ offers subsequent commands to interact with your observed resources.")
       #:phases
       #~(modify-phases %standard-phases
           (replace 'unpack
-            (lambda _
-              (copy-file #$source "./katenary")
+            (lambda* (#:key source #:allow-other-keys)
+              (copy-file source "./katenary")
               (chmod "katenary" #o644)))
           (add-before 'install 'chmod
             (lambda _
