@@ -165,8 +165,8 @@ such as Kubernetes (or OpenShift).")
       #:phases
       #~(modify-phases %standard-phases
           (replace 'unpack
-            (lambda _
-              (invoke "tar" "-xvf" #$source)))
+            (lambda* (#:key source #:allow-other-keys)
+              (invoke "tar" "-xvf" source)))
           (add-before 'install 'chmod
             (lambda _
               (chmod "linux-amd64/helm" #o555))))))
