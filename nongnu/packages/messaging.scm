@@ -204,8 +204,8 @@ or iOS.")
            #:phases
            #~(modify-phases %standard-phases
                (replace 'unpack
-                 (lambda _
-                   (invoke "tar" "xvf" #$source)
+                 (lambda* (#:key source #:allow-other-keys)
+                   (invoke "tar" "xvf" source)
                    ;; Use the more standard lib directory for everything.
                    (mkdir-p "lib")
                    (rename-file "zoom/" "lib/zoom")))
