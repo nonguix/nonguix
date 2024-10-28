@@ -44,9 +44,9 @@
            #:phases
            #~(modify-phases %standard-phases
                (replace 'unpack
-                 (lambda _
+                 (lambda* (#:key source #:allow-other-keys)
                    (mkdir-p "opt/vscodium")
-                   (invoke "tar" "-xvf" #$source "-C" "opt/vscodium")))
+                   (invoke "tar" "-xvf" source "-C" "opt/vscodium")))
                (add-before 'install-wrapper 'install-entrypoint
                  (lambda _
                    (let* ((bin (string-append #$output "/bin")))
