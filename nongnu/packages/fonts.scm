@@ -6,8 +6,10 @@
 (define-module (nongnu packages fonts)
   #:use-module (ice-9 string-fun)
   #:use-module (gnu packages compression)
+  #:use-module (gnu packages fonts)
   #:use-module (guix deprecation)
   #:use-module (guix download)
+  #:use-module (guix git-download)
   #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module (guix build-system font)
@@ -325,3 +327,20 @@ automatically align with text labels."))
     (description "An Apple system font intended to provide coverage for
 characters defined as symbols in the Unicode Standard.")
     (license (nonfree "https://www.apple.com"))))
+
+;; XXX The build scripts are not freely licensed <https://bugs.gnu.org/32916>.
+(define-public font-awesome-nonfree
+  (package
+    (inherit font-awesome)
+    (name "font-awesome")
+    (version "6.7.2")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/FortAwesome/Font-Awesome")
+                    (commit version)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "1gmr7f9vqh2g5bamcrpzd9wzywchx4q3kajw4njcp3qqm7vld8ii"))))
+    (arguments '())))
