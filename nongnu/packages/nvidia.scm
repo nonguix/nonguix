@@ -433,7 +433,7 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                              (list soname base))))))
                     (find-files #$output "\\.so\\.")))))))
     (supported-systems '("i686-linux" "x86_64-linux"))
-    (native-inputs (list patchelf))
+    (native-inputs (list patchelf-0.16))
     (inputs
      (list egl-gbm
            egl-wayland

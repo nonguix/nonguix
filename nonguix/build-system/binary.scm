@@ -41,7 +41,7 @@
 
   ;; Do not use `@' to avoid introducing circular dependencies.
   (let ((module (resolve-interface '(gnu packages elf))))
-    (module-ref module 'patchelf)))
+    (module-ref module 'patchelf-0.16)))
 
 (define (default-glibc)
   "Return the default glibc package."
