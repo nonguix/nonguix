@@ -458,7 +458,7 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
 
 
 ;;;
-;;; NVIDIA frimwares
+;;; NVIDIA firmwares
 ;;;
 
 
@@ -489,6 +489,13 @@ product.
 
 To enable GSP mode manually, add @code{\"NVreg_EnableGpuFirmware=1\"} to
 @code{kernel-arguments} field of the @code{operating-system} configuration."))))
+
+(define-public nvidia-firmware-beta
+  (package
+    (inherit nvidia-firmware)
+    (name "nvidia-firmware-beta")
+    (version (package-version nvidia-driver-beta))
+    (source (package-source nvidia-driver-beta))))
 
 
 ;;;
