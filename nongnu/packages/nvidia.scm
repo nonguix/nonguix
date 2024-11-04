@@ -538,6 +538,7 @@ To enable GSP mode manually, add @code{\"NVreg_EnableGpuFirmware=1\"} to
                                            (parallel-job-count)))
                                   '())
                             ,@make-flags)))))))
+    (supported-systems '("x86_64-linux"))
     (home-page "https://www.nvidia.com")
     (synopsis "Proprietary NVIDIA driver (kernel modules)")
     (description
