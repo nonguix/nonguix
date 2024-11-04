@@ -432,6 +432,27 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
      (license:nonfree
       (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
 
+(define-public nvidia-driver-beta
+  (package
+    (inherit nvidia-driver)
+    (name "nvidia-driver-beta")
+    (version "560.31.02")
+    (source (nvidia-source
+             version "1399rm9njb1f9bip0fdaq3krq8pq89k7b8yfv3jygc8579x21k6i"))
+    (arguments
+     (substitute-keyword-arguments (package-arguments nvidia-driver)
+       ((#:install-plan plan)
+        #~(cons '("nvidia_icd_vksc.json" "etc/vulkansc/icd.d/")
+                #$plan))
+       ((#:phases phases)
+        #~(modify-phases #$phases
+            (add-after 'create-misc-files 'create-misc-files-for-beta
+              (lambda _
+                ;; VulkanSC ICD configuration
+                (substitute* "nvidia_icd_vksc.json"
+                  (("libnvidia-vksc-core\\.so\\.." all)
+                   (string-append #$output "/lib/" all)))))))))))
+
 (define-public nvidia-libs
   (deprecated-package "nvidia-libs" nvidia-driver))
 
