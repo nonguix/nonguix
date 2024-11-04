@@ -553,6 +553,13 @@ add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
      (license:nonfree
       (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
 
+(define-public nvidia-module-beta
+  (package
+    (inherit nvidia-module)
+    (name "nvidia-module-beta")
+    (version (package-version nvidia-driver-beta))
+    (source (package-source nvidia-driver-beta))))
+
 (define-public nvidia-module-open
   (let ((base nvidia-module))
     (package
