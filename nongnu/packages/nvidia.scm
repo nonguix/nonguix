@@ -836,6 +836,12 @@ variables @code{__GLX_VENDOR_LIBRARY_NAME=nvidia} and
     (inherit mesa)
     (replacement nvda)))
 
+(define-public mesa/fake-beta
+  (hidden-package
+   (package
+     (inherit mesa)
+     (replacement nvdb))))
+
 (define-public replace-mesa
   (package-input-rewriting `((,mesa . ,mesa/fake))))
 
