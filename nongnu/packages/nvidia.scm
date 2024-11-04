@@ -807,6 +807,30 @@ variables @code{__GLX_VENDOR_LIBRARY_NAME=nvidia} and
     (license (package-license nvidia-driver))
     (home-page (package-home-page nvidia-driver))))
 
+(define-public nvdb
+  (package
+    (inherit nvda)
+    (name "nvdb")
+    (version (string-pad-right
+              (package-version nvidia-driver-beta)
+              (string-length (package-version mesa-for-nvda))
+              #\0))
+    (arguments
+     (list #:modules '((guix build union))
+           #:builder
+           #~(begin
+               (use-modules (guix build union))
+               (union-build
+                #$output
+                '#$(list (this-package-input "libglvnd")
+                         (this-package-input "mesa")
+                         (this-package-input "nvidia-driver-beta"))))))
+    (propagated-inputs
+     (append
+      (package-propagated-inputs mesa-for-nvda)
+      (package-propagated-inputs nvidia-driver-beta)))
+    (inputs (list mesa-for-nvda nvidia-driver-beta))))
+
 (define mesa/fake
   (package
     (inherit mesa)
