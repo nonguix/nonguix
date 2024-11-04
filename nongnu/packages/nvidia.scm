@@ -43,6 +43,7 @@
   #:use-module (gnu packages qt)
   #:use-module (gnu packages tls)
   #:use-module (gnu packages video)
+  #:use-module (gnu packages vulkan)
   #:use-module (gnu packages web)
   #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xml)
@@ -669,6 +670,18 @@ add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
 configuration, creating application profiles, gpu monitoring and more.")
     (home-page "https://github.com/NVIDIA/nvidia-settings")
     (license license-gnu:gpl2)))
+
+(define-public nvidia-settings-beta
+  (package
+    (inherit nvidia-settings)
+    (name "nvidia-settings-beta")
+    (version "560.31.02")
+    (source (nvidia-settings-source
+             name version
+             "0qdyalf3wrrr3g1szrf5abvfc9prwzivyhixqnp1vgdq0lcb6x03"))
+    (inputs
+     (modify-inputs (package-inputs nvidia-settings)
+       (prepend vulkan-headers)))))
 
 
 ;;;
