@@ -589,6 +589,13 @@ If the NVIDIA card is not used for displaying, or on a Wayland environment,
 add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
       (license license-gnu:gpl2))))
 
+(define-public nvidia-module-open-beta
+  (package
+    (inherit nvidia-module-open)
+    (name "nvidia-module-open-beta")
+    (version (package-version nvidia-driver-beta))
+    (source (package-source nvidia-driver-beta))))
+
 
 ;;;
 ;;; ‘nvidia-settings’ packages
