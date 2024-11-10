@@ -41,6 +41,10 @@
 
   ;; Do not use `@' to avoid introducing circular dependencies.
   (let ((module (resolve-interface '(gnu packages elf))))
+    ;; Use the older 0.16 version due to an upstream bug which can segfault
+    ;; some binaries.  See <https://github.com/NixOS/patchelf/issues/482>.
+    ;; TODO: Set back to patchelf when the package has been updated (or
+    ;; patched) to fix this issue.
     (module-ref module 'patchelf-0.16)))
 
 (define (default-glibc)
