@@ -14,7 +14,7 @@
 ;;; Copyright © 2020 Oleg Pykhalov <go.wigust@gmail.com>
 ;;; Copyright © 2020 Jakub Kądziołka <kuba@kadziolka.net>
 ;;; Copyright © 2019, 2020 Adrian Malacoda <malacoda@monarch-pass.net>
-;;; Copyright © 2020-2023 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2020-2024 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2020 Zhu Zihao <all_but_last@163.com>
 ;;; Copyright © 2021 pineapples <guixuser6392@protonmail.com>
 ;;; Copyright © 2021, 2024 Brice Waegeneire <brice@waegenei.re>
@@ -528,13 +528,13 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-build-id "20241014032024")
+(define %firefox-build-id "20241126000000")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "131.0.3")
+    (version "133.0")
     (source
      (origin
        (method url-fetch)
@@ -546,7 +546,7 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
                     %load-path)
                "firefox-restore-desktop-files.patch")))
        (sha256
-        (base32 "1l30y1pf2kkhnnnazj2x7j1hy3sxz6x9vjj3lbx3wi9pfzwz6zbs"))))
+        (base32 "0q6cqfnwc2x09frdvsndmhck8ixrnbl281j9rqw5w8bd7fd2qas9"))))
     (arguments
      (substitute-keyword-arguments (package-arguments firefox-esr)
        ((#:phases phases)
