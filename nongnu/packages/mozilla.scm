@@ -86,19 +86,19 @@
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-esr-build-id "20241125134834")
+(define %firefox-esr-build-id "20241129000000")
 
 (define-public firefox-esr
   (package
     (name "firefox-esr")
-    (version "128.5.0esr")
+    (version "128.5.1esr")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "1f7cgw299yd0ahqijhhaarad9j85wdw92anx3qscrzaa65l8kl8b"))))
+        (base32 "1awl0yhcv693q23p6zw9rw40gicpp6pakbx616qsl5w85d2arijz"))))
     (build-system gnu-build-system)
     (arguments
      (list
