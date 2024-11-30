@@ -315,7 +315,9 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                                         (string-append #$(this-package-input "libdrm") "/lib")
                                         (string-append #$(this-package-input "libglvnd") "/lib")
                                         (string-append #$(this-package-input "libx11") "/lib")
+                                        (string-append #$(this-package-input "libxcb") "/lib")
                                         (string-append #$(this-package-input "libxext") "/lib")
+                                        (string-append #$(this-package-input "mesa") "/lib")
                                         (string-append #$(this-package-input "openssl") "/lib")
                                         (string-append #$(this-package-input "wayland") "/lib"))
                                   ":")))
@@ -419,7 +421,9 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
            libdrm
            libglvnd-for-nvda
            libx11
+           libxcb
            libxext
+           mesa-for-nvda
            openssl
            openssl-1.1
            wayland))
@@ -437,9 +441,9 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
   (package
     (inherit nvidia-driver)
     (name "nvidia-driver-beta")
-    (version "560.31.02")
+    (version "565.57.01")
     (source (nvidia-source
-             version "1399rm9njb1f9bip0fdaq3krq8pq89k7b8yfv3jygc8579x21k6i"))
+             version "0yic33xx1b3jbgciphlwh6zqfj21vx9439zm0j45wf2yb17fksvf"))
     (arguments
      (substitute-keyword-arguments (package-arguments nvidia-driver)
        ((#:install-plan plan)
@@ -452,7 +456,14 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
                 ;; VulkanSC ICD configuration
                 (substitute* "nvidia_icd_vksc.json"
                   (("libnvidia-vksc-core\\.so\\.." all)
-                   (string-append #$output "/lib/" all)))))))))))
+                   (string-append #$output "/lib/" all)))))
+            (add-after 'install-commands 'install-commands-for-beta
+              (lambda _
+                (when (string-match
+                       "x86_64-linux"
+                       (or #$(%current-target-system) #$(%current-system)))
+                  (install-file "nvidia-pcc"
+                                (string-append #$output "/bin")))))))))))
 
 (define-public nvidia-libs
   (deprecated-package "nvidia-libs" nvidia-driver))
@@ -675,10 +686,10 @@ configuration, creating application profiles, gpu monitoring and more.")
   (package
     (inherit nvidia-settings)
     (name "nvidia-settings-beta")
-    (version "560.31.02")
+    (version "565.57.01")
     (source (nvidia-settings-source
              name version
-             "0qdyalf3wrrr3g1szrf5abvfc9prwzivyhixqnp1vgdq0lcb6x03"))
+             "006my5a69689wkzjcg3k1y35ifmizfyfj4n7f02naxhbgrxq9fqz"))
     (inputs
      (modify-inputs (package-inputs nvidia-settings)
        (prepend vulkan-headers)))))
