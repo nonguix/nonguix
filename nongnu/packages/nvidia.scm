@@ -303,23 +303,26 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                       "/share/vulkan/icd.d/nvidia_icd.json"
                       "/share/vulkan/implicit_layer.d/nvidia_layers.json"))))
                (add-after 'install 'patch-elf
-                 (lambda _
-                   (let* ((ld.so (string-append #$(this-package-input "glibc")
-                                                #$(glibc-dynamic-linker)))
+                 (lambda* (#:key inputs #:allow-other-keys)
+                   (let* ((ld.so (search-input-file
+                                  inputs #$(glibc-dynamic-linker)))
                           (rpath (string-join
-                                  (list (string-append #$output "/lib")
-                                        (string-append #$openssl-1.1 "/lib")
-                                        (string-append #$(this-package-input "egl-wayland") "/lib")
-                                        (string-append (ungexp (this-package-input "gcc") "lib") "/lib")
-                                        (string-append #$(this-package-input "glibc") "/lib")
-                                        (string-append #$(this-package-input "libdrm") "/lib")
-                                        (string-append #$(this-package-input "libglvnd") "/lib")
-                                        (string-append #$(this-package-input "libx11") "/lib")
-                                        (string-append #$(this-package-input "libxcb") "/lib")
-                                        (string-append #$(this-package-input "libxext") "/lib")
-                                        (string-append #$(this-package-input "mesa") "/lib")
-                                        (string-append #$(this-package-input "openssl") "/lib")
-                                        (string-append #$(this-package-input "wayland") "/lib"))
+                                  (cons* (dirname ld.so)
+                                         (string-append #$output "/lib")
+                                         (map (lambda (name)
+                                                (dirname
+                                                 (search-input-file
+                                                  inputs
+                                                  (string-append "lib/" name))))
+                                              '("libX11.so.6"
+                                                "libXext.so.6"
+                                                "libcrypto.so.1.1"
+                                                "libcrypto.so.3"
+                                                "libdrm.so.2"
+                                                "libgbm.so.1"
+                                                "libgcc_s.so.1"
+                                                "libwayland-client.so.0"
+                                                "libxcb.so.1")))
                                   ":")))
                      (define (patch-elf file)
                        (format #t "Patching ~a ..." file)
@@ -419,7 +422,6 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
            `(,gcc "lib")
            glibc
            libdrm
-           libglvnd-for-nvda
            libx11
            libxcb
            libxext
