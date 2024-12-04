@@ -150,4 +150,4 @@
   (make-google-chrome "beta" "132.0.6834.32" "0ncjyg3vxsjspb0i1nsflcry9sfsffnqiwa2y7cgh46xamdq6f2c"))
 
 (define-public google-chrome-unstable
-  (make-google-chrome "unstable" "131.0.6738.0" "1ssb7sl7d4j40c4br6dhmm876f5iwdnvh3lf5jvmk5g56wbsh21p"))
+  (make-google-chrome "unstable" "133.0.6847.2" "1z15maqs1g8lhi7dm9hn4r272nl0g967a11igmw2sj14zl3n9j6g"))
