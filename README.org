@@ -329,6 +329,9 @@ sudo guix archive --authorize < signing-key.pub
 sudo guix system reconfigure /etc/config.scm --substitute-urls='https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org'
 #+END_SRC
 
+The [[https://cuirass.nonguix.org/][Nonguix Cuirass instance]] can be useful when investigating substitution
+failures.
+
 Check out the [[https://guix.gnu.org/manual/en/html_node/Substitutes.html][chapter on substitutes]]
 in the Guix manual for more details.
 
