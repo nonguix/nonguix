@@ -182,7 +182,9 @@ implementation with gogdl and Amazon Games using Nile.")
     ("freetype" ,freetype)              ; Required for steam login.
     ("gawk" ,gawk)
     ("gdk-pixbuf" ,gdk-pixbuf)          ; Required for steam tray icon.
-    ("gcc:lib" ,gcc "lib")              ; Required for steam startup.
+    ;; Required for steam startup; use newer version for better compatibility
+    ;; with some games like Dwarf Fortress.
+    ("gcc:lib" ,gcc-14 "lib")
     ("grep" ,grep)
     ("libbsd" ,libbsd)
     ("libcap" ,libcap)                  ; Required for SteamVR, but needs pkexec too.
