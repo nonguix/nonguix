@@ -1,0 +1,38 @@
+Replace "/usr/lib/mozilla" (the system-wide directory for extensions and
+native manifests) with "$ICECAT_SYSTEM_DIR".
+
+diff --git a/toolkit/xre/nsXREDirProvider.cpp b/toolkit/xre/nsXREDirProvider.cpp
+index d3af49b495..4beef0aa7e 100644
+--- a/toolkit/xre/nsXREDirProvider.cpp
++++ b/toolkit/xre/nsXREDirProvider.cpp
+@@ -296,24 +296,12 @@ nsresult nsXREDirProvider::GetBackgroundTasksProfilesRootDir(
+ static nsresult GetSystemParentDirectory(nsIFile** aFile) {
+   nsresult rv;
+   nsCOMPtr<nsIFile> localDir;
+-#  if defined(XP_MACOSX)
+-  rv = GetOSXFolderType(kOnSystemDisk, kApplicationSupportFolderType,
+-                        getter_AddRefs(localDir));
+-  if (NS_SUCCEEDED(rv)) {
+-    rv = localDir->AppendNative("Mozilla"_ns);
+-  }
+-#  else
+-  constexpr auto dirname =
+-#    ifdef HAVE_USR_LIB64_DIR
+-      "/usr/lib64/mozilla"_ns
+-#    elif defined(__OpenBSD__) || defined(__FreeBSD__)
+-      "/usr/local/lib/mozilla"_ns
+-#    else
+-      "/usr/lib/mozilla"_ns
+-#    endif
+-      ;
+-  rv = NS_NewNativeLocalFile(dirname, false, getter_AddRefs(localDir));
+-#  endif
++
++  const char* systemParentDir = getenv("ICECAT_SYSTEM_DIR");
++  if (!systemParentDir || !*systemParentDir) return NS_ERROR_FAILURE;
++
++  rv = NS_NewNativeLocalFile(nsDependentCString(systemParentDir), false,
++                             getter_AddRefs(localDir));
+ 
+   if (NS_SUCCEEDED(rv)) {
+     localDir.forget(aFile);

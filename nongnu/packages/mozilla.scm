@@ -98,7 +98,15 @@
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "1awl0yhcv693q23p6zw9rw40gicpp6pakbx616qsl5w85d2arijz"))))
+        (base32 "1awl0yhcv693q23p6zw9rw40gicpp6pakbx616qsl5w85d2arijz"))
+       (patches
+        (map (lambda (patch)
+               (search-path
+                (map (cut string-append <> "/nongnu/packages/patches")
+                     %load-path)
+                patch))
+             '("firefox-esr-compare-paths.patch"
+               "firefox-esr-use-system-wide-dir.patch")))))
     (build-system gnu-build-system)
     (arguments
      (list
@@ -129,6 +137,11 @@
             ;; Distribution
             "--with-distribution-id=org.nonguix"
             "--disable-official-branding"
+
+            ;; Do not require addons in the global app or system directories to
+            ;; be signed by Mozilla.
+            "--allow-addon-sideload"
+            "--with-unsigned-addon-scopes=app,system"
 
             ;; Features
             "--disable-tests"
@@ -482,6 +495,11 @@
         rust-cbindgen-0.26
         which
         yasm))
+    (native-search-paths
+     (list (search-path-specification
+            (variable "ICECAT_SYSTEM_DIR")
+            (separator #f)              ;single entry
+            (files '("lib/icecat")))))
     (home-page "https://mozilla.org/firefox/")
     (synopsis "Trademarkless version of Firefox")
     (description
