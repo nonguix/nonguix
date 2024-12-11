@@ -559,10 +559,14 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (patches
-        (list (search-path
-               (map (cut string-append <> "/nongnu/packages/patches")
-                    %load-path)
-               "firefox-restore-desktop-files.patch")))
+        (map (lambda (patch)
+               (search-path
+                (map (cut string-append <> "/nongnu/packages/patches")
+                     %load-path)
+                patch))
+             '("firefox-restore-desktop-files.patch"
+               "firefox-esr-compare-paths.patch"
+               "firefox-use-system-wide-dir.patch")))
        (sha256
         (base32 "06ya18ma1gndci0aygz75hidn3kwa1kji78g8smh7fq0091aad7i"))))
     (arguments
