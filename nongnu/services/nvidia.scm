@@ -27,8 +27,8 @@
             (default nvidia-module)))   ; file-like
 
 (define (nvidia-shepherd-service config)
-  (let ((nvidia-driver (nvidia-configuration-driver config))
-        (nvidia-smi (file-append nvidia-driver "/bin/nvidia-smi")))
+  (let* ((nvidia-driver (nvidia-configuration-driver config))
+         (nvidia-smi (file-append nvidia-driver "/bin/nvidia-smi")))
     (list (shepherd-service
            (documentation "Prepare system environment for NVIDIA driver.")
            (provision '(nvidia))
