@@ -21,6 +21,7 @@
   #:use-module (guix build-system cmake)
   #:use-module (guix build-system copy)
   #:use-module (guix build-system gnu)
+  #:use-module (guix build-system meson)
   #:use-module (guix build-system python)
   #:use-module (guix build-system trivial)
   #:use-module (gnu packages base)
@@ -863,6 +864,29 @@ variables @code{__GLX_VENDOR_LIBRARY_NAME=nvidia} and
 ;;; Other packages
 ;;;
 
+
+(define-public egl-gbm
+  (package
+    (name "egl-gbm")
+    (version "1.1.2")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/NVIDIA/egl-gbm")
+                    (commit version)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "1rfgfi06ry7c7hnzdm4b0dc8r3hmbfn2rd37z3mc4wn38sgz5l3a"))))
+    (build-system meson-build-system)
+    (native-inputs (list pkg-config))
+    (inputs (list eglexternalplatform mesa-for-nvda))
+    (synopsis "GBM EGL external platform library")
+    (description
+     "This package provides an EGL External Platform library implementation for
+GBM EGL support.")
+    (home-page "https://github.com/NVIDIA/egl-gbm")
+    (license license-gnu:expat)))
 
 (define-public gpustat
   (package
