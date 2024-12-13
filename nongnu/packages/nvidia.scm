@@ -423,10 +423,6 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
            egl-wayland
            `(,gcc "lib")
            glibc
-           libdrm
-           libx11
-           libxcb
-           libxext
            mesa-for-nvda
            openssl
            openssl-1.1
