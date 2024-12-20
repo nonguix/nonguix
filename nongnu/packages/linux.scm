@@ -277,15 +277,15 @@ distribution with custom settings and new features.  It's built to provide a
 stable, responsive and smooth desktop experience.")))
 
 ;; Linux-XanMod sources
-(define-public linux-xanmod-version "6.11.11")
+(define-public linux-xanmod-version "6.12.6")
 (define-public linux-xanmod-revision "xanmod1")
 (define-public linux-xanmod-source
   (make-linux-xanmod-source
    linux-xanmod-version
    linux-xanmod-revision
    #:xanmod-branch "main"
-   #:kernel-hash (base32 "0bnbvadm4wvnwzcq319gsgl03ijvvljn7mj8qw87ihpb4p0cdljm")
-   #:xanmod-hash (base32 "0m4dniiwx3hqg45rv8k9r22mvim6n27kfdwhisv6h9wy7q936lql")))
+   #:kernel-hash (base32 "1sr58vsh39hdwk0z27lg14isqwn4g8m4r7a8z2rsyhkfwlmmd8mi")
+   #:xanmod-hash (base32 "0jqvn3wajdxpp75m3snddw488z407c3272cfa5g1cgicgzqc3gvd")))
 
 (define-public linux-xanmod-lts-version "6.6.67")
 (define-public linux-xanmod-lts-revision "xanmod1")
