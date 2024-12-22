@@ -52,7 +52,12 @@
               (list
                (string-append nss "/lib/nss")
                output))
-             ":")))))
+             ":")))
+        ;; Give a hint to Electron-based apps to detect if Wayland or X11 should
+        ;; be used.
+        ;; NOTE: The env-var version of this CLI arg was added in Electron >=28
+        `("ELECTRON_OZONE_PLATFORM_HINT" ":" =
+          ("auto"))))
      (map
       (lambda (exe) (string-append bin "/" exe))
       (filter
