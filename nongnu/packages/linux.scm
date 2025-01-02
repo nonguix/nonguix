@@ -26,15 +26,17 @@
 ;;; Copyright © 2023 Ada Stevenson <adanskana@gmail.com>
 ;;; Copyright © 2023 Tomas Volf <~@wolfsden.cz>
 ;;; Copyright © 2023 PRESFIL <presfil@protonmail.com>
-;;; Copyright © 2024 Maxim Cournoyer <maxim.cournoyer@gmail.com>
+;;; Copyright © 2024, 2025 Maxim Cournoyer <maxim.cournoyer@gmail.com>
 
 (define-module (nongnu packages linux)
   #:use-module (gnu packages)
+  #:use-module (nongnu packages)
   #:use-module (gnu packages admin)
   #:use-module (gnu packages base)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages cpio)
   #:use-module (gnu packages linux)
+  #:use-module (gnu packages parallel)
   #:use-module (guix licenses)
   #:use-module (guix packages)
   #:use-module (guix utils)
@@ -320,7 +322,8 @@ stable, responsive and smooth desktop experience.")))
                                   "linux-firmware-" version ".tar.xz"))
               (sha256
                (base32
-                "1xcsx51z5x0bim10a391n3xk6k8a5v1a35j1gpwpdl3nhmq3bc1b"))))
+                "1xcsx51z5x0bim10a391n3xk6k8a5v1a35j1gpwpdl3nhmq3bc1b"))
+              (patches (nongnu-patches "linux-firmware-parallel.patch"))))
     (build-system gnu-build-system)
     (arguments
      (list #:tests? #f
@@ -350,7 +353,7 @@ stable, responsive and smooth desktop experience.")))
                      (setenv "ZSTD_NBTHREADS" num-jobs)
                      (apply invoke "make" "install-zst" "-j" num-jobs
                             make-flags)))))))
-    (native-inputs (list rdfind zstd))
+    (native-inputs (list parallel rdfind zstd))
     (home-page
      "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git")
     (synopsis "Nonfree firmware blobs for Linux")

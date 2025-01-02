@@ -1,0 +1,155 @@
+Upstream status: https://gitlab.com/kernel-firmware/linux-firmware/-/merge_requests/396
+
+From 5d8341be46374c5b4c3e34af0c9fd4837f25ad67 Mon Sep 17 00:00:00 2001
+From: Maxim Cournoyer <maxim.cournoyer@gmail.com>
+Date: Thu, 2 Jan 2025 00:31:43 +0900
+Subject: [PATCH 3/4] Add support to install files/symlinks in parallel.
+
+This reduces the install-zst target time from 100 s to 25 s on my test
+system, a 400% speed improvement.
+
+* Makefile (NUM_JOBS): New variable.
+(install, install-xz, install-zst): Use it.
+* copy-firmware.sh (num_jobs): New variable.
+(has_gnu_parallel): New procedure.
+<-j>: Parse new option, and use it along GNU parallel to parallelize
+firmware copying and compression/symlink creation.
+
+Signed-off-by: Maxim Cournoyer <maxim.cournoyer@gmail.com>
+---
+ Makefile         |  8 +++++---
+ copy-firmware.sh | 51 ++++++++++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 52 insertions(+), 7 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 1f507bfd..0719f874 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,4 +1,6 @@
+ FIRMWAREDIR = /lib/firmware
++NUM_JOBS := $(or $(patsubst -j%,%,$(filter -j%,$(MAKEFLAGS))),\
++		 1)
+ 
+ all:
+ 
+@@ -33,17 +35,17 @@ install:
+ 		false; \
+ 	fi
+ 	install -d $(DESTDIR)$(FIRMWAREDIR)
+-	./copy-firmware.sh $(DESTDIR)$(FIRMWAREDIR)
++	./copy-firmware.sh -j$(NUM_JOBS) $(DESTDIR)$(FIRMWAREDIR)
+ 	@echo "Now run \"make dedup\" to de-duplicate any firmware files"
+ 
+ install-xz:
+ 	install -d $(DESTDIR)$(FIRMWAREDIR)
+-	./copy-firmware.sh --xz $(DESTDIR)$(FIRMWAREDIR)
++	./copy-firmware.sh -j$(NUM_JOBS) --xz $(DESTDIR)$(FIRMWAREDIR)
+ 	@echo "Now run \"make dedup\" to de-duplicate any firmware files"
+ 
+ install-zst:
+ 	install -d $(DESTDIR)$(FIRMWAREDIR)
+-	./copy-firmware.sh --zstd $(DESTDIR)$(FIRMWAREDIR)
++	./copy-firmware.sh -j$(NUM_JOBS) --zstd $(DESTDIR)$(FIRMWAREDIR)
+ 	@echo "Now run \"make dedup\" to de-duplicate any firmware files"
+ 
+ clean:
+diff --git a/copy-firmware.sh b/copy-firmware.sh
+index 1a1094ae..f703443e 100755
+--- a/copy-firmware.sh
++++ b/copy-firmware.sh
+@@ -9,6 +9,7 @@ verbose=:
+ compress=cat
+ compext=
+ destdir=
++num_jobs=1
+ 
+ err() {
+     printf "ERROR: %s\n" "$*"
+@@ -19,6 +20,15 @@ warn() {
+     printf "WARNING: %s\n" "$*"
+ }
+ 
++has_gnu_parallel() {
++    if command -v parallel > /dev/null; then
++        if parallel --version | grep -Fq 'GNU Parallel'; then
++           return 0
++        fi
++    fi
++    return 1
++}
++
+ while test $# -gt 0; do
+     case $1 in
+         -v | --verbose)
+@@ -27,6 +37,16 @@ while test $# -gt 0; do
+             shift
+             ;;
+ 
++        -j*)
++            num_jobs=$(echo "$1" | sed 's/-j//')
++            if [ "$num_jobs" -gt 1 ] && ! has_gnu_parallel; then
++                    err "the GNU parallel command is required to use -j"
++            fi
++            parallel_args_file=$(mktemp)
++            trap 'rm -f $parallel_args_file' EXIT INT QUIT TERM
++            shift
++            ;;
++
+         --xz)
+             if test "$compext" = ".zst"; then
+                 err "cannot mix XZ and ZSTD compression"
+@@ -76,12 +96,24 @@ grep -E '^(RawFile|File):' WHENCE | sed -E -e 's/^(RawFile|File): */\1 /;s/"//g'
+     $verbose "copying/compressing file $f$compext"
+     if test "$compress" != "cat" && test "$k" = "RawFile"; then
+         $verbose "compression will be skipped for file $f"
+-        cat "$f" > "$destdir/$f"
++        if [ "$num_jobs" -gt 1 ]; then
++            echo "cat \"$f\" > \"$destdir/$f\"" >> "$parallel_args_file"
++        else
++            cat "$f" > "$destdir/$f"
++        fi
+     else
+-        $compress "$f" > "$destdir/$f$compext"
++        if [ "$num_jobs" -gt 1 ]; then
++            echo "$compress \"$f\" > \"$destdir/$f$compext\"" >> "$parallel_args_file"
++        else
++            $compress "$f" > "$destdir/$f$compext"
++        fi
+     fi
+ done
++if [ "$num_jobs" -gt 1 ]; then
++    parallel -j"$num_jobs" -a "$parallel_args_file"
++fi
+ 
++echo > "$parallel_args_file"
+ # shellcheck disable=SC2162 # file/folder name can include escaped symbols
+ grep -E '^Link:' WHENCE | sed -e 's/^Link: *//g;s/-> //g' | while read l t; do
+     directory="$destdir/$(dirname "$l")"
+@@ -89,12 +121,23 @@ grep -E '^Link:' WHENCE | sed -e 's/^Link: *//g;s/-> //g' | while read l t; do
+     target="$(cd "$directory" && realpath -m -s "$t")"
+     if test -e "$target"; then
+         $verbose "creating link $l -> $t"
+-        ln -s "$t" "$destdir/$l"
++        if [ "$num_jobs" -gt 1 ]; then
++            echo "ln -s \"$t\" \"$destdir/$l\"" >> "$parallel_args_file"
++        else
++            ln -s "$t" "$destdir/$l"
++        fi
+     else
+         $verbose "creating link $l$compext -> $t$compext"
+-        ln -s "$t$compext" "$destdir/$l$compext"
++        if [ "$num_jobs" -gt 1 ]; then
++            echo "ln -s \"$t$compext\" \"$destdir/$l$compext\"" >> "$parallel_args_file"
++        else
++            ln -s "$t$compext" "$destdir/$l$compext"
++        fi
+     fi
+ done
++if [ "$num_jobs" -gt 1 ]; then
++    parallel -j"$num_jobs" -a "$parallel_args_file"
++fi
+ 
+ # Verify no broken symlinks
+ if test "$(find "$destdir" -xtype l | wc -l)" -ne 0 ; then
+-- 
+GitLab
