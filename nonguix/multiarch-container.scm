@@ -42,7 +42,6 @@
 (define-module (nonguix multiarch-container)
   #:use-module (gnu packages)
   #:use-module (gnu packages base)
-  #:use-module (gnu packages pulseaudio)
   #:use-module (guix build-system trivial)
   #:use-module (guix gexp)
   #:use-module (guix records)
@@ -364,9 +363,6 @@ in a sandboxed FHS environment."
              (format #t "* DEBUG set to 1: Starting shell. Launch application manually with: ~a.\n\n"
                      #$(ngc-internal-name container)))
            (mkdir-p sandbox-home)
-           (invoke #$(file-append pulseaudio "/bin/pulseaudio")
-                   "--start"
-                   "--exit-idle-time=60")
            (apply invoke
                   `("guix" "shell"
                     "--container" "--no-cwd" "--network"
