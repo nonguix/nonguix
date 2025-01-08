@@ -342,8 +342,11 @@ in a sandboxed FHS environment."
                          ,@(exists-> (getenv "XAUTHORITY"))
                          #$@(ngc-shared container)))
                 (DEBUG (equal? (getenv "DEBUG") "1"))
-                (extra-shares (if (getenv "GUIX_SANDBOX_EXTRA_SHARES")
-                                  (string-split (getenv "GUIX_SANDBOX_EXTRA_SHARES") #\:)
+                ;; Make sure this environment variable is not set to the
+                ;; emptry string or else guix shell will fail to start.
+                (extra-shares-env (getenv "GUIX_SANDBOX_EXTRA_SHARES"))
+                (extra-shares (if (and extra-shares-env (not (string= extra-shares-env "")))
+                                  (string-split extra-shares-env #\:)
                                   #f))
                 (args (cdr (command-line)))
                 (command (if DEBUG '()
