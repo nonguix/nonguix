@@ -13,7 +13,7 @@
 ;;; Copyright © 2021 Risto Stevcev <me@risto.codes>
 ;;; Copyright © 2021 aerique <aerique@xs4all.nl>
 ;;; Copyright © 2022 Josselin Poiret <dev@jpoiret.xyz>
-;;; Copyright © 2022, 2023, 2024 John Kehayias <john.kehayias@protonmail.com>
+;;; Copyright © 2022, 2023, 2024, 2025 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2022 Petr Hodina <phodina@protonmail.com>
 ;;; Copyright © 2022 Remco van 't Veer <remco@remworks.net>
 ;;; Copyright © 2022 Simen Endsjø <simendsjo@gmail.com>
@@ -157,7 +157,7 @@ on hardware which requires nonfree software to function."))))
 (define-public linux-5.4
   (corrupt-linux linux-libre-5.4))
 
-(define-public linux linux-6.11)
+(define-public linux linux-6.12)
 ;; linux-lts points to the *newest* released long-term support version.
 (define-public linux-lts linux-6.12)
 
