@@ -17,6 +17,7 @@
   #:use-module (guix utils)
   #:use-module ((guix licenses) #:prefix license-gnu:)
   #:use-module ((nonguix licenses) #:prefix license:)
+  #:use-module (nonguix utils)
   #:use-module (guix build-system linux-module)
   #:use-module (guix build-system cmake)
   #:use-module (guix build-system copy)
@@ -51,7 +52,8 @@
   #:use-module (gnu packages xorg)
   #:use-module (nongnu packages linux)
   #:use-module (nongnu packages video)
-  #:use-module (ice-9 match))
+  #:use-module (ice-9 match)
+  #:export (replace-mesa))
 
 (define-public %nvidia-environment-variable-regexps
   '("^__GL_"                            ; NVIDIA OpenGL settings.
@@ -829,19 +831,8 @@ variables @code{__GLX_VENDOR_LIBRARY_NAME=nvidia} and
                (string-length (package-version mesa-for-nvda))
                #\0)))))
 
-(define mesa/fake
-  (package
-    (inherit mesa)
-    (replacement nvda)))
-
-(define-public mesa/fake-beta
-  (hidden-package
-   (package
-     (inherit mesa)
-     (replacement nvdb))))
-
-(define-public replace-mesa
-  (package-input-rewriting `((,mesa . ,mesa/fake))))
+(define replace-mesa
+  (package-input-grafting `((,mesa . ,nvda))))
 
 
 ;;;
