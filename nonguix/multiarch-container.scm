@@ -91,10 +91,24 @@
   (manifest-name ngc-manifest-name (default "nonguix-container-manifest.scm"))
   (internal-name ngc-internal-name (default "fhs-internal"))
   (sandbox-home  ngc-sandbox-home (default ".local/share/guix-sandbox-home"))
-  (ld.so.conf    ngc-ld.so.conf)
-  (ld.so.cache   ngc-ld.so.cache)
-  (union64       ngc-union64 (default '()))
-  (union32       ngc-union32 (default '()))
+  (ld.so.conf    ngc-ld.so.conf
+                 (default (packages->ld.so.conf
+                           (list (ngc-union64 this-nonguix-container)
+                                 (ngc-union32 this-nonguix-container))))
+                 (thunked))
+  (ld.so.cache   ngc-ld.so.cache
+                 (default (ld.so.conf->ld.so.cache
+                           (ngc-ld.so.conf this-nonguix-container)))
+                 (thunked))
+  (union64       ngc-union64
+                 (default (fhs-union (ngc-packages this-nonguix-container)
+                                     #:name "fhs-union-64"))
+                 (thunked))
+  (union32       ngc-union32
+                 (default (fhs-union (ngc-packages this-nonguix-container)
+                                     #:name "fhs-union-32"
+                                     #:system "i686-linux"))
+                 (thunked))
   (preserved-env ngc-preserved-env (default '()))
   (exposed       ngc-exposed (default '()))
   (shared        ngc-shared (default '()))
@@ -410,12 +424,12 @@ the exact path for the fhs-internal package."
              (item item))))
 
        (manifest-add
-        (packages->manifest (list #$@(ngc-packages container)))
+        (packages->manifest '())
         (map store-item->manifest-entry
-             '(#$(file-append (ngc-wrap-package container))
-               #$(file-append (ngc-union64 container))
-               #$(file-append (ngc-union32 container))
-               #$(file-append fhs-internal)))))))
+             '(#$(ngc-wrap-package container)
+               #$(ngc-union64 container)
+               #$(ngc-union32 container)
+               #$fhs-internal))))))
 
 (define (make-container-internal container)
   "Return a dummy package housing the fhs-internal script."
