@@ -14,8 +14,10 @@
   #:use-module ((nonguix licenses) #:prefix license:)
   #:use-module (guix git-download)
   #:use-module (guix packages)
+  #:use-module (guix deprecation)
   #:use-module (guix download)
   #:use-module (guix gexp)
+  #:use-module (nonguix utils)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system python)
   #:use-module (gnu packages audio)
@@ -221,99 +223,57 @@ implementation with gogdl and Amazon Games using Nile.")
           steam-gameruntime-libs
           fhs-min-libs))
 
-(define steam-nvidia-container-libs
-  (modify-inputs steam-container-libs
-    (replace "mesa" nvda)))
-
 (define heroic-extra-client-libs
   `(("curl" ,curl)                      ; Required for Heroic to download e.g. Wine.
     ("which" ,which)                    ; Heroic complains about trying to use which (though works).
     ("gtk+" ,gtk+)))                    ; Required for Heroic interface (gtk filechooser schema).
 
-(define steam-ld.so.conf
-  (packages->ld.so.conf
-   (list (fhs-union steam-container-libs
-                    #:name "fhs-union-64")
-         (fhs-union steam-container-libs
-                    #:name "fhs-union-32"
-                    #:system "i686-linux"))))
-
-(define steam-ld.so.cache
-  (ld.so.conf->ld.so.cache steam-ld.so.conf))
-
-(define steam-nvidia-ld.so.conf
-  (packages->ld.so.conf
-   (list (fhs-union steam-nvidia-container-libs
-                    #:name "fhs-union-64")
-         (fhs-union steam-nvidia-container-libs
-                    #:name "fhs-union-32"
-                    #:system "i686-linux"))))
-
-(define steam-nvidia-ld.so.cache
-  (ld.so.conf->ld.so.cache steam-nvidia-ld.so.conf))
-
-(define-public steam-container
+(define-public (steam-container-for driver)
   (nonguix-container
    (name "steam")
    (wrap-package steam-client)
    (run "/bin/steam")
-   (ld.so.conf steam-ld.so.conf)
-   (ld.so.cache steam-ld.so.cache)
-   (union64
-    (fhs-union steam-container-libs
-               #:name "fhs-union-64"))
-   (union32
-    (fhs-union steam-container-libs
-               #:name "fhs-union-32"
-               #:system "i686-linux"))
+   (packages
+    (modify-inputs steam-container-libs
+      (replace "mesa" driver)))
+   (preserved-env %nvidia-environment-variable-regexps)
    (link-files '("share"))
    (description "Steam is a digital software distribution platform created by
 Valve.  This package provides a script for launching Steam in a Guix container
 which will use the directory @file{$HOME/.local/share/guix-sandbox-home} where
 all games will be installed.")))
+(define-deprecated/public-alias steam-container (steam-container-for mesa))
+(define-deprecated/public-alias steam-nvidia-container (steam-container-for nvda))
 
-(define-public steam-nvidia-container
-  (nonguix-container
-   (inherit steam-container)
-   (name "steam-nvidia")
-   ;; Steam's .desktop files expect a "steam" executable, so provide that.
-   (binary-name "steam")
-   (ld.so.conf steam-nvidia-ld.so.conf)
-   (ld.so.cache steam-nvidia-ld.so.cache)
-   (union64
-    (fhs-union steam-nvidia-container-libs
-               #:name "fhs-union-64"))
-   (union32
-    (fhs-union steam-nvidia-container-libs
-               #:name "fhs-union-32"
-               #:system "i686-linux"))
-   (preserved-env %nvidia-environment-variable-regexps)))
+(define-public steam-for
+  (compose nonguix-container->package steam-container-for))
 
-(define-public steam (nonguix-container->package steam-container))
-(define-public steam-nvidia (nonguix-container->package steam-nvidia-container))
+(define-public steam (steam-for mesa))
+(define-public steam-nvidia
+  (package-with-alias "steam-nvidia" (steam-for nvda)))
 
-(define-public heroic-container
+(define-public (heroic-container-for driver)
   (nonguix-container
    (name "heroic")
    (wrap-package heroic-client)
    (run "/bin/heroic")
-   (ld.so.conf steam-ld.so.conf)
-   (ld.so.cache steam-ld.so.cache)
    ;; TODO: Probably can remove some of the packages from these lists, at
    ;; least changing the client libraries as Heroic is rather different from
    ;; Steam.  However, a good number will be needed to run games anyway.  A
    ;; better separation and testing in Steam as well would be helpful to
    ;; differentiate what packages are needed for what in general.  For now,
    ;; this is easier and works.
-   (union64
-    (fhs-union `(,@heroic-extra-client-libs
-                 ,@steam-container-libs)
-               #:name "fhs-union-64"))
+   (packages
+    (modify-inputs `(,@heroic-extra-client-libs
+                     ,@steam-container-libs)
+      (replace "mesa" driver)))
    ;; Don't include heroic-client-libs as they are not needed in 32-bit.
    (union32
-    (fhs-union steam-container-libs
+    (fhs-union (modify-inputs steam-container-libs
+                 (replace "mesa" driver))
                #:name "fhs-union-32"
                #:system "i686-linux"))
+   (preserved-env %nvidia-environment-variable-regexps)
    (link-files '("share"))
    (description "Heroic is an Open Source Game Launcher.  Right now it supports launching
 games from the Epic Games Store using Legendary, GOG Games using our custom
@@ -321,25 +281,15 @@ implementation with gogdl and Amazon Games using Nile.  This package provides
 a script for launching Heroic in a Guix container which will use the directory
 @file{$HOME/.local/share/guix-sandbox-home} where all games will be
 installed.")))
+(define-deprecated/public-alias heroic-container (heroic-container-for mesa))
+(define-deprecated/public-alias heroic-nvidia-container (heroic-container-for nvda))
 
-(define-public heroic-nvidia-container
-  (nonguix-container
-   (inherit heroic-container)
-   (name "heroic-nvidia")
-   (ld.so.conf steam-nvidia-ld.so.conf)
-   (ld.so.cache steam-nvidia-ld.so.cache)
-   (union64
-    (fhs-union `(,@heroic-extra-client-libs
-                 ,@steam-nvidia-container-libs)
-               #:name "fhs-union-64"))
-   (union32
-    (fhs-union steam-nvidia-container-libs
-               #:name "fhs-union-32"
-               #:system "i686-linux"))
-   (preserved-env %nvidia-environment-variable-regexps)))
+(define-public heroic-for
+  (compose nonguix-container->package heroic-container-for))
 
-(define-public heroic (nonguix-container->package heroic-container))
-(define-public heroic-nvidia (nonguix-container->package heroic-nvidia-container))
+(define-public heroic (heroic-for mesa))
+(define-public heroic-nvidia
+  (package-with-alias "heroic-nvidia" (heroic-for nvda)))
 
 (define-public protonup-ng
   (package
