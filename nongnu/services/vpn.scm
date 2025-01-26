@@ -1,13 +1,16 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2020 Alexey Abramov <levenson@mmer.org>
+;;; Copyright © 2025 James Kalyan <mjkalyan@proton.me>
 
 (define-module (nongnu services vpn)
+  #:use-module (guix deprecation)
   #:use-module (guix gexp)
   #:use-module (gnu packages)
   #:use-module (gnu services)
   #:use-module (gnu services shepherd)
   #:use-module (nongnu packages vpn)
-  #:export (zerotier-one-service))
+  #:export (zerotier-service-type
+            zerotier-one-service))
 
 (define %zerotier-action-join
   (shepherd-action
@@ -47,12 +50,18 @@
                      (list (string-append #$zerotier "/sbin/zerotier-one"))))
            (stop #~(make-kill-destructor))))))
 
-(define zerotier-one-service-type
-  (service-type (name 'zerotier-one)
+(define zerotier-service-type
+  (service-type (name 'zerotier)
                 (description "ZeroTier One daemon.")
                 (extensions
                  (list (service-extension shepherd-root-service-type
-                                          zerotier-one-shepherd-service)))))
+                                          zerotier-one-shepherd-service)))
+                (default-value '())))
 
-(define* (zerotier-one-service #:key (config (list)))
+(define-deprecated/alias
+  zerotier-one-service-type
+  zerotier-service-type)
+
+(define-deprecated (zerotier-one-service #:key (config '()))
+  zerotier-service-type
   (service zerotier-one-service-type config))
