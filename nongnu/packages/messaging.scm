@@ -69,15 +69,7 @@
                  (lambda _
                    (mkdir-p (string-append #$output "/bin"))
                    (symlink (string-append #$output "/lib/Element/element-desktop")
-                            (string-append #$output "/bin/element-desktop"))))
-               (add-after 'install-wrapper 'wrap-where-patchelf-does-not-work
-                 (lambda _
-                   (wrap-program (string-append #$output "/lib/Element/element-desktop")
-                     `("LD_LIBRARY_PATH" ":" prefix
-                       (,(string-join
-                          (list
-                           (string-append #$output "/lib/Element"))
-                          ":")))))))))
+                            (string-append #$output "/bin/element-desktop")))))))
     (home-page "https://github.com/vector-im/element-desktop")
     (synopsis "Matrix collaboration client for desktop")
     (description "Element Desktop is a Matrix client for desktop with Element Web at
@@ -123,15 +115,7 @@ its core.")
                  (lambda _
                    (mkdir-p (string-append #$output "/bin"))
                    (symlink (string-append #$output "/lib/Signal/signal-desktop")
-                            (string-append #$output "/bin/signal-desktop"))))
-               (add-after 'install-wrapper 'wrap-where-patchelf-does-not-work
-                 (lambda _
-                   (wrap-program (string-append #$output "/lib/Signal/signal-desktop")
-                     `("LD_LIBRARY_PATH" ":" prefix
-                       (,(string-join
-                          (list
-                           (string-append #$output "/lib/Signal"))
-                          ":")))))))))
+                            (string-append #$output "/bin/signal-desktop")))))))
     (home-page "https://signal.org/")
     (synopsis "Private messenger using the Signal protocol")
     (description "Signal Desktop is an Electron application that links with Signal on Android
