@@ -113,7 +113,7 @@ The inputs are optional when the file is an executable."
                         (make-rpath name)))
                      runpath)
                     ":")))
-        (invoke "patchelf" "--set-rpath" rpath binary)))
+        (invoke "patchelf" "--add-rpath" rpath binary)))
     #t)
 
   (display "Using patchelf version: ")
