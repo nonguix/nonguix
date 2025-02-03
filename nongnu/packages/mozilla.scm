@@ -14,7 +14,7 @@
 ;;; Copyright © 2020 Oleg Pykhalov <go.wigust@gmail.com>
 ;;; Copyright © 2020 Jakub Kądziołka <kuba@kadziolka.net>
 ;;; Copyright © 2019, 2020 Adrian Malacoda <malacoda@monarch-pass.net>
-;;; Copyright © 2020-2024 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2020-2025 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2020 Zhu Zihao <all_but_last@163.com>
 ;;; Copyright © 2021 pineapples <guixuser6392@protonmail.com>
 ;;; Copyright © 2021, 2024 Brice Waegeneire <brice@waegenei.re>
@@ -185,6 +185,11 @@
 
                 ;; XDG settings should be managed by Guix.
                 (write-setting "browser.shell.checkDefaultBrowser" "false")
+
+                ;; It defaults to Google Location Services, but misses a necessary
+                ;; API key.
+                (write-setting "geo.provider.network.url"
+                               "\"https://api.beacondb.net/v1/geolocate\"")
                 (close-port port))))
           (add-after 'fix-preferences 'fix-ffmpeg-runtime-linker
             (lambda* (#:key inputs #:allow-other-keys)
