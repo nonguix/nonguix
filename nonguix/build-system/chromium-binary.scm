@@ -54,7 +54,12 @@
   #~(let ((patchelf-inputs
            (list #$@(map car inputs))))
       (map (lambda (file)
-             (cons file (list patchelf-inputs)))
+             ;; Either an entry in WRAPPER-PLAN is just a string which can be
+             ;; used directly, or it is a list where the second element is a
+             ;; list of additional inputs for patchelf-plan.
+             (if (list? file)
+                 (cons (car file) (list (append patchelf-inputs (cadr file))))
+                 (cons file (list patchelf-inputs))))
            #$wrapper-plan)))
 
 (define* (lower name
@@ -163,7 +168,13 @@
                        (substitutable? #t)
                        allowed-references
                        disallowed-references)
-  "Build SOURCE using binary-build-system."
+  "Build SOURCE using binary-build-system.  WRAPPER-PLAN is a list of strings for
+files which patchelf will add the INPUTS (which implicitly includes the base
+packages needed for chromium-based binaries) to RPATH and wrap with needed
+environment variables.  Optionally, an entry can be a list with the first
+entry the file to be patched and the second a list of additional inputs for
+patchelf, like PATCHELF-PLAN in binary-build-system.  PATCHELF-PLAN itself is
+ignored if WRAPPER-PLAN is not '()."
   (define builder
     (with-imported-modules imported-modules
       #~(begin
