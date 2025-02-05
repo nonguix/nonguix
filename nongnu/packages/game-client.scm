@@ -72,7 +72,7 @@
     (arguments
      (list #:validate-runpath? #f ; TODO: fails on wrapped binary and included other files
            #:wrapper-plan
-           #~'("lib/Heroic/heroic"
+           #~'(("lib/Heroic/heroic" (("out" "/lib/Heroic")))
                "lib/Heroic/libEGL.so"
                "lib/Heroic/libGLESv2.so"
                "lib/Heroic/libvk_swiftshader.so"
@@ -97,15 +97,7 @@
                  (lambda _
                    (mkdir-p (string-append #$output "/bin"))
                    (symlink (string-append #$output "/lib/Heroic/heroic")
-                            (string-append #$output "/bin/heroic"))))
-               (add-after 'install-wrapper 'wrap-where-patchelf-does-not-work
-                 (lambda _
-                   (wrap-program (string-append #$output "/lib/Heroic/heroic")
-                     `("LD_LIBRARY_PATH" ":" prefix
-                       (,(string-join
-                          (list
-                           (string-append #$output "/lib/Heroic"))
-                          ":")))))))))
+                            (string-append #$output "/bin/heroic")))))))
     (home-page "https://heroicgameslauncher.com")
     (synopsis "A Native GOG, Amazon and Epic Games Launcher")
     (description "Heroic is an Open Source Game Launcher.  Right now it supports launching
