@@ -189,7 +189,7 @@
                 ;; It defaults to Google Location Services, but misses a necessary
                 ;; API key.
                 (write-setting "geo.provider.network.url"
-                               "\"https://api.beacondb.net/v1/geolocate\"")
+                               "\"https://api.beacondb.net/v1/geolocate?key=nonguix\"")
                 (close-port port))))
           (add-after 'fix-preferences 'fix-ffmpeg-runtime-linker
             (lambda* (#:key inputs #:allow-other-keys)
