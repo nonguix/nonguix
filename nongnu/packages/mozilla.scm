@@ -20,7 +20,7 @@
 ;;; Copyright © 2021, 2024 Brice Waegeneire <brice@waegenei.re>
 ;;; Copyright © 2021, 2022, 2023 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2022 Pierre Langlois <pierre.langlois@gmx.com>
-;;; Copyright © 2023 Tomas Volf <wolf@wolfsden.cz>
+;;; Copyright © 2023-2025 Tomas Volf <wolf@wolfsden.cz>
 ;;; Copyright © 2025 Nicolas Graves <ngraves@ngraves.fr>
 
 (define-module (nongnu packages mozilla)
@@ -190,7 +190,7 @@
                 ;; It defaults to Google Location Services, but misses a necessary
                 ;; API key.
                 (write-setting "geo.provider.network.url"
-                               "\"https://api.beacondb.net/v1/geolocate\"")
+                               "\"https://api.beacondb.net/v1/geolocate?key=firefox_nonguix.org\"")
                 (close-port port))))
           (add-after 'fix-preferences 'fix-ffmpeg-runtime-linker
             (lambda* (#:key inputs #:allow-other-keys)
