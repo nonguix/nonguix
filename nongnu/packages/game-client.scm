@@ -72,14 +72,7 @@
     (arguments
      (list #:validate-runpath? #f ; TODO: fails on wrapped binary and included other files
            #:wrapper-plan
-           #~'(("lib/Heroic/heroic" (("out" "/lib/Heroic")))
-               "lib/Heroic/libEGL.so"
-               "lib/Heroic/libGLESv2.so"
-               "lib/Heroic/libvk_swiftshader.so"
-               "lib/Heroic/libvulkan.so.1"
-               "lib/Heroic/chrome-sandbox"
-               "lib/Heroic/chrome_crashpad_handler"
-               "lib/Heroic/libffmpeg.so")
+           #~'(("lib/Heroic/heroic" (("out" "/lib/Heroic"))))
            #:phases
            #~(modify-phases %standard-phases
                (add-after 'binary-unpack 'setup-cwd
