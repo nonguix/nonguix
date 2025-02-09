@@ -23,14 +23,16 @@
                                                   ((target-arm32?)
                                                    "arm")
                                                   ((target-x86-64?)
-                                                   "amd64")) ".tar.gz"))
+                                                   "amd64")
+                                                  (else "")) ".tar.gz"))
        (sha256
         (base32 (cond ((target-aarch64?)
                        "1dv2k9j3i3294bl94jhwi645pf5r2143hizxd3xpc3fz8w8cfyy8")
                       ((target-arm32?)
                        "0f3mirqn3x2lrj7gzjyqklj081y7jfyxww2zkccg9f6jq0vcfcxd")
                       ((target-x86-64?)
-                       "0hs4b3nrr1qajrh7f64ibwjrfipqllvifp526kf2gfxnhpkr67l8"))))))
+                       "0hs4b3nrr1qajrh7f64ibwjrfipqllvifp526kf2gfxnhpkr67l8")
+                      (else ""))))))
     (build-system binary-build-system)
     (arguments
      (list
