@@ -21,6 +21,7 @@
 ;;; Copyright © 2021, 2022, 2023 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2022 Pierre Langlois <pierre.langlois@gmx.com>
 ;;; Copyright © 2023 Tomas Volf <wolf@wolfsden.cz>
+;;; Copyright © 2025 Nicolas Graves <ngraves@ngraves.fr>
 
 (define-module (nongnu packages mozilla)
   #:use-module (srfi srfi-26)
@@ -326,9 +327,9 @@
             (lambda* (#:key (make-flags '()) (parallel-build? #t)
                       #:allow-other-keys)
               (apply invoke "./mach" "build"
-                     ;; mach will use parallel build if possible by default
                      `(,@(if parallel-build?
-                             '()
+                             `(,(string-append
+                                 "-j" (number->string (parallel-job-count))))
                              '("-j1"))
                        ,@make-flags))))
           (add-after 'build 'neutralise-store-references
@@ -431,10 +432,6 @@
 
       ;; Test will significantly increase build time but with little rewards.
       #:tests? #f
-
-      ;; WARNING: Parallel build will consume lots of memory!
-      ;; If you have encountered OOM issue in build phase, try disable it.
-      ;; #:parallel-build? #f
 
       ;; Some dynamic lib was determined at runtime, so rpath check may fail.
       #:validate-runpath? #f))
