@@ -1,5 +1,5 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
-;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
+;;; Copyright © 2023, 2025 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2024, 2025 Raven Hallsby <karl@hallsby.com>
 ;;; Copyright © 2024 antlers <antlers@illucid.net>
 
@@ -7,6 +7,7 @@
   #:use-module (gnu packages base)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages freedesktop)
+  #:use-module (gnu packages gcc)
   #:use-module (gnu packages gl)
   #:use-module (gnu packages glib)
   #:use-module (gnu packages gtk)
@@ -31,7 +32,7 @@
 (define-public anytype
   (package
     (name "anytype")
-    (version "0.44.0")
+    (version "0.45.3")
     (source
      (origin
        (method url-fetch)
@@ -41,7 +42,7 @@
        (file-name (string-append "anytype-" version ".deb"))
        (sha256
         (base32
-         "0djyvz6y4pk277xa2mc4w6w029i3f7zd2d1pniyrpayhnna6f670"))))
+         "1g93adh92l9446929rlhp84hpmkwp3jrb9bs41ndz5x70li9plzm"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list
@@ -98,10 +99,12 @@
                 (mkdir-p bin)
                 (symlink target exe)
                 (wrap-program exe
-                  `("LD_LIBRARY_PATH" = (,share)))))))))
+                  `("LD_LIBRARY_PATH" ":" prefix
+                    (,share)))))))))
     (inputs
      (list bzip2
            flac
+           `(,gcc-14 "lib")
            gdk-pixbuf
            harfbuzz
            libexif
