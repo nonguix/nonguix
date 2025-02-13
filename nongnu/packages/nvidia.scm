@@ -89,6 +89,9 @@
                                    "libnvidia-egl-gbm\\.so\\."
                                    ;; egl-wayland
                                    "libnvidia-egl-wayland\\.so\\."
+                                   ;; egl-x11
+                                   "libnvidia-egl-xcb\\.so\\."
+                                   "libnvidia-egl-xlib\\.so\\."
                                    ;; libglvnd
                                    "libEGL\\.so\\."
                                    "libGL\\.so\\."
@@ -441,29 +444,60 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
   (package
     (inherit nvidia-driver)
     (name "nvidia-driver-beta")
-    (version "565.57.01")
+    (version "570.86.16")
     (source (nvidia-source
-             version "0yic33xx1b3jbgciphlwh6zqfj21vx9439zm0j45wf2yb17fksvf"))
+             version "1mfbc59g5v1c6dqissg1mfawvaknqrr7r985214py92lnr5ylqs5"))
     (arguments
      (substitute-keyword-arguments (package-arguments nvidia-driver)
        ((#:install-plan plan)
-        #~(cons '("nvidia_icd_vksc.json" "etc/vulkansc/icd.d/")
-                #$plan))
+        #~(append
+           #$plan
+           '(("." "share/egl/egl_external_platform.d/" #:include-regexp ("(xcb|xlib)\\.json$"))
+             ("nvidia_icd_vksc.json" "etc/vulkansc/icd.d/")
+             ("sandboxutils-filelist.json" "share/nvidia/files.d/"))))
        ((#:phases phases)
         #~(modify-phases #$phases
             (add-after 'create-misc-files 'create-misc-files-for-beta
-              (lambda _
+              (lambda* (#:key inputs #:allow-other-keys)
+                ;; EGL external platform configuraiton
+                (substitute* '("20_nvidia_xcb.json"
+                               "20_nvidia_xlib.json")
+                  (("libnvidia-egl-(xcb|xlib)\\.so\\.." all)
+                   (search-input-file inputs (string-append "lib/" all))))
                 ;; VulkanSC ICD configuration
                 (substitute* "nvidia_icd_vksc.json"
                   (("libnvidia-vksc-core\\.so\\.." all)
                    (string-append #$output "/lib/" all)))))
+            (add-after 'add-architecture-to-filename 'add-architecture-to-filename-for-beta
+              (lambda _
+                (for-each
+                 (lambda (path)
+                   (let* ((out #$output)
+                          (system #$(or (%current-target-system)
+                                        (%current-system)))
+                          (dash (string-index system #\-))
+                          (arch (string-take system dash))
+
+                          (dot  (string-index-right path #\.))
+                          (base (string-take path dot))
+                          (ext  (string-drop path (+ 1 dot))))
+                     ;; <...>/nvidia.icd -> <...>/nvidia.x86_64.icd
+                     ;; <...>/nvidia_icd.json -> <...>/nvidia_icd.x86_64.json
+                     (rename-file
+                      (string-append out path)
+                      (string-append out base "." arch "." ext))))
+                 '("/share/egl/egl_external_platform.d/20_nvidia_xcb.json"
+                   "/share/egl/egl_external_platform.d/20_nvidia_xlib.json"))))
             (add-after 'install-commands 'install-commands-for-beta
               (lambda _
                 (when (string-match
                        "x86_64-linux"
                        (or #$(%current-target-system) #$(%current-system)))
                   (install-file "nvidia-pcc"
-                                (string-append #$output "/bin")))))))))))
+                                (string-append #$output "/bin")))))))))
+    (inputs
+     (modify-inputs (package-inputs nvidia-driver)
+       (prepend egl-x11)))))
 
 (define-public nvidia-libs
   (deprecated-package "nvidia-libs" nvidia-driver))
@@ -686,10 +720,10 @@ configuration, creating application profiles, gpu monitoring and more.")
   (package
     (inherit nvidia-settings)
     (name "nvidia-settings-beta")
-    (version "565.57.01")
+    (version "570.86.16")
     (source (nvidia-settings-source
              name version
-             "006my5a69689wkzjcg3k1y35ifmizfyfj4n7f02naxhbgrxq9fqz"))
+             "0gs5iml7yp5sd6vybj3alb6cg06ylljn4h7iwp2i1jhkms3nmfzn"))
     (inputs
      (modify-inputs (package-inputs nvidia-settings)
        (prepend vulkan-headers)))))
