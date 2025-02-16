@@ -92,7 +92,7 @@
                    (symlink (string-append #$output "/lib/Heroic/heroic")
                             (string-append #$output "/bin/heroic")))))))
     (home-page "https://heroicgameslauncher.com")
-    (synopsis "A Native GOG, Amazon and Epic Games Launcher")
+    (synopsis "Native GOG, Amazon and Epic Games Launcher")
     (description "Heroic is an Open Source Game Launcher.  Right now it supports launching
 games from the Epic Games Store using Legendary, GOG Games using our custom
 implementation with gogdl and Amazon Games using Nile.")
