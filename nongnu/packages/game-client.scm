@@ -164,6 +164,12 @@ implementation with gogdl and Amazon Games using Nile.")
     ("fontconfig" ,fontconfig)          ; Required for steam client.
     ("file" ,file)                      ; Used for steam installation.
     ("find" ,findutils)                 ; Required at least for some logging.
+    ("font-google-noto" ,font-google-noto) ; Not required but to match following fonts.
+    ;; These next three fonts are to cover emoji and Chinese/Japanese/Korean
+    ;; and related scripts.
+    ("font-google-noto-emoji" ,font-google-noto-emoji)
+    ("font-google-noto-sans-cjk" ,font-google-noto-sans-cjk)
+    ("font-google-noto-serif-cjk" ,font-google-noto-serif-cjk)
     ("freetype" ,freetype)              ; Required for steam login.
     ("gawk" ,gawk)
     ("gdk-pixbuf" ,gdk-pixbuf)          ; Required for steam tray icon.
