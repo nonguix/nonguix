@@ -81,11 +81,16 @@
                    ;; Use the more standard lib directory for everything.
                    (rename-file "opt/" "lib")
                    ;; Remove unneeded files.
-                   (delete-file-recursively "usr")
-                   ;; Fix the .desktop file binary location.
-                   (substitute* '("share/applications/heroic.desktop")
-                     (("/opt/Heroic/")
-                      (string-append #$output "/bin/")))))
+                   (delete-file-recursively "usr")))
+               ;; Fix the .desktop file "Exec" line to just be "heroic" in
+               ;; order for this desktop file to be useful to launch heroic in
+               ;; the container (heroic package) as well.
+               (add-after 'patch-dot-desktop-files 'fix-desktop-file
+                 (lambda _
+                   (substitute*
+                       (string-append #$output "/share/applications/heroic.desktop")
+                     (("Exec=.*/heroic") "Exec=heroic"))))
+               (delete 'patch-dot-desktop-files)
                (add-after 'install 'symlink-binary-file
                  (lambda _
                    (mkdir-p (string-append #$output "/bin"))
