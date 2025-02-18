@@ -63,7 +63,7 @@
                    ;; Remove unneeded files.
                    (delete-file-recursively "usr")
                    ;; Fix the .desktop file binary location.
-                   (substitute* '("share/applications/element-desktop.desktop") 
+                   (substitute* '("share/applications/element-desktop.desktop")
                      (("/opt/Element/")
                       (string-append #$output "/bin/")))))
                (add-after 'install 'symlink-binary-file
@@ -109,7 +109,7 @@ its core.")
                    ;; Remove unneeded files.
                    (delete-file-recursively "usr")
                    ;; Fix the .desktop file binary location.
-                   (substitute* '("share/applications/signal-desktop.desktop") 
+                   (substitute* '("share/applications/signal-desktop.desktop")
                      (("/opt/Signal/")
                       (string-append #$output "/bin/")))))
                (add-after 'install 'symlink-binary-file
