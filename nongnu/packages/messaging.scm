@@ -390,3 +390,58 @@ or iOS.")
     (description "The Zoom video conferencing and messaging client.  Zoom must be run via an
 app launcher to use its .desktop file, or with @code{ZoomLauncher}.")
     (license (license:nonfree "https://explore.zoom.us/en/terms/"))))
+
+(define-public zulip-desktop
+  (package
+    (name "zulip-desktop")
+    (version "5.11.1")
+    (source
+     (origin
+       (method url-fetch)
+       (uri
+        (string-append "https://github.com/zulip/zulip-desktop/releases/download/"
+                       "v" version "/Zulip-" version "-x64.tar.xz"))
+       (sha256
+        (base32
+         "0kshajcbajkq5jqygn85x12yy8c8b6rwc5r0flrvris474p1vzp0"))))
+    (build-system chromium-binary-build-system)
+    (arguments
+     (list
+      #:validate-runpath? #f ; TODO: Fails on wrapped binary for NSS libs
+      #:substitutable? #f
+      #:wrapper-plan
+      #~(list "chrome_crashpad_handler" "zulip")
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-before 'install-wrapper 'install-entrypoint
+            (lambda _
+              (let* ((bin (string-append #$output "/bin")))
+                (mkdir-p bin)
+                (symlink (string-append #$output "/zulip")
+                         (string-append bin "/zulip")))))
+          (add-after 'install 'create-desktop-file
+            (lambda _
+              (make-desktop-entry-file
+               (string-append #$output "/share/applications/zulip-desktop.desktop")
+               #:name "Zulip-Desktop"
+               #:type "Application"
+               #:generic-name "Zulip Chat"
+               #:exec (string-join (list (string-append #$output "/bin/zulip") "%U"))
+               #:icon "zulip"
+               #:keywords '("zulip")
+               #:categories '("Network" "InstantMessaging" "Chat")
+               #:terminal #f
+               #:startup-notify #t
+               #:startup-w-m-class "zulip-desktop"
+               #:comment
+               '(("en" "Zulip Desktop Client")
+                 (#f "Zulip Chat"))))))))
+    (synopsis "Zulip Desktop client")
+    (supported-systems '("x86_64-linux"))
+    (description "Zulip Desktop is a client for the Zulip thread and
+conversation platform.  Zulip is designed around conversations that are
+labeled with topics, to make communication organized and efficient.  It’s easy
+to get an overview of what conversations are happening, and to read one
+conversation at a time.")
+    (home-page "https://github.com/zulip/zulip-desktop")
+    (license license:asl2.0)))
