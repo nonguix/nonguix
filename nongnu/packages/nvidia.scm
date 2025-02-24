@@ -50,6 +50,7 @@
   #:use-module (gnu packages xml)
   #:use-module (gnu packages xorg)
   #:use-module (nongnu packages linux)
+  #:use-module (nongnu packages video)
   #:use-module (ice-9 match))
 
 (define-public %nvidia-environment-variable-regexps
@@ -806,7 +807,8 @@ configuration, creating application profiles, gpu monitoring and more.")
                 #$output
                 '#$(list (this-package-input "libglvnd")
                          (this-package-input "mesa")
-                         (this-package-input "nvidia-driver"))))))
+                         (this-package-input "nvidia-driver")
+                         (this-package-input "nvidia-vaapi-driver"))))))
     (native-search-paths
      (list
       ;; https://github.com/NVIDIA/egl-wayland/issues/39
@@ -821,6 +823,11 @@ configuration, creating application profiles, gpu monitoring and more.")
       (search-path-specification
        (variable "GBM_BACKENDS_PATH")
        (files '("lib/gbm")))
+      ;; XXX Because of <https://issues.guix.gnu.org/issue/22138>, we need to add
+      ;; this to all VA-API back ends instead of once to libva.
+      (search-path-specification
+       (variable "LIBVA_DRIVERS_PATH")
+       (files '("lib/dri")))
       (search-path-specification
        (variable "VDPAU_DRIVER_PATH")
        (files '("lib/vdpau"))
@@ -847,34 +854,20 @@ variables @code{__GLX_VENDOR_LIBRARY_NAME=nvidia} and
      (append
       (package-propagated-inputs mesa-for-nvda)
       (package-propagated-inputs nvidia-driver)))
-    (inputs (list mesa-for-nvda nvidia-driver))
+    (inputs (list mesa-for-nvda nvidia-driver nvidia-vaapi-driver))
     (outputs '("out"))
     (license (package-license nvidia-driver))
     (home-page (package-home-page nvidia-driver))))
 
 (define-public nvdb
-  (package
-    (inherit nvda)
-    (name "nvdb")
-    (version (string-pad-right
-              (package-version nvidia-driver-beta)
-              (string-length (package-version mesa-for-nvda))
-              #\0))
-    (arguments
-     (list #:modules '((guix build union))
-           #:builder
-           #~(begin
-               (use-modules (guix build union))
-               (union-build
-                #$output
-                '#$(list (this-package-input "libglvnd")
-                         (this-package-input "mesa")
-                         (this-package-input "nvidia-driver-beta"))))))
-    (propagated-inputs
-     (append
-      (package-propagated-inputs mesa-for-nvda)
-      (package-propagated-inputs nvidia-driver-beta)))
-    (inputs (list mesa-for-nvda nvidia-driver-beta))))
+  ((package-input-rewriting `((,nvidia-driver . ,nvidia-driver-beta)))
+   (package
+     (inherit nvda)
+     (name "nvdb")
+     (version (string-pad-right
+               (package-version nvidia-driver-beta)
+               (string-length (package-version mesa-for-nvda))
+               #\0)))))
 
 (define mesa/fake
   (package
