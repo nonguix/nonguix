@@ -448,7 +448,7 @@
         gtk+
         gtk+-2
         hunspell
-        icu4c-73
+        icu4c
         jemalloc
         libcanberra
         libevent
