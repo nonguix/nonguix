@@ -548,13 +548,13 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-build-id "20250218001747")
+(define %firefox-build-id "20250303134749")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "135.0.1")
+    (version "136.0")
     (source
      (origin
        (method url-fetch)
@@ -570,17 +570,28 @@ MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
                "firefox-esr-compare-paths.patch"
                "firefox-use-system-wide-dir.patch")))
        (sha256
-        (base32 "01krqfx3havzknjl45affmlhl3dkk3is951iy3rr1qrvrvfxzyvl"))))
+        (base32 "0mvg53fr9zi6pq2pwa6qzqi88brqig1wlzic9sz52i4knx733viv"))))
     (arguments
      (substitute-keyword-arguments (package-arguments firefox-esr)
        ((#:phases phases)
         #~(modify-phases #$phases
             (replace 'set-build-id
               (lambda _
-                (setenv "MOZ_BUILD_DATE" #$%firefox-build-id)))))))
+                (setenv "MOZ_BUILD_DATE" #$%firefox-build-id)))
+            ;; https://bugzilla.mozilla.org/show_bug.cgi?id=1927380
+            (add-before 'configure 'patch-icu-lookup
+              (lambda _
+                (let* ((file "js/moz.configure")
+                       (old-content (call-with-input-file file get-string-all)))
+                  (substitute* file
+                    (("icu-i18n >= 76.1" all)
+                     (string-append all ", icu-uc >= 76.1")))
+                  (if (string=? old-content
+                                (pk (call-with-input-file file get-string-all)))
+                      (error "substitute did nothing, phase requires an update")))))))))
     (inputs
      (modify-inputs (package-inputs firefox-esr)
-       (replace "icu4c" icu4c-75)))
+       (replace "icu4c" icu4c-76)))
     (native-inputs
      (modify-inputs (package-native-inputs firefox-esr)
        (replace "rust" rust-firefox)
