@@ -58,16 +58,16 @@
 (define heroic-client
   (package
     (name "heroic-client")
-    (version "2.15.2")
+    (version "2.16.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://github.com/Heroic-Games-Launcher/"
                            "HeroicGamesLauncher/releases/download/v"
-                           version "/heroic_" version "_amd64.deb"))
+                           version "/Heroic-" version "-linux-amd64.deb"))
        (sha256
         (base32
-         "1bzdb9nqmr9w092c22n57ldykm00n98d78rhqzypf430lrl0kzcj"))))
+         "1w40wyjv9xnq9ip7lapr52adw89vhsi8a47skk04dqx8s5p85aq1"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list #:validate-runpath? #f ; TODO: fails on wrapped binary and included other files
