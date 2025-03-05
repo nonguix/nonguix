@@ -81,8 +81,7 @@
 ;;; but since in Guix only the latest packaged Rust is officially supported,
 ;;; it is a tradeoff worth making.
 ;;; 0: https://firefox-source-docs.mozilla.org/writing-rust-code/update-policy.html
-;; The `rust' package is too old.
-(define-public rust-firefox-esr rust-1.77)
+(define-public rust-firefox-esr rust)
 (define-public rust-firefox     rust)
 
 ;; Update this id with every firefox update to its release date.
