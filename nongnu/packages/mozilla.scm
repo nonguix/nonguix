@@ -83,7 +83,7 @@
 ;;; 0: https://firefox-source-docs.mozilla.org/writing-rust-code/update-policy.html
 ;; The `rust' package is too old.
 (define-public rust-firefox-esr rust-1.77)
-(define-public rust-firefox     rust-1.77)
+(define-public rust-firefox     rust)
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
