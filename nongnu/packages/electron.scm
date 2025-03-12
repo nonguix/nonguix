@@ -3,6 +3,7 @@
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2024 Andre A. Gomes <andremegafone@gmail.com>
 ;;; Copyright © 2024 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2025 Ricardo Wurmus <rekado@elephly.net>
 
 (define-module (nongnu packages electron)
   #:use-module (nonguix build-system chromium-binary)
@@ -104,3 +105,10 @@ Chromium and is used by the Atom editor and many other apps.")
     (version "29.1.4")
     (source (electron-source version
                              "1d96nhx9j9mzc3q3ald1imqdxdgq9by1qm4q703sjy3knq1p38w3"))))
+
+(define-public electron-31
+  (package
+    (inherit electron-29)
+    (version "31.2.0")
+    (source (electron-source version
+                             "0icqsblc0klhqhws00xcl7fj8ya48gjh0ldn8l0nrhjkgpik0wdb"))))
