@@ -92,7 +92,7 @@
               link-alist)))
        (fold acons '() (list "main" "latest" "beta") (take versions 3))))))
 
-(define* (latest-release package #:key (version #f))
+(define* (latest-release package #:key (version #f) partial-version?)
   "Return an <upstream-source> for the latest-release of PACKAGE."
   (let* ((name (package-name package))
          (kind (match name
