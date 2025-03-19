@@ -37,7 +37,7 @@
 (define-public element-desktop
   (package
     (name "element-desktop")
-    (version "1.11.89")
+    (version "1.11.95")
     (source
      (origin
        (method url-fetch)
@@ -46,7 +46,7 @@
          "https://packages.riot.im/debian/pool/main/e/" name "/" name "_" version
          "_amd64.deb"))
        (sha256
-        (base32 "0riavl8qq59s45xxdk0s1n6i1wymsx1zfdz5dp3ccr8xpzw77abq"))))
+        (base32 "1rbzf6xq1r2hjiy0khgp3w2140xhgk9y13ajv8p8vi1xqdbhibvz"))))
     (supported-systems '("x86_64-linux"))
     (build-system chromium-binary-build-system)
     (arguments
