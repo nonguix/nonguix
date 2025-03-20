@@ -1,6 +1,7 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2024, 2025 Raven Hallsby <karl@hallsby.com>
+;;; Copyright © 2024 antlers <antlers@illucid.net>
 
 (define-module (nongnu packages productivity)
   #:use-module (gnu packages base)
@@ -126,7 +127,7 @@ synchronization.")
 (define-public zotero
   (package
     (name "zotero")
-    (version "6.0.35")
+    (version "7.0.15")
     (source
      (origin
        ;; Can switch to git-fetch from Github too!
@@ -136,16 +137,7 @@ synchronization.")
                        version "/Zotero-" version "_linux-x86_64.tar.bz2"))
        (sha256
         (base32
-         "17f9an43jwnqpcslbvnhg7hrzkvs2whzwg4ysdgy2gl4m6cln18w"))
-       (snippet
-        #~(begin
-            (use-modules (guix build utils))
-            ;; Disable Zotero's automatic update feature.
-            (substitute* "defaults/preferences/prefs.js"
-              (("pref\\(\"app.update.enabled\", true\\)")
-               "pref(\"app.update.enabled\", false)")
-              (("pref\\(\"app.update.auto\", true\\)")
-               "pref(\"app.update.auto\", false)"))))))
+         "1gr38pmnx2gcb0cmn1zncxgj5hbwpx7m4x720xg04b2n4g58lsni"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list
@@ -156,6 +148,22 @@ synchronization.")
       #~'("zotero-bin")
       #:phases
       #~(modify-phases %standard-phases
+          (add-after 'unpack 'disable-nonreproducible-features
+            (lambda _
+              ;; Disable Zotero's automatic update feature. Must unzip a
+              ;; compressed file to make this change and re-zip it.
+              (invoke "unzip" "app/omni.ja" "defaults/preferences/zotero.js")
+              (substitute* "defaults/preferences/zotero.js"
+                (("pref\\(\"app.update.enabled\", true\\)")
+                 "pref(\"app.update.enabled\", false)")
+                (("pref\\(\"app.update.auto\", true\\)")
+                 "pref(\"app.update.auto\", false)")
+                (("pref\\(\"extensions.zoteroOpenOfficeIntegration.skipInstallation\", false\\)")
+                 "pref(\"extensions.zoteroOpenOfficeIntegration.skipInstallation\", true)"))
+              (invoke "zip" "-mf" "app/omni.ja" "defaults/preferences/zotero.js")
+              ;; Clean up after ourselves
+              (delete-file-recursively "defaults/preferences")
+              (delete-file-recursively "defaults")))
           (add-before 'install-wrapper 'install-entrypoint
             (lambda _
               (let* ((bin (string-append #$output "/bin")))
@@ -194,13 +202,13 @@ synchronization.")
                  (#f "Collect, organize, cite, and share your research sources")))))
           (add-after 'install 'install-icons
             (lambda _
-              (let ((icon-sizes (list 16 32 48 256)))
+              (let ((icon-sizes (list 32 64 128)))
                 (for-each
                  (lambda (size)
                    (mkdir-p (string-append #$output "/share/icons/hicolor/"
                                            size "x" size "/apps"))
                    (copy-file
-                    (string-append "chrome/icons/default/default" size ".png")
+                    (string-append "icons/icon" size ".png")
                     (string-append #$output "/share/icons/hicolor/"
                                    size "x" size "/apps/zotero.png")))
                  (map number->string icon-sizes))))))))
@@ -224,6 +232,7 @@ synchronization.")
           ;;             "ulimit -n 4096\n"
           ;;             #$output "/bin/zotero-bin" " -app " #$output "/application.ini" " \"$@\""))))
           ;;       (chmod file #o755))))
+    (native-inputs (list zip unzip))
     (inputs (list dbus-glib libxt))
     (synopsis "Collect, organize, cite, and share your research sources")
     ;; If we build from source, then we may be able to support more
