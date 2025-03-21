@@ -39,7 +39,10 @@
                 "--localstatedir=/var"
                 (string-append "--libexecdir="
                                #$output "/libexec")
-                "-Dsupported_build=true"))))))
+                "-Dsupported_build=true"))
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (delete 'ensure-all-remotes-are-disabled)))))))
 
 (define-public ov5640-firmware
   (let ((commit "6e8e591e17e207644dfe747e51026967bb1edab5")
