@@ -11,7 +11,7 @@
 (define-public k9s
   (package
     (name "k9s")
-    (version "0.32.5")
+    (version "0.40.10")
     (source (origin
               (method url-fetch)
               (uri (string-append
@@ -19,7 +19,7 @@
                     version "/k9s_Linux_amd64.tar.gz"))
               (sha256
                (base32
-                "18yf4vr4pgdl5ssijmpf45amdasjrd3mbgnsp1cjnadszvsiphrk"))))
+                "0m0axrxgkzjlyjb241l3kzx49jbdg2bdiqcn2c5rrr8ljg5vy2s9"))))
     (build-system copy-build-system)
     (arguments
      (list
