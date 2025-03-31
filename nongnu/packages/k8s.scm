@@ -181,13 +181,13 @@ define, install, and upgrade Kubernetes applications.")
 (define-public kind
   (package
     (name "kind")
-    (version "0.24.0")
+    (version "0.27.0")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://kind.sigs.k8s.io/dl/v" version "/kind-linux-amd64"))
               (sha256
                (base32
-                "03b0idcb11knqyx2ryakvlkqk1cdyavkar6izjihsqlxlfjsv6mq"))))
+                "0jx094zw27388qp7m6y7yi0dd3yhamkilsvq0yng1b2qlfp5m1x6"))))
     (build-system copy-build-system)
     (arguments
      (list
