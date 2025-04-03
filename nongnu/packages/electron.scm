@@ -4,6 +4,7 @@
 ;;; Copyright © 2024 Andre A. Gomes <andremegafone@gmail.com>
 ;;; Copyright © 2024 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2025 Ricardo Wurmus <rekado@elephly.net>
+;;; Copyright © 2025 Simen Endsjø <contact@simendsjo.me>
 
 (define-module (nongnu packages electron)
   #:use-module (nonguix build-system chromium-binary)
@@ -36,9 +37,9 @@
 (define-public electron-27
   (package
     (name "electron")
-    (version "27.3.6")
+    (version "27.3.11")
     (source (electron-source version
-                             "12hjn1bfk8c25f54kk561mkjl7hsk8b16rj7a7gczswjdpx6fpi0"))
+                             "0qs5n6m0gj0rknjq5aqrbbpqwh2829a1cl51l6xj79p7aiggb9p3"))
     (build-system chromium-binary-build-system)
     (arguments
      `(#:wrapper-plan
