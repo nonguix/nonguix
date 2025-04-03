@@ -108,9 +108,16 @@ Chromium and is used by the Atom editor and many other apps.")
     (source (electron-source version
                              "12d332zppvvijkqlbbb0s919zhspyczxdiivbdpjf4ps5y736ii3"))))
 
-(define-public electron-31
+(define-public electron-30
   (package
     (inherit electron-29)
+    (version "30.5.1")
+    (source (electron-source version
+                             "00ql6vr47swlshg56a3zkifxsl4ywl5f7698yh2n1s1r7mw0fizc"))))
+
+(define-public electron-31
+  (package
+    (inherit electron-30)
     (version "31.2.0")
     (source (electron-source version
                              "0icqsblc0klhqhws00xcl7fj8ya48gjh0ldn8l0nrhjkgpik0wdb"))))
