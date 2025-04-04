@@ -12,6 +12,7 @@
   #:use-module (guix packages)
   #:use-module (gnu services)
   #:export (package-input-grafting
+            package-with-alias
             with-transformation))
 
 (define-public (to32 package64)
@@ -96,3 +97,9 @@ matches PRED."
                        (with-transformation proc obj pred)))
                    record-fields))))
     (_ obj)))
+
+(define (package-with-alias alias pkg)
+  "Return a copy of package PKG called ALIAS."
+  (package
+    (inherit pkg)
+    (name alias)))
