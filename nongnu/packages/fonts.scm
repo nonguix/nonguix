@@ -332,7 +332,7 @@ characters defined as symbols in the Unicode Standard.")
 (define-public font-awesome-nonfree
   (package
     (inherit font-awesome)
-    (name "font-awesome")
+    (name "font-awesome-nonfree")
     (version "6.7.2")
     (source (origin
               (method git-fetch)
