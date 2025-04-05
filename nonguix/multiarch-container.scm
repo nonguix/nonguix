@@ -587,6 +587,9 @@ application."
              (setenv "LD_LIBRARY_PATH"
                      (string-append "/lib64:/lib:/lib64/nss:/lib/nss:"
                                     "/lib64/vdpau:/lib/vdpau"))
+             ;; Fix controller detection.
+             ;; See <https://gitlab.com/nonguix/nonguix/-/issues/384>
+             (setenv "SDL_JOYSTICK_DISABLE_UDEV" "1")
 
              ;; Process FHS-specific command line options.
              (let* ((options (getopt-long (or fhs-args '("")) fhs-option-spec))
