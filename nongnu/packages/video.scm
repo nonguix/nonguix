@@ -127,7 +127,7 @@ video decode capabilities of supported Intel GPUs."))))
 (define-public nv-codec-headers
   (package
     (name "nv-codec-headers")
-    (version "12.1.14.0")
+    (version "13.0.19.0")
     (source
      (origin
        (method git-fetch)
@@ -136,7 +136,7 @@ video decode capabilities of supported Intel GPUs."))))
              (commit (string-append "n" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "0sp4giwbhai9blgd2k7sb571xwmz2yx17w32vy0nyj86ccb2x5jq"))))
+        (base32 "01p6bjbgm6hfc1snf0hw63b7f7hif40v7bb1xn84ic3cww2m2fcw"))))
     (arguments
      (list
       #:tests? #f ; No tests.
