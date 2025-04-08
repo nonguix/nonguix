@@ -7,11 +7,11 @@
   #:use-module (gnu packages gl)
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages video)
-  #:use-module (guix build utils)
   #:use-module (guix build-system cmake)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system meson)
   #:use-module (guix gexp)
+  #:use-module (guix download)
   #:use-module (guix git-download)
   #:use-module (guix packages)
   #:use-module (guix utils)
@@ -20,8 +20,17 @@
   #:use-module (nongnu packages nvidia))
 
 (define-public ffmpeg-nvenc
-  (package/inherit ffmpeg
+  (package
+    (inherit ffmpeg)
     (name "ffmpeg-nvenc")
+    (version "6.1.2")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://ffmpeg.org/releases/ffmpeg-"
+                                  version ".tar.xz"))
+              (sha256
+               (base32
+                "0f2fr8ywchhlkdff88lr4d4vscqzsi1ndjh3r5jwbkayf94lcqiv"))))
     (inputs
      (modify-inputs
          (package-inputs ffmpeg)
@@ -41,7 +50,8 @@
      (string-append
       (package-description ffmpeg)
       "  This build of FFmpeg includes the nonfree NVIDIA encoder for
-@code{h264_nvenc} and @code{hevc_nvenc} hardware encoding on NVIDIA GPUs."))))
+@code{h264_nvenc} and @code{hevc_nvenc} hardware encoding on NVIDIA GPUs."))
+    (properties '((upstream-name . "ffmpeg")))))
 
 (define-public gmmlib
   (package
