@@ -517,42 +517,6 @@ the official icon and the name \"firefox\".  This is the Extended Support
 Release (ESR) version.")
     (license license:mpl2.0)))
 
-(define-public firefox-esr/wayland
-  (package
-    (inherit firefox-esr)
-    (name "firefox-esr-wayland")
-    (native-inputs '())
-    (inputs
-     `(("bash" ,bash-minimal)
-       ("firefox-esr" ,firefox-esr)))
-    (build-system trivial-build-system)
-    (arguments
-     '(#:modules ((guix build utils))
-       #:builder
-       (begin
-         (use-modules (guix build utils))
-         (let* ((bash    (assoc-ref %build-inputs "bash"))
-                (firefox (assoc-ref %build-inputs "firefox-esr"))
-                (out     (assoc-ref %outputs "out"))
-                (exe     (string-append out "/bin/firefox")))
-           (mkdir-p (dirname exe))
-
-           (call-with-output-file exe
-             (lambda (port)
-               (format port "#!~a
-MOZ_ENABLE_WAYLAND=1 exec ~a $@\n"
-                       (string-append bash "/bin/bash")
-                       (string-append firefox "/bin/firefox"))))
-           (chmod exe #o555)
-
-           ;; Provide the manual and .desktop file.
-           (copy-recursively (string-append firefox "/share")
-                             (string-append out "/share"))
-           (substitute* (string-append
-                         out "/share/applications/firefox.desktop")
-             ((firefox) out))
-           #t))))))
-
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
 (define %firefox-build-id "20250331082115")
@@ -609,5 +573,7 @@ the official icon and the name \"firefox\".")))
 
 ;; As of Firefox 121.0, Firefox uses Wayland by default. This means we no
 ;; longer need a seperate package for Firefox on Wayland.
+(define-public firefox-esr/wayland
+  (deprecated-package "firefox-esr-wayland" firefox-esr))
 (define-public firefox-wayland
   (deprecated-package "firefox-wayland" firefox))
