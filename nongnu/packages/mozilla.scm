@@ -434,7 +434,12 @@
                      (symlink (string-append icon-source-dir
                                              "/default" size ".png")
                               (string-append dest "/firefox.png"))))
-                 '("16" "32" "48" "64" "128"))))))
+                 '("16" "32" "48" "64" "128")))))
+          ;; Make sure ICECAT_SYSTEM_DIR is set.
+          ;; See <https://gitlab.com/nonguix/nonguix/-/issues/368>.
+          (add-after 'install-icons 'mkdir-lib-icecat
+            (lambda _
+              (mkdir-p (string-append #$output "/lib/icecat")))))
 
       ;; Test will significantly increase build time but with little rewards.
       #:tests? #f
