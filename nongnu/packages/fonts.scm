@@ -2,6 +2,7 @@
 ;;; Copyright © 2021 Korytov Pavel <thexcloud@gmail.com>
 ;;; Copyright © 2021 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2023 Krzysztof Baranowski <pharcosyle@gmail.com>
+;;; Copyright © 2025 Kurome <hunt31999@gmail.org>
 
 (define-module (nongnu packages fonts)
   #:use-module (ice-9 string-fun)
@@ -344,3 +345,30 @@ characters defined as symbols in the Unicode Standard.")
                (base32
                 "1gmr7f9vqh2g5bamcrpzd9wzywchx4q3kajw4njcp3qqm7vld8ii"))))
     (arguments '())))
+
+(define-public font-ubuntu
+  (package
+    (name "font-ubuntu")
+    (version "0.83")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://assets.ubuntu.com/v1/fad7939b-ubuntu-font-family-"
+             version ".zip"))
+       (sha256
+        (base32 "0hjvq2x758dx0sfwqhzflns0ns035qm7h6ygskbx1svzg517sva5"))))
+    (build-system font-build-system)
+    (home-page "https://design.ubuntu.com/font/")
+    (synopsis "Ubuntu font family")
+    (description
+     "The Ubuntu font family is a sans-serif typeface family available in 22
+styles plus a variable font with adjustable weight and width axes.  Its
+fixed-width companion, Ubuntu Mono, comes in 8 styles and a variable font with
+an adjustable weight axis.")
+    ;; Ubuntu Font License is used.  This license is considered non-free by Debian
+    ;; and Fedora, so probably not compatible with GNU FSDG.
+    ;;
+    ;; https://bugs.launchpad.net/ubuntu-font-licence/+bug/769874
+    ;; https://bugzilla.redhat.com/show_bug.cgi?id=961642#c4
+    (license (nonfree "https://ubuntu.com/legal/font-licence"))))
