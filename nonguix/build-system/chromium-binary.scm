@@ -1,5 +1,5 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
-;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
+;;; Copyright © 2023, 2025 Giacomo Leidi <goodoldpaul@autistici.org>
 
 (define-module (nonguix build-system chromium-binary)
   #:use-module (gnu packages bash)
@@ -76,6 +76,8 @@
             `(("source" ,source))
             '())
 
+      ,@inputs
+
       ("alsa-lib" ,alsa-lib)
       ("atk" ,atk)
       ("at-spi2-atk" ,at-spi2-atk)
@@ -123,7 +125,6 @@
       ("xcb-util-wm" ,xcb-util-wm)
       ("zlib" ,zlib)
 
-      ,@inputs
       ;; Keep the standard inputs of 'gnu-build-system'.
       ,@(standard-packages)))
 
