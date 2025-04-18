@@ -127,7 +127,7 @@
                                       "\\.ini$")))
                    (format #t "LABEL=\"brscan4_end\"~%"))))
              #t))
-         (add-after 'build 'build-preload
+         (add-after 'install 'build-preload
            ;; Generate an LD_PRELOAD wrapper to redirect execvp(), open() and
            ;; open64() calls to `/opt/brother/scanner/brscan4`.
            (lambda* (#:key inputs outputs system #:allow-other-keys)
