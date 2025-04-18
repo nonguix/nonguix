@@ -86,7 +86,7 @@
           "data.tar.gz"
           binary-file
           "debian-binary")))))
-         (add-after 'wrap-program 'install-desktop-entry
+         (add-after 'install 'install-desktop-entry
            (lambda* (#:key outputs #:allow-other-keys)
              (let* ((desktop-file "usr/share/applications/anydesk.desktop")
                     (out (assoc-ref outputs "out"))
