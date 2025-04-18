@@ -1,6 +1,6 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2022 dan <i@dan.games>
-;;; Copyright © 2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2022, 2025 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 
 (define-module (nongnu packages version-control)
   #:use-module (gnu packages base)
@@ -13,22 +13,14 @@
 (define-public helix-core
   (package
     (name "helix-core")
-    (version "r23.1")
+    (version "r24.2")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://ftp.perforce.com/perforce/" version
-                                  "/bin.linux26"
-                                  (match (%current-system)
-                                    ("i686-linux" "x86")
-                                    (_ "x86_64"))
-                                  "/helix-core-server.tgz"))
+                                  "/bin.linux26x86_64/helix-core-server.tgz"))
               (sha256
                (base32
-                (match (%current-system)
-                  ("i686-linux"
-                   "0f5qs55rspw86axnmml3nxx551lwbxwz1cgi9kmy2f9g5rrplnkn")
-                  (_
-                   "1vqfkhgbx6ch7710w8mmm7hydl6jmd9qgzs0gfjg8gvd5gnh1csr"))))))
+                 "0iwh7cz2hig9hlwqs58bvvmyv4a9kr6q2yv23dyvi38nylrkl4nl"))))
     (build-system binary-build-system)
     (arguments
      `(#:strip-binaries? #f
@@ -53,6 +45,6 @@
      "Helix Core is a version control software for large scale development
 environments. The Helix Version Control System manages a central database and
 a master repository of file versions.")
-    (supported-systems '("i686-linux" "x86_64-linux"))
+    (supported-systems '("x86_64-linux"))
     (license (nonfree
               "https://www.perforce.com/sites/default/files/pdfs/Helix_Core%20On%20Prem%20Software%20License%20Agmt%20ClickThru_FINAL%2006.28.2021.pdf"))))
