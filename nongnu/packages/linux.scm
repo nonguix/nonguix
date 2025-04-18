@@ -1034,8 +1034,8 @@ to disable the conflicting rtw88 driver:
                 "https://github.com/morrownr/8821cu-20210916/blob/main/LICENSE")))))
 
 (define-public rtl8812au-aircrack-ng-linux-module
-  (let ((commit "63cf0b4584aa8878b0fe8ab38017f31c319bde3d")
-        (revision "13"))
+  (let ((commit "c3fb89a2f7066f4bf4e4d9d85d84f9791f14c83e")
+        (revision "14"))
     (package
       (inherit rtl8821ce-linux-module)
       (name "rtl8812au-aircrack-ng-linux-module")
@@ -1048,7 +1048,7 @@ to disable the conflicting rtw88 driver:
                (commit commit)))
          (file-name (git-file-name name version))
          (sha256
-          (base32 "103pn6qlj116dm244ygf1wic9dq2qn80lafiyxynyhpckkyhhfxl"))
+          (base32 "0skq0kr4h4nr8a4c7mfsf9rjar4q6cahwilgg2l0if844ib1rj02"))
          (modules '((guix build utils)))
          (snippet
           #~(begin
