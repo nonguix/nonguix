@@ -56,15 +56,16 @@
   #:export (replace-mesa))
 
 (define-public %nvidia-environment-variable-regexps
-  '("^__GL_"                            ; NVIDIA OpenGL settings.
+  '("^__NV_"
+    "^__GL_"                            ; NVIDIA OpenGL settings.
     "^__GLX_VENDOR_LIBRARY_NAME$"       ; For GLVND.
     ;; NVIDIA PRIME Render Offload.
-    "^__NV_PRIME_RENDER_OFFLOAD(_PROVIDER)?$"
     "^__VK_LAYER_NV_optimus$"
     ;; NVIDIA NGX.
     "^__NGX_CONF_FILE$"
-    "^__NV_SIGNED_LOAD_CHECK$"
     "^PROTON_ENABLE_NGX_UPDATER$"
+    ;; NVIDIA Smooth Motion.
+    "^NVPRESENT_"
     ;; NVIDIA VDPAU settings.
     "^VDPAU_NVIDIA_"
     ;; GSYNC control for Vulkan direct-to-display applications.
