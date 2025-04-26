@@ -136,6 +136,9 @@ some freedo package or an output of package-version procedure."
        "The unmodified Linux kernel, including nonfree blobs, for running Guix System
 on hardware which requires nonfree software to function."))))
 
+(define-public linux-6.14
+  (corrupt-linux linux-libre-6.14))
+
 (define-public linux-6.13
   (corrupt-linux linux-libre-6.13))
 
