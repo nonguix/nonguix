@@ -1094,18 +1094,6 @@ giving you trouble, you can try this module.")
 
 (define broadcom-sta-version "6.30.223.271")
 
-(define (broadcom-sta-patch name commit hash)
-  (origin
-    (method url-fetch)
-    (uri (string-append "https://raw.githubusercontent.com/rpmfusion/wl-kmod/"
-                        commit
-                        "wl-kmod-"
-                        name
-                        ".patch"))
-    (sha256
-     (base32
-      hash))))
-
 (define broadcom-sta-x86_64-source
   (origin
     (method url-fetch/tarbomb)
@@ -1119,27 +1107,76 @@ giving you trouble, you can try this module.")
      ;; They seem to be good about keeping broadcom patches up to date so updating
      ;; for a new kernel release should be as simple as chaging the commit to
      ;; the newest available and adding any new patches.
-     (let ((commit "cb67598cbf5d8c5260b750d6f7e5c6a6599b7b85"))
-       (list
-        (broadcom-sta-patch "i686-build-failure" commit "1522w2gb698svlkb2b4lijbd740agvs2ibpz4g0jlv8v31cybkf4")
-        (broadcom-sta-patch "license" commit "0rwlhafcmpp97cknqwv8gwf8sbxgqavgci1ywfkdxiylh4mhcvhr")
-        (broadcom-sta-patch "linux-4.7" commit "1nn1p6j77s9zfpxy5gl6qg1kha45pc7ww0yfkn5dmhazi288wamf")
-        (broadcom-sta-patch "linux-4.8" commit "0bjx4ayi30jbdm3sh38p52d6dnb3c44mqzqi8g51hhbn1kghkmq9")
-        (broadcom-sta-patch "linux-4.11" commit "1s3n87v9cn3qicd5v4wzj20psl4gcn1ghz0fnsq60n05rriicywp")
-        (broadcom-sta-patch "linux-4.12" commit "1kj7sfnw9hxjxzqm48565vniq7fkhapaqadfpw6l9bcnpf53xld3")
-        (broadcom-sta-patch "linux-4.15" commit "0bvk7nrvqa066dpn6vvb6x00yrxa37iqv87135kay9mllmkjd70b")
-        (broadcom-sta-patch "linux-5.1" commit "1kykpzhs19dwww6grav3qxsd28kn8y84i4b4csx2y5m2j629ncn0")
-        (broadcom-sta-patch "linux-5.6" commit "0v1jkaf60jgjkrjfcmx1gin4b65cdv39glqy7l3cswkmzb60lz4l")
-        (broadcom-sta-patch "linux-5.9" commit "1sgmbaahydk4j3i1jf8q1fz3a210fmakrpz0w1n9v3dcn23ladah")
-        (broadcom-sta-patch "linux-5.17" commit "1qsllvykhs3nvjwv8d6bgsm2sc9a1lxf8yqf6fa99p60ggd253ps")
-        (broadcom-sta-patch "linux-5.18" commit "1img0a0vqnkmq4c21aywq2ajyigzcfhbbpg1hw9nx7cbj9hf6d0l")
-        (broadcom-sta-patch "linux-6.0" commit "0rv74j5giafzl19f01yvfa5rgvsdvcimxzhks2fp44wpnxq241nb")
-        (broadcom-sta-patch "linux-6.1" commit "1pvx1h7iimcbfqdc13n1980ngxk9q6iyip8svn293x4h7jn472kf")
-        (broadcom-sta-patch "pedantic-fix" commit "1kxmw1iyxnfwad75h981sak5qk16p81xy1f2qxss2d0v97vkfkl5")
-        (broadcom-sta-patch "null-pointer-fix" commit "15c2vxgf7v5wy4s8w9jk7irf3fxxghy05gxmav1ss73a2azajdx7")
-        (broadcom-sta-patch "gcc" commit "0jcqk2vapyy2pbsjv9n8b3qp6vqz17d6s07cr04cx7075q7yhz5h")
-        (broadcom-sta-patch "028_kernel_6.12_adaption" commit
-                            "154dhlb3vyq8bnx7f371scsrhp9cszvmqlswqg5vi6gfgbqnrq08"))))
+     (map (lambda (name hash)
+            (let ((commit "9a5a0d7195e0f6b05ff97e948b97fb0b7427cbf2"))
+              (origin
+                (method url-fetch)
+                (uri (string-append
+                      "https://raw.githubusercontent.com/rpmfusion/wl-kmod/"
+                      commit "/" name))
+                (sha256 (base32 hash)))))
+          ;; find * -name '*.patch' -printf '"%p"\n'
+          '("wl-kmod-001_wext_workaround.patch"
+            "wl-kmod-002_kernel_3.18_null_pointer.patch"
+            "wl-kmod-003_gcc_4.9_remove_TIME_DATE_macros.patch"
+            "wl-kmod-004_kernel_4.3_rdtscl_to_rdtsc.patch"
+            "wl-kmod-005_kernel_4.7_IEEE80211_BAND_to_NL80211_BAND.patch"
+            "wl-kmod-006_gcc_6_fix_indentation_warnings.patch"
+            "wl-kmod-007_kernel_4.8_add_cfg80211_scan_info_struct.patch"
+            "wl-kmod-008_fix_kernel_warnings.patch"
+            "wl-kmod-009_kernel_4.11_remove_last_rx_in_net_device_struct.patch"
+            "wl-kmod-010_kernel_4.12_add_cfg80211_roam_info_struct.patch"
+            "wl-kmod-011_kernel_4.14_new_kernel_read_function_prototype.patch"
+            "wl-kmod-012_kernel_4.15_new_timer.patch"
+            "wl-kmod-013_gcc8_fix_bounds_check_warnings.patch"
+            "wl-kmod-014_kernel_read_pos_increment_fix.patch"
+            "wl-kmod-015_kernel_5.1_get_ds_removed.patch"
+            "wl-kmod-016_fix_unsupported_mesh_point.patch"
+            "wl-kmod-017_fix_gcc_fallthrough_warning.patch"
+            "wl-kmod-018_kernel_5.6_adaptations.patch"
+            "wl-kmod-019_kernel_5.9_segment_eq_removed.patch"
+            "wl-kmod-020_kernel_5.10_get_set_fs_removed.patch"
+            "wl-kmod-021_kernel_5.17_adaptation.patch"
+            "wl-kmod-022_kernel_5.18_adaptation.patch"
+            "wl-kmod-023_kernel_6.0_adaptation.patch"
+            "wl-kmod-024_kernel_6.1_adaptation.patch"
+            "wl-kmod-025_kernel_6.5_adaptation.patch"
+            "wl-kmod-026_kernel_6.10_fix_empty_body_in_if_warning.patch"
+            "wl-kmod-027_wpa_supplicant-2.11_add_max_scan_ie_len.patch"
+            "wl-kmod-028_kernel_6.12_adaptation.patch"
+            "wl-kmod-029_kernel_6.13_adaptation.patch"
+            "wl-kmod-030_kernel_6.14_adaptation.patch")
+          ;; find * -name '*.patch' -exec sh -c 'printf "\"%s\"\n" "$(guix hash {})"' \;
+          '("0lxj36r90kxhlfm3r0byh3p2l1dw9ama658ysfwib08ln5322mrq"
+            "0h8wck6akys7dxxwqgax9x7mninfx3ypy2af3drrarksmcvv4v2j"
+            "0azlhznn9amq3dr90drmh3gqva8i18dg16h8hwfbv284m04zy7d1"
+            "1x6py9p74hh3ic82gw41ixla13kxbm85a6zqphk0q3xl903d5ywm"
+            "1fgpnsmy4388gls1mvq9zc83j29ypfcx61a3rnzczmcxi0rlx7jq"
+            "0a5np0d03gpgacvl3s4dsk4pcqv2g61jcjn1h7m40gs2p48i78gc"
+            "0mig5p5gf2als6hw0fj0h8d3m3415nnc8256y2spb3kbq95fgm6d"
+            "1ab148xw5l9z0izzlkc9ffb4k65x7lj151m8kpqyy080dv1kb9bl"
+            "0fw0vizl3y3884z97cli8xmfviqlljmximrd16ibxbv1zavj87bq"
+            "1k9p8pylsik1byzv3rbzpcd31wiibclm7ldnwf3g3kdzcjrhg938"
+            "0cxxmq4fggcg40pl3f7s2xk1j0l1kill5d8xwv0jp0m4y0qxs5hi"
+            "06yxhh6fp4cvjpi4a2prp8ls0v2jid6jhpifwifskzribvfkfc5l"
+            "11kfbaviipkw7w3yn0sacjr5hsgp6x0mg570yzkjn0kxzgnnchna"
+            "1x25qpc4494qy80xxx17qa6kl1jshcbnbkc43pzhzb58xazl7ays"
+            "1qf3gi57p7jhzd2fgy6r3alc4dl8kymwwq3lyrx5yg73zb5dbcg7"
+            "0hx2xq9mz0ndljvn634fcivz9mmjj2ij6z8riy6fkbic11g1g6pq"
+            "056k8ayi26nbd8bkn8cr20i6diykg8n7j3vwc6ay40ch66l3jpr1"
+            "11w07p1qszdlg0pzac67s4fq380w5dskkg5afnxya3w74gi4bf65"
+            "0rw0sn8x479xjvrbfrn3qykd6hrmyfz4j6bdjw62ainjslxigcaq"
+            "13jw2vmc16zfvpzf73xzdyhkbihrn6yvwsd58vlbgzmygb5x2kp3"
+            "1l9kmpn3lbpz2p7p8x8zqmpj3j6m64sl1y4s5mn4dgli051iiy62"
+            "0nc3q6dayl6lyjkjs1qymvifbpymq1c4d9wzbj4bzb5wm3xq43mj"
+            "0isib9aawasza0a1kiqpzi072df7i5mn25b6j6szxh4y0ranlna3"
+            "0pmb2av9aryf38li3k86hsc4xdqd547yapj4ccqbhqnpsdyik22v"
+            "11mx81ij702w60xv6wc7z5w5i81ay0a88rhwbhg0qw2wb9jh6jqa"
+            "0ggdbqci5ic0way1bqlw5h45lszfnv28ayhiwiiwlw7wbxp9f5vs"
+            "138w812969d54wa184jaghmi0wmkvfi63mnswcyxg10ykaglk1rn"
+            "14wc1ba6kcg8b9prvzvhi0wplq5m3cnbghybi8i2kxnh1zyw53gk"
+            "0ys1n01ydhafrqqv68c0ijm39m491xp9qacinzf6svpirbs0ns84"
+            "0ky90dz8gkf5z1h0253a1g8z6ixypm4jfrzb1x9z415m2al4afc7")))
     (sha256
      (base32
       "1gj485qqr190idilacpxwgqyw21il03zph2rddizgj7fbd6pfyaz"))))
