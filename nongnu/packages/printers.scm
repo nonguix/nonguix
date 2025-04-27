@@ -40,7 +40,7 @@
             ;; hplip is updated in Guix.
             (sha256
              (base32
-              "0zq66hm7ni6w1c3cxy1gxrxzvyvfn0lhjnia8p4azvz2r309j9s0")))))
+              "1an5s2i6fxzxxk46k39hkhfqq0kgy3b5adhm30p8l6k64pfnng0z")))))
       (package-native-inputs hplip)))
     (arguments
      (substitute-keyword-arguments (package-arguments hplip)
