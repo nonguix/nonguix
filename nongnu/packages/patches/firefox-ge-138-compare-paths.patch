@@ -1,0 +1,21 @@
+diff --git a/toolkit/mozapps/extensions/internal/XPIDatabase.sys.mjs b/toolkit/mozapps/extensions/internal/XPIDatabase.sys.mjs
+index 1b01851e2fff..7f3b8c200c2f 100644
+--- a/toolkit/mozapps/extensions/internal/XPIDatabase.sys.mjs
++++ b/toolkit/mozapps/extensions/internal/XPIDatabase.sys.mjs
+@@ -3753,6 +3753,7 @@ export const XPIDatabaseReconcile = {
+     if (
+       newAddon ||
+       oldAddon.updateDate != xpiState.mtime ||
++      oldAddon.path != xpiState.path ||
+       (aUpdateCompatibility && this.isAppBundledLocation(installLocation)) ||
+       // update addon metadata if the addon in bundled into
+       // the omni jar and version or the resource URI pointing
+@@ -3767,8 +3768,6 @@ export const XPIDatabaseReconcile = {
+         xpiState,
+         newAddon
+       );
+-    } else if (oldAddon.path != xpiState.path) {
+-      newAddon = this.updatePath(installLocation, oldAddon, xpiState);
+     } else if (aUpdateCompatibility || aSchemaChange) {
+       newAddon = this.updateCompatibility(
+         installLocation,

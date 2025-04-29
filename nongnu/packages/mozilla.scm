@@ -524,13 +524,13 @@ Release (ESR) version.")
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-build-id "20250414143137")
+(define %firefox-build-id "20250428114547")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "137.0.2")
+    (version "138.0")
     (source
      (origin
        (method url-fetch)
@@ -543,10 +543,10 @@ Release (ESR) version.")
                      %load-path)
                 patch))
              '("firefox-restore-desktop-files.patch"
-               "firefox-esr-compare-paths.patch"
+               "firefox-ge-138-compare-paths.patch"
                "firefox-use-system-wide-dir.patch")))
        (sha256
-        (base32 "01yd5cq6qgww6w2kq1bchy9j81blim15kdz7bvx8n512m2x3mz06"))))
+        (base32 "08wvy530pqscldi6afw05klgw60bsk2am8fw51i4a6wcx1z3sqh4"))))
     (arguments
      (substitute-keyword-arguments (package-arguments firefox-esr)
        ((#:phases phases)
@@ -571,6 +571,7 @@ Release (ESR) version.")
     (native-inputs
      (modify-inputs (package-native-inputs firefox-esr)
        (replace "rust" rust-firefox)
+       (replace "rust-cbindgen" rust-cbindgen-0.28)
        (replace "rust:cargo" `(,rust-firefox "cargo"))))
     (description
      "Full-featured browser client built from Firefox source tree, without
