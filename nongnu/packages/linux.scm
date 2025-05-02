@@ -88,7 +88,11 @@ some freedo package or an output of package-version procedure."
                  ;; actual.
                  '(
                    ;; Driver for MediaTek mt7921e wireless chipset
-                   ("5.15" . "CONFIG_MT7921E=m")))))
+                   ("5.15" . "CONFIG_MT7921E=m")
+                   ;; Activate driver module for RT1318/RT713 (Lunar Lake)
+                   ;; Builds module named snd_soc_sof_sdw.ko
+                   ("6.12" . "CONFIG_SND_SOC_INTEL_USER_FRIENDLY_LONG_NAMES=y")
+                   ("6.12" . "CONFIG_SND_SOC_INTEL_SOUNDWIRE_SOF_MACH=m")))))
 
 (define* (corrupt-linux freedo
                         #:key
