@@ -385,7 +385,7 @@ in a sandboxed FHS environment."
            (mkdir-p sandbox-home)
            (apply invoke
                   `("guix" "shell"
-                    "--container" "--no-cwd" "--network"
+                    "--container" "--no-cwd" "--network" "--writable-root"
                     ,@(map preserve-var preserved-env)
                     ,@(map add-path expose)
                     ,@(map (lambda (item)
