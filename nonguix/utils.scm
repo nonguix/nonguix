@@ -64,17 +64,6 @@ matches PRED."
   (match obj
     ((? pred)
      (proc obj))
-    ;; TODO: Check if this can be handled as well.
-    ((? parameter?)
-     obj)
-    ((? procedure?)
-     (lambda args
-       (apply values
-              (map (cut with-transformation proc <> pred)
-                   (call-with-values
-                       (lambda ()
-                         (apply obj args))
-                     list)))))
     ((a . b)
      (cons (with-transformation proc a pred)
            (with-transformation proc b pred)))
@@ -109,6 +98,17 @@ matches PRED."
                               (obj (accessor obj)))
                          (with-transformation proc obj pred)))
                      record-fields))))))
+    ;; TODO: Check if this can be handled as well.
+    ((? parameter?)
+     obj)
+    ((? procedure?)
+     (lambda args
+       (apply values
+              (map (cut with-transformation proc <> pred)
+                   (call-with-values
+                       (lambda ()
+                         (apply obj args))
+                     list)))))
     (_ obj)))
 
 (define (package-with-alias alias pkg)
