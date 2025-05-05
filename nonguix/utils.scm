@@ -64,6 +64,9 @@ matches PRED."
   (match obj
     ((? pred)
      (proc obj))
+    ;; TODO: Check if this can be handled as well.
+    ((? parameter?)
+     obj)
     ((? procedure?)
      (lambda args
        (apply values
@@ -88,14 +91,24 @@ matches PRED."
          (? origin?))
      obj)
     ((? record?)
-     (let* ((record-type (record-type-descriptor obj))
-            (record-fields (record-type-fields record-type)))
-       (apply (record-constructor record-type)
-              (map (lambda (field)
-                     (let* ((accessor (record-accessor record-type field))
-                            (obj (accessor obj)))
-                       (with-transformation proc obj pred)))
-                   record-fields))))
+     (cond
+      ;; Both ‘file-systems’ and ‘boot-file-system-utilities’ services extends
+      ;; ‘profile-service-type’ with the same package, however information of
+      ;; the former one is hidden from us, causing conflict in the resulted
+      ;; profile.
+      ((and (service? obj)
+            (eq? 'boot-file-system-utilities
+                 (service-type-name (service-kind obj))))
+       obj)
+      (else
+       (let* ((record-type (record-type-descriptor obj))
+              (record-fields (record-type-fields record-type)))
+         (apply (record-constructor record-type)
+                (map (lambda (field)
+                       (let* ((accessor (record-accessor record-type field))
+                              (obj (accessor obj)))
+                         (with-transformation proc obj pred)))
+                     record-fields))))))
     (_ obj)))
 
 (define (package-with-alias alias pkg)
