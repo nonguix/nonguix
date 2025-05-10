@@ -5,12 +5,18 @@
 (define-module (nongnu packages)
   #:use-module (gnu packages)
   #:use-module (guix diagnostics)
+  #:use-module (guix discovery)
   #:use-module (guix i18n)
+  #:use-module (guix memoization)
+  #:use-module (guix packages)
+  #:use-module (guix ui)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-34)
   #:replace (%patch-path
              search-patch)
-  #:export (nongnu-patches))
+  #:export (nongnu-patches
+            %nongnu-package-module-path
+            all-nongnu-packages))
 
 ;;; Commentary:
 ;;;
@@ -40,6 +46,9 @@
     (try ("nongnu/packages/firmware.scm" nongnu/ packages/)
          ("nongnu/ci.scm" nongnu/))))
 
+(define %nongnu-package-module-path
+  `((,%nongnu-root-directory . "nongnu/packages")))
+
 (define %patch-path
   ;; Define it after '%package-module-path' so that '%load-path' contains user
   ;; directories, allowing patches in $GUIX_PACKAGE_PATH to be found.
@@ -64,3 +73,29 @@
   "Return the list of absolute file names corresponding to each
 FILE-NAME found in %PATCH-PATH."
   (list (search-patch file-name) ...))
+
+;; Adapted from (@ (gnu packages) all-packages).
+(define all-nongnu-packages
+  (mlambda ()
+    "Return the list of all public packages, including replacements and hidden
+packages, excluding superseded packages."
+    ;; Note: 'fold-packages' never traverses the same package twice but
+    ;; replacements break that (they may or may not be visible to
+    ;; 'fold-packages'), hence this hash table to track visited packages.
+    (define visited (make-hash-table))
+
+    (fold-packages (lambda (package result)
+                     (if (hashq-ref visited package)
+                         result
+                         (begin
+                           (hashq-set! visited package #t)
+                           (match (package-replacement package)
+                             ((? package? replacement)
+                              (hashq-set! visited replacement #t)
+                              (cons* replacement package result))
+                             (#f
+                              (cons package result))))))
+                   '()
+                   (all-modules %nongnu-package-module-path #:warn warn-about-load-error)
+                   ;; Dismiss deprecated packages but keep hidden packages.
+                   #:select? (negate package-superseded))))
