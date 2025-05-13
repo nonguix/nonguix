@@ -52,17 +52,21 @@
   #:use-module (srfi srfi-1)
   #:export (corrupt-linux))
 
+;; To customize the kernel with extra defconfig, use:
+;;   (customize-linux #:linux linux
+;;                    #:configs
+;;                    '("CONFIG_A=y"
+;;                      "CONFIG_B=m"
+;;                      "# CONFIG_C is not set"))
+;; See also the Guix Cookbook entry (search ‘customize-linux’):
+;; https://guix.gnu.org/cookbook/en/html_node/Customizing-the-Kernel.html
+
 (define (linux-url version)
   "Return a URL for Linux VERSION."
   (string-append "mirror://kernel.org"
                        "/linux/kernel/v" (version-major version) ".x"
                        "/linux-" version ".tar.xz"))
 
-;;; If you are corrupting the kernel on your own, consider using output of
-;;; this procedure as a base for your options:
-;;;   (corrupt-linux linux-libre-lts
-;;;                  #:configs (cons* "CONFIG_FOO=y"
-;;;                                   (nonguix-extra-linux-options linux-libre-lts)
 (define-public (nonguix-extra-linux-options linux-or-version)
   "Return a list containing additional options that nonguix sets by default
 for a corrupted linux package of specified version.  linux-or-version can be
@@ -93,12 +97,16 @@ some freedo package or an output of package-version procedure."
 (define* (corrupt-linux freedo
                         #:key
                         (name "linux")
-                        (configs (nonguix-extra-linux-options freedo))
-                        (defconfig #f))
+                        (configs "")
+                        (defconfig #f)
+                        (get-extra-configs nonguix-extra-linux-options))
 
   ;; TODO: This very directly depends on guix internals.
   ;; Throw it all out when we manage kernel hashes.
   (define gexp-inputs (@@ (guix gexp) gexp-inputs))
+
+  (define linux-srcarch
+    (@@ (gnu packages linux) linux-srcarch))
 
   (define extract-gexp-inputs
     (compose gexp-inputs force origin-uri))
@@ -117,19 +125,37 @@ some freedo package or an output of package-version procedure."
          (pristine-source (package-source freedo))
          (inputs (map gexp-input-thing (extract-gexp-inputs pristine-source)))
          (sources (filter origin? inputs))
-         (hash (find-source-hash sources url)))
+         (hash (find-source-hash sources url))
+         (base (customize-linux
+                #:name name
+                #:linux freedo
+                #:source (origin
+                           (method url-fetch)
+                           (uri url)
+                           (hash hash))
+                #:configs configs
+                #:defconfig defconfig)))
     (package
-      (inherit
-       (customize-linux
-        #:name name
-        #:linux freedo
-        #:source (origin
-                   (method url-fetch)
-                   (uri url)
-                   (hash hash))
-        #:configs configs
-        #:defconfig defconfig))
+      (inherit base)
       (version version)
+      (arguments
+       (substitute-keyword-arguments (package-arguments base)
+         ((#:phases phases)
+          #~(modify-phases #$phases
+              ;; Make sure the resulted package is compatible with
+              ;; ‘customize-linux’.
+              (add-before 'configure 'nonguix-configure
+                (lambda _
+                  (unless #$defconfig
+                    (let ((guix_defconfig
+                           (format #f "arch/~a/configs/guix_defconfig"
+                                   #$(linux-srcarch))))
+                      (invoke "make" "defconfig")
+                      (modify-defconfig
+                       ".config"
+                       '#$(get-extra-configs (package-version this-package)))
+                      (invoke "make" "savedefconfig")
+                      (rename-file "defconfig" guix_defconfig)))))))))
       (home-page "https://www.kernel.org/")
       (synopsis "Linux kernel with nonfree binary blobs included")
       (description
