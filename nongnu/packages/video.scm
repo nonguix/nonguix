@@ -134,6 +134,17 @@ graphics hardware.")
         "  This build of intel-media-driver includes nonfree blobs to fully enable the
 video decode capabilities of supported Intel GPUs."))))
 
+(define-public mpv-nvidia
+  (package
+    (inherit mpv)
+    (name "mpv-nvidia")
+    (inputs
+     (modify-inputs (package-inputs mpv)
+       (prepend nv-codec-headers)))
+    (synopsis
+     "Audio and video player (with hardware acceleration for NVIDIA graphics \
+cards)")))
+
 (define-public nv-codec-headers
   (package
     (name "nv-codec-headers")
