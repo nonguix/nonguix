@@ -91,6 +91,8 @@ some freedo package or an output of package-version procedure."
                  ;; option does work under linux-libre, it should go into Guix
                  ;; actual.
                  '(
+                   ;; Driver for MT7612U-based wireless USB 3.0 dongles.
+                   ("3.10" . "CONFIG_MT76x2U=m")
                    ;; Driver for MediaTek mt7921e wireless chipset
                    ("5.15" . "CONFIG_MT7921E=m")
                    ;; Activate driver module for RT1318/RT713 (Lunar Lake)
