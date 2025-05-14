@@ -330,7 +330,7 @@ LibreOffice, and Google Docs for over 10,000 citation styles.")
     (native-inputs
      ;; imagemagick & inkscape needed to create desktop icons. We use the
      ;; stable versions because we only need them for generating icons.
-     (list imagemagick/stable inkscape/stable))
+     (list imagemagick/stable inkscape/pinned))
     (inputs
      (list
       (origin
