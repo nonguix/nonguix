@@ -151,7 +151,7 @@ perform refactors and more.")
 (define-public babashka
   (package
     (name "babashka")
-    (version "1.3.189")
+    (version "1.12.200")
     (source (origin
               (method url-fetch/tarbomb)
               (uri (string-append "https://github.com/babashka/babashka"
@@ -159,7 +159,7 @@ perform refactors and more.")
                                   version "-linux-amd64.tar.gz"))
               (sha256
                (base32
-                "1gzra3y5iljjqi4rj1qxr3yniqla3qnhv881gkzrp788fwsvlmwv"))))
+                "1bmfnkh7mi15h6gkw9az6f2p4grcyi7cj90f86xg4ljbjnidp2n3"))))
     (build-system binary-build-system)
     (arguments
      `(#:patchelf-plan
