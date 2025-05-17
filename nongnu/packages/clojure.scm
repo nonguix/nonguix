@@ -119,7 +119,7 @@ and EDN, without the need of a running REPL.")
 (define-public clojure-lsp
   (package
     (name "clojure-lsp")
-    (version "2024.03.13-13.11.00")
+    (version "2025.04.23-18.16.46")
     (source (origin
               (method url-fetch/zipbomb)
               (uri (string-append "https://github.com/clojure-lsp/clojure-lsp"
@@ -127,7 +127,7 @@ and EDN, without the need of a running REPL.")
                                   "/clojure-lsp-native-static-linux-amd64.zip"))
               (sha256
                (base32
-                "1l6w55aragyf8rzy087iqw97xnpih5syjwhf0jwbgrqps2k44ms5"))))
+                "0d5cmdjx576109vnsrmzavjl9iqp72wzbvck42bd54lzyw2skmgj"))))
     (build-system binary-build-system)
     (arguments
      `(#:install-plan
