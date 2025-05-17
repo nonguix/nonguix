@@ -51,7 +51,7 @@ lets you focus on your code.")
   (package
     (inherit leiningen-jar)
     (name "leiningen")
-    (version "2.10.0")
+    (version "2.11.2")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -60,7 +60,7 @@ lets you focus on your code.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "0xvniav6iy1yrbamvbg8i3dq8issiczv3rbig2yc3nm08d2q0rig"))))
+                "19q59dwj3hmn210l8zblkdb4ia17is2g3m0v1x7qmvavwpwyrl2g"))))
     (build-system gnu-build-system)
     (arguments
      `(#:tests? #f
