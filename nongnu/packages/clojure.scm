@@ -190,15 +190,22 @@ Clojure and Java libraries, and start Clojure programs.")
     (build-system binary-build-system)
     (arguments
      `(#:patchelf-plan
-       '(("bb" ("gcc" "zlib")))
+       '(("bb" ("zlib")))
        #:install-plan
        '(("./bb" "/bin/"))
        #:phases
        (modify-phases %standard-phases
          (add-after 'unpack 'chmod
            (lambda _
-             (chmod "bb" #o755))))))
-    (inputs (list `(,gcc "lib") zlib))
+             (chmod "bb" #o755)))
+         (add-after 'patch-shebangs 'wrap-programs
+           (lambda* (#:key inputs outputs #:allow-other-keys)
+             (let ((out (assoc-ref outputs "out"))
+                   (clojure-tools (assoc-ref inputs "clojure-tools")))
+               (wrap-program (string-append out "/bin/bb")
+                 `("BABASHKA_CLASSPATH" ":" suffix
+                   ,(find-files clojure-tools "\\.jar$")))))))))
+    (inputs (list clojure-tools zlib))
     (supported-systems '("x86_64-linux"))
     (home-page "https://github.com/babashka/babashka")
     (synopsis "Native, fast starting Clojure interpreter for scripting")
