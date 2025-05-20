@@ -106,7 +106,11 @@
                      %load-path)
                 patch))
              '("firefox-esr-compare-paths.patch"
-               "firefox-esr-use-system-wide-dir.patch")))))
+               "firefox-esr-use-system-wide-dir.patch")))
+       ;; XXX: 75 Mo (800+ Mo uncompressed) of unused tests.
+       ;; Removing it makes it possible to compile on some systems.
+       (modules '((guix build utils)))
+       (snippet #~(delete-file-recursively "testing/web-platform"))))
     (build-system gnu-build-system)
     (arguments
      (list
@@ -536,6 +540,8 @@ Release (ESR) version.")
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
+       (sha256
+        (base32 "12si1538mdgmvkpsqkc42x7rdll7mmapkczx8vipp53qbwafgp4c"))
        (patches
         (map (lambda (patch)
                (search-path
@@ -545,8 +551,10 @@ Release (ESR) version.")
              '("firefox-restore-desktop-files.patch"
                "firefox-ge-138-compare-paths.patch"
                "firefox-use-system-wide-dir.patch")))
-       (sha256
-        (base32 "12si1538mdgmvkpsqkc42x7rdll7mmapkczx8vipp53qbwafgp4c"))))
+       ;; XXX: 75 Mo (800+ Mo uncompressed) of unused tests.
+       ;; Removing it makes it possible to compile on some systems.
+       (modules '((guix build utils)))
+       (snippet #~(delete-file-recursively "testing/web-platform"))))
     (arguments
      (substitute-keyword-arguments (package-arguments firefox-esr)
        ((#:phases phases)
