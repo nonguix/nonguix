@@ -104,7 +104,7 @@ some freedo package or an output of package-version procedure."
                         #:key
                         (name "linux")
                         (configs "")
-                        (defconfig #f)
+                        (defconfig "nonguix_defconfig")
                         (get-extra-configs nonguix-extra-linux-options))
 
   ;; TODO: This very directly depends on guix internals.
@@ -152,16 +152,14 @@ some freedo package or an output of package-version procedure."
               ;; ‘customize-linux’.
               (add-before 'configure 'nonguix-configure
                 (lambda _
-                  (unless #$defconfig
-                    (let ((guix_defconfig
-                           (format #f "arch/~a/configs/guix_defconfig"
-                                   #$(linux-srcarch))))
-                      (invoke "make" "defconfig")
-                      (modify-defconfig
-                       ".config"
-                       '#$(get-extra-configs (package-version this-package)))
-                      (invoke "make" "savedefconfig")
-                      (rename-file "defconfig" guix_defconfig)))))))))
+                  (let ((defconfig
+                          (format #f "arch/~a/configs/nonguix_defconfig"
+                                  #$(linux-srcarch))))
+                    (invoke "make" "defconfig")
+                    (modify-defconfig
+                     ".config" '#$(get-extra-configs this-package))
+                    (invoke "make" "savedefconfig")
+                    (rename-file "defconfig" defconfig))))))))
       (home-page "https://www.kernel.org/")
       (synopsis "Linux kernel with nonfree binary blobs included")
       (description
