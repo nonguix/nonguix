@@ -148,6 +148,33 @@ It aims to work alongside you to help you navigate, identify and fix errors,
 perform refactors and more.")
     (license license:expat)))
 
+(define-public clojure-tools
+  (package
+    (name "clojure-tools")
+    (version "1.12.0.1530")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append
+                    "https://download.clojure.org/install/clojure-tools-"
+                    version ".tar.gz"))
+              (sha256
+               (base32
+                "0jgd0lki1mml7ppccxnbhj9jbpy5cy3s11775p9kkfi6h654pwhg"))))
+    (build-system copy-build-system)
+    (arguments
+     (list #:install-plan
+           ''(("deps.edn" "lib/clojure/")
+              ("clojure-tools-1.12.0.1530.jar" "lib/clojure/libexec/")
+              ("example-deps.edn" "lib/clojure/")
+              ("tools.edn" "lib/clojure/")
+              ("exec.jar" "lib/clojure/libexec/"))))
+    (home-page "https://clojure.org/releases/tools")
+    (synopsis "CLI tools for the Clojure programming language")
+    (description
+     "The Clojure command line tools can be used to start a Clojure REPL, use
+Clojure and Java libraries, and start Clojure programs.")
+    (license license:epl1.0)))
+
 (define-public babashka
   (package
     (name "babashka")
