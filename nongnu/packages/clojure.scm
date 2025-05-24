@@ -198,7 +198,17 @@ perform refactors and more.")
                    (let ((clojure-tools #$(this-package-input "clojure-tools")))
                      (wrap-program (string-append #$output "/bin/bb")
                        `("BABASHKA_CLASSPATH" ":" suffix
-                         ,(find-files clojure-tools "\\.jar$")))))))))
+                         ,(find-files clojure-tools "\\.jar$"))))))
+               (add-after 'validate-runpath 'validate-classpath
+                 (lambda _
+                   (call-with-temporary-output-file
+                    (lambda (name port)
+                      (display "{:deps {org.clojure/data.xml {:mvn/version \"1.1.0\"}}}" port)
+                      (close port)
+                      (unless (invoke (string-append #$output "/bin/bb")
+                                      "--config" name
+                                      "-e" "(System/exit 0)")
+                        (error "Classpath error. See output.")))))))))
     (inputs (list clojure-tools zlib))
     (supported-systems '("x86_64-linux"))
     (home-page "https://github.com/babashka/babashka")
