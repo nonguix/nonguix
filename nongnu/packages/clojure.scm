@@ -189,22 +189,21 @@ Clojure and Java libraries, and start Clojure programs.")
                 "1bmfnkh7mi15h6gkw9az6f2p4grcyi7cj90f86xg4ljbjnidp2n3"))))
     (build-system binary-build-system)
     (arguments
-     `(#:patchelf-plan
-       '(("bb" ("zlib")))
-       #:install-plan
-       '(("./bb" "/bin/"))
-       #:phases
-       (modify-phases %standard-phases
-         (add-after 'unpack 'chmod
-           (lambda _
-             (chmod "bb" #o755)))
-         (add-after 'patch-shebangs 'wrap-programs
-           (lambda* (#:key inputs outputs #:allow-other-keys)
-             (let ((out (assoc-ref outputs "out"))
-                   (clojure-tools (assoc-ref inputs "clojure-tools")))
-               (wrap-program (string-append out "/bin/bb")
-                 `("BABASHKA_CLASSPATH" ":" suffix
-                   ,(find-files clojure-tools "\\.jar$")))))))))
+     (list #:patchelf-plan
+           ''(("bb" ("zlib")))
+           #:install-plan
+           ''(("bb" "/bin/"))
+           #:phases
+           #~(modify-phases %standard-phases
+               (add-after 'unpack 'chmod
+                 (lambda _
+                   (chmod "bb" #o755)))
+               (add-after 'patch-shebangs 'wrap-programs
+                 (lambda _
+                   (let ((clojure-tools #$(this-package-input "clojure-tools")))
+                     (wrap-program (string-append #$output "/bin/bb")
+                       `("BABASHKA_CLASSPATH" ":" suffix
+                         ,(find-files clojure-tools "\\.jar$")))))))))
     (inputs (list clojure-tools zlib))
     (supported-systems '("x86_64-linux"))
     (home-page "https://github.com/babashka/babashka")
