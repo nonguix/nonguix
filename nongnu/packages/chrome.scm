@@ -2,6 +2,7 @@
 ;;; Copyright © 2022, 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2022 Mathieu Othacehe <m.othacehe@gmail.com>
 ;;; Copyright © 2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
+;;; Copyright © 2025 Anderson Torres <anderson.torres.8519@gmail.com>
 
 (define-module (nongnu packages chrome)
   #:use-module (gnu packages base)
@@ -151,3 +152,6 @@
 
 (define-public google-chrome-unstable
   (make-google-chrome "unstable" "138.0.7191.0" "1h1cqsadrb3acfcdfljvwscvf8i4wkn242mpv0673z887p9ja4bz"))
+
+(define-public google-chrome-canary
+  (make-google-chrome "canary" "138.0.7200.0" "075ga5khdxpva0saw2qqkbvsn2dk2i786mlh5lmrr4645mm1p0nd"))
