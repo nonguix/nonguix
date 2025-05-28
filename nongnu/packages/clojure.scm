@@ -6,6 +6,7 @@
 ;;; Copyright © 2025 Remco van 't Veer <remco@remworks.net>
 
 (define-module (nongnu packages clojure)
+  #:use-module (gnu packages clojure)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages readline)
@@ -16,6 +17,7 @@
   #:use-module (guix gexp)
   #:use-module (guix git-download)
   #:use-module (guix packages)
+  #:use-module (guix utils)
   #:use-module (nonguix build-system binary)
   #:use-module ((guix licenses) #:prefix license:))
 
@@ -148,6 +150,25 @@ Clojure/Clojurescript to all editors and programatically via its CLI and API.
 It aims to work alongside you to help you navigate, identify and fix errors,
 perform refactors and more.")
     (license license:expat)))
+
+(define-public clojure-tools-bin
+  (package
+    (inherit clojure-tools)
+    (name "clojure-tools-bin")
+    (source
+     (origin
+       (inherit (package-source clojure-tools))
+       (snippet #f)))
+    (arguments
+     (substitute-keyword-arguments (package-arguments clojure-tools)
+       ((#:install-plan plan)
+        #~(cons (list (format #f "clojure-tools-~a.jar"
+                              #$(package-version this-package))
+                      "lib/clojure/libexec/")
+                #$plan))
+       ((#:phases phases)
+        #~(modify-phases #$phases
+            (delete 'copy-tools-deps-alpha-jar)))))))
 
 (define-public babashka
   (package
