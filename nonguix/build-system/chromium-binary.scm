@@ -44,6 +44,9 @@
 ;;
 ;; Code:
 
+(define add-input-labels
+  (@@ (guix packages) add-input-labels))
+
 (define %chromium-binary-build-system-modules
   ;; Build-side modules imported by default.
   `((nonguix build chromium-binary-build-system)
@@ -72,61 +75,61 @@
   (define private-keywords
     '(#:target #:patchelf #:inputs #:native-inputs))
   (define host-inputs
-    `(,@(if source
-            `(("source" ,source))
-            '())
-
-      ,@inputs
-
-      ("alsa-lib" ,alsa-lib)
-      ("atk" ,atk)
-      ("at-spi2-atk" ,at-spi2-atk)
-      ("at-spi2-core" ,at-spi2-core)
-      ("bash-minimal" ,bash-minimal)
-      ("cairo" ,cairo)
-      ("cups" ,cups)
-      ("dbus" ,dbus)
-      ("eudev" ,eudev)
-      ("expat" ,expat)
-      ("fontconfig" ,fontconfig)
-      ("freetype" ,freetype)
-      ("gcc:lib" ,gcc "lib")
-      ("glib" ,glib)
-      ("gtk+" ,gtk+)
-      ("libdrm" ,libdrm)
-      ("libnotify" ,libnotify)
-      ("librsvg" ,librsvg)
-      ("libsecret" ,libsecret)
-      ("libx11" ,libx11)
-      ("libxcb" ,libxcb)
-      ("libxcomposite" ,libxcomposite)
-      ("libxcursor" ,libxcursor)
-      ("libxdamage" ,libxdamage)
-      ("libxext" ,libxext)
-      ("libxfixes" ,libxfixes)
-      ("libxi" ,libxi)
-      ("libxkbcommon" ,libxkbcommon)
-      ("libxkbfile" ,libxkbfile)
-      ("libxrandr" ,libxrandr)
-      ("libxrender" ,libxrender)
-      ("libxshmfence" ,libxshmfence)
-      ("libxtst" ,libxtst)
-      ("mesa" ,mesa)
-      ("mit-krb5" ,mit-krb5)
-      ("nspr" ,nspr)
-      ("nss" ,nss)
-      ("pango" ,pango)
-      ("pulseaudio" ,pulseaudio)
-      ("sqlcipher" ,sqlcipher)
-      ("xcb-util" ,xcb-util)
-      ("xcb-util-image" ,xcb-util-image)
-      ("xcb-util-keysyms" ,xcb-util-keysyms)
-      ("xcb-util-renderutil" ,xcb-util-renderutil)
-      ("xcb-util-wm" ,xcb-util-wm)
-      ("zlib" ,zlib)
-
-      ;; Keep the standard inputs of 'gnu-build-system'.
-      ,@(standard-packages)))
+    (append
+     (if source
+         `(("source" ,source))
+         '())
+     inputs
+     ;; Inputs needed by the Electron.
+     (add-input-labels
+      alsa-lib
+      atk
+      at-spi2-atk
+      at-spi2-core
+      bash-minimal
+      cairo
+      cups
+      dbus
+      eudev
+      expat
+      fontconfig
+      freetype
+      `(,gcc "lib")
+      glib
+      gtk+
+      libdrm
+      libnotify
+      librsvg
+      libsecret
+      libx11
+      libxcb
+      libxcomposite
+      libxcursor
+      libxdamage
+      libxext
+      libxfixes
+      libxi
+      libxkbcommon
+      libxkbfile
+      libxrandr
+      libxrender
+      libxshmfence
+      libxtst
+      mesa
+      mit-krb5
+      nspr
+      nss
+      pango
+      pulseaudio
+      sqlcipher
+      xcb-util
+      xcb-util-image
+      xcb-util-keysyms
+      xcb-util-renderutil
+      xcb-util-wm
+      zlib)
+     ;; Keep the standard inputs of 'gnu-build-system'.
+     (standard-packages)))
 
   (and (not target)                     ;XXX: no cross-compilation
        (bag

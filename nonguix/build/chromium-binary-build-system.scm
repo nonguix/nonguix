@@ -19,7 +19,7 @@
 (define* (install-wrapper #:key inputs outputs #:allow-other-keys)
   (let* ((output (assoc-ref outputs "out"))
          (bin (string-append output "/bin"))
-         (fontconfig-minimal (assoc-ref inputs "fontconfig"))
+         (fontconfig-minimal (assoc-ref inputs "fontconfig-minimal"))
          (nss (assoc-ref inputs "nss"))
          (wrap-inputs (map cdr inputs))
          (lib-directories
