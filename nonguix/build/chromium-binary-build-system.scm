@@ -32,32 +32,32 @@
      (lambda (exe)
        (display (string-append "Wrapping " exe "\n"))
        (wrap-program exe
-        `("FONTCONFIG_PATH" ":" prefix
-          (,(string-join
-             (list
-              (string-append fontconfig-minimal "/etc/fonts")
-              output)
-             ":")))
-        `("PATH" ":" prefix
-          (,(string-join
-             (append
-              bin-directories
+         `("FONTCONFIG_PATH" ":" prefix
+           (,(string-join
               (list
-               bin))
-             ":")))
-        `("LD_LIBRARY_PATH" ":" prefix
-          (,(string-join
-             (append
-              lib-directories
-              (list
-               (string-append nss "/lib/nss")
-               output))
-             ":")))
-        ;; Give a hint to Electron-based apps to detect if Wayland or X11 should
-        ;; be used.
-        ;; NOTE: The env-var version of this CLI arg was added in Electron >=28
-        `("ELECTRON_OZONE_PLATFORM_HINT" ":" =
-          ("auto"))))
+               (string-append fontconfig-minimal "/etc/fonts")
+               output)
+              ":")))
+         `("PATH" ":" prefix
+           (,(string-join
+              (append
+               bin-directories
+               (list
+                bin))
+              ":")))
+         `("LD_LIBRARY_PATH" ":" prefix
+           (,(string-join
+              (append
+               lib-directories
+               (list
+                (string-append nss "/lib/nss")
+                output))
+              ":")))
+         ;; Give a hint to Electron-based apps to detect if Wayland or X11 should
+         ;; be used.
+         ;; NOTE: The env-var version of this CLI arg was added in Electron >=28
+         `("ELECTRON_OZONE_PLATFORM_HINT" ":" =
+           ("auto"))))
      (map
       (lambda (exe) (string-append bin "/" exe))
       (filter
@@ -72,7 +72,7 @@
     (add-after 'install 'install-wrapper install-wrapper)))
 
 (define* (chromium-binary-build #:key inputs (phases %standard-phases)
-                       #:allow-other-keys #:rest args)
+                                #:allow-other-keys #:rest args)
   "Build the given package, applying all of PHASES in order."
   (apply gnu:gnu-build #:inputs inputs #:phases phases args))
 
