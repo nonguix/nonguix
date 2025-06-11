@@ -16,7 +16,8 @@
   #:use-module (nongnu packages linux)
   #:use-module (nongnu packages nvidia)
   #:export (nonguix-transformation-guix
-            nonguix-transformation-linux))
+            nonguix-transformation-linux
+            nonguix-transformation-nvidia))
 
 (define* (nonguix-transformation-guix #:key (substitutes? #t)
                                       (channel? #t)
@@ -89,3 +90,51 @@ and INITRD (default: microcode-initrd)."
       (kernel linux)
       (firmware firmware)
       (initrd initrd))))
+
+(define* (nonguix-transformation-nvidia #:key (driver nvda)
+                                        (kernel-mode-setting? #t)
+                                        (open-source-kernel-module? #f))
+  "Return a procedure that transforms an operating system, setting up
+DRIVER (default: nvda) for NVIDIA graphics card.
+
+KERNEL-MODE-SETTING? (default: #t) is required for Wayland and rootless Xorg
+support.
+
+OPEN-SOURCE-KERNEL-MODULE? (default: #f) only supports Turing and later
+architectures and is expected to work with 'linux-lts'.
+
+For application setup, use 'replace-mesa'.
+
+TODO: Xorg configuration."
+  (define %presets
+    `((,nvda . ,(service nvidia-service-type
+                  (nvidia-configuration
+                   (driver nvda)
+                   (firmware nvidia-firmware)
+                   (module
+                    (if open-source-kernel-module?
+                        nvidia-module-open
+                        nvidia-module)))))
+      (,nvdb . ,(service nvidia-service-type
+                  (nvidia-configuration
+                   (driver nvdb)
+                   (firmware nvidia-firmware-beta)
+                   (module
+                    (if open-source-kernel-module?
+                        nvidia-module-open-beta
+                        nvidia-module-beta)))))))
+  (lambda (os)
+    (operating-system
+      (inherit os)
+      (kernel-arguments
+       `("modprobe.blacklist=nouveau"
+         ,@(if kernel-mode-setting?
+               '("nvidia_drm.modeset=1")
+               '())
+         ,@(operating-system-user-kernel-arguments os)))
+      (services
+       `(,(or (assoc-ref %presets driver)
+              (leave
+               (G_ "no NVIDIA service configuration available for '~a'~%")
+               (package-name driver)))
+         ,@(operating-system-user-services os))))))
