@@ -15,7 +15,8 @@
   #:use-module (gnu packages package-management)
   #:use-module (nongnu packages linux)
   #:use-module (nongnu packages nvidia)
-  #:export (nonguix-transformation-guix))
+  #:export (nonguix-transformation-guix
+            nonguix-transformation-linux))
 
 (define* (nonguix-transformation-guix #:key (substitutes? #t)
                                       (channel? #t)
@@ -75,3 +76,16 @@ FIXME: GUIX-SOURCE? is disabled by default due to performance issue."
                         ,@(if substitutes?
                               '("https://substitutes.nonguix.org")
                               '()))))))))))
+
+(define* (nonguix-transformation-linux #:key (linux linux)
+                                       (firmware (list linux-firmware))
+                                       (initrd microcode-initrd))
+  "Return a procedure that transforms an operating system, setting up
+LINUX (default: linux) kernel, with FIRMWARE (default: (list linux-firmware))
+and INITRD (default: microcode-initrd)."
+  (lambda (os)
+    (operating-system
+      (inherit os)
+      (kernel linux)
+      (firmware firmware)
+      (initrd initrd))))
