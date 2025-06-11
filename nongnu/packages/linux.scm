@@ -333,7 +333,9 @@ stable, responsive and smooth desktop experience.")))
 
 ;; Linux-XanMod packages
 (define-public linux-xanmod
-  (make-linux-xanmod linux-xanmod-version
+  (deprecated-package "linux-xanmod" linux)
+  ;; FIXME: Unable to boot.
+  #;(make-linux-xanmod linux-xanmod-version
                      linux-xanmod-revision
                      linux-xanmod-source))
 
