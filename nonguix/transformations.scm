@@ -17,7 +17,8 @@
   #:use-module (nongnu packages nvidia)
   #:export (nonguix-transformation-guix
             nonguix-transformation-linux
-            nonguix-transformation-nvidia))
+            nonguix-transformation-nvidia)
+  #:re-export (replace-mesa))
 
 (define* (nonguix-transformation-guix #:key (substitutes? #t)
                                       (channel? #t)
