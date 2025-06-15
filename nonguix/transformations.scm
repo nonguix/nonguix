@@ -2,6 +2,8 @@
 ;;; Copyright © 2025 Hilton Chain <hako@ultrarare.space>
 
 (define-module (nonguix transformations)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-26)
   #:use-module (guix channels)
   #:use-module (guix diagnostics)
   #:use-module (guix gexp)
@@ -74,10 +76,11 @@ FIXME: GUIX-SOURCE? is disabled by default due to performance issue."
                       (cons %nonguix-signing-key
                             (guix-configuration-authorized-keys config)))
                      (substitute-urls
-                      `(,@(guix-configuration-substitute-urls config)
-                        ,@(if substitutes?
-                              '("https://substitutes.nonguix.org")
-                              '()))))))))))
+                      (delete-duplicates
+                       `(,@(guix-configuration-substitute-urls config)
+                         ,@(if substitutes?
+                               '("https://substitutes.nonguix.org")
+                               '())))))))))))
 
 (define* (nonguix-transformation-linux #:key (linux linux)
                                        (firmware (list linux-firmware))
@@ -128,10 +131,13 @@ TODO: Xorg configuration."
     (operating-system
       (inherit os)
       (kernel-arguments
-       (cons* "modprobe.blacklist=nouveau"
-              (string-append
-               "nvidia_drm.modeset=" (if kernel-mode-setting? "1" "0"))
-              (operating-system-user-kernel-arguments os)))
+       (delete-duplicates
+        (cons* "modprobe.blacklist=nouveau"
+               (string-append
+                "nvidia_drm.modeset=" (if kernel-mode-setting? "1" "0"))
+               (remove
+                (cut string-prefix? "nvidia_drm.modeset=" <>)
+                (operating-system-user-kernel-arguments os)))))
       (services
        `(,(or (assoc-ref %presets driver)
               (leave
