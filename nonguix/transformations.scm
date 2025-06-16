@@ -128,11 +128,10 @@ TODO: Xorg configuration."
     (operating-system
       (inherit os)
       (kernel-arguments
-       `("modprobe.blacklist=nouveau"
-         ,@(if kernel-mode-setting?
-               '("nvidia_drm.modeset=1")
-               '())
-         ,@(operating-system-user-kernel-arguments os)))
+       (cons* "modprobe.blacklist=nouveau"
+              (string-append
+               "nvidia_drm.modeset=" (if kernel-mode-setting? "1" "0"))
+              (operating-system-user-kernel-arguments os)))
       (services
        `(,(or (assoc-ref %presets driver)
               (leave
