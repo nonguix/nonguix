@@ -48,7 +48,9 @@
      (list
       #:wrapper-plan
       #~'(("electron" (("out" "/share/electron")
-                       ("nss" "/lib/nss"))))
+                       ("nss" "/lib/nss")))
+          "chrome-sandbox"
+          "chrome_crashpad_handler")
       #:install-plan
       #~'(("." "share/electron/" #:include
            ("electron"
