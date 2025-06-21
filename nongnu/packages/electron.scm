@@ -17,6 +17,7 @@
   #:use-module (ice-9 match)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages gtk)
+  #:use-module (gnu packages nss)
   #:use-module (gnu packages video))
 
 (define (electron-source version hash)
@@ -46,10 +47,8 @@
     (arguments
      (list
       #:wrapper-plan
-      #~'("electron"
-          "libffmpeg.so"
-          "libGLESv2.so"
-          "libEGL.so")
+      #~'(("electron" (("out" "/share/electron")
+                       ("nss" "/lib/nss"))))
       #:install-plan
       #~'(("." "share/electron/" #:include
            ("electron"
@@ -69,20 +68,14 @@
           ("locales" "share/electron/"))
       #:phases
       #~(modify-phases %standard-phases
-          (add-before 'install-wrapper 'wrap-where-patchelf-does-not-work
-            (lambda* (#:key inputs #:allow-other-keys)
-              (let ((bin (string-append #$output "/share/electron/electron"))
-                    (wrapper (string-append #$output "/bin/electron")))
-                (mkdir-p (dirname wrapper))
-                (make-wrapper wrapper bin
-                              `("LD_LIBRARY_PATH" ":"
-                                prefix
-                                (,(string-join
-                                   (list
-                                    (string-append out "/share/electron"))
-                                   ":"))))))))))
+          (add-after 'install 'symlink-binary-file
+            (lambda _
+              (let ((bin (string-append #$output "/bin")))
+                (mkdir-p bin)
+                (symlink (string-append #$output "/share/electron/electron")
+                         (string-append bin "/electron"))))))))
     (native-inputs (list unzip))
-    (inputs (list ffmpeg gdk-pixbuf))
+    (inputs (list ffmpeg gdk-pixbuf nss))
     (home-page "https://www.electronjs.org/")
     (synopsis "Cross platform desktop application shell")
     (description "The Electron framework lets you write cross-platform desktop
