@@ -17,7 +17,7 @@
 ;;; Copyright © 2020-2025 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2020 Zhu Zihao <all_but_last@163.com>
 ;;; Copyright © 2021 pineapples <guixuser6392@protonmail.com>
-;;; Copyright © 2021, 2024 Brice Waegeneire <brice@waegenei.re>
+;;; Copyright © 2021, 2024, 2025 Brice Waegeneire <brice@waegenei.re>
 ;;; Copyright © 2021, 2022, 2023 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2022 Pierre Langlois <pierre.langlois@gmx.com>
 ;;; Copyright © 2023-2025 Tomas Volf <wolf@wolfsden.cz>
@@ -63,6 +63,7 @@
   #:use-module (gnu packages node)
   #:use-module (gnu packages nss)
   #:use-module (gnu packages perl)
+  #:use-module (gnu packages pciutils)
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages pulseaudio)
   #:use-module (gnu packages python)
@@ -106,7 +107,8 @@
                      %load-path)
                 patch))
              '("firefox-esr-compare-paths.patch"
-               "firefox-esr-use-system-wide-dir.patch")))
+               "firefox-esr-use-system-wide-dir.patch"
+               "firefox-esr-add-store-to-rdd-allowlist.patch")))
        ;; XXX: 75 Mo (800+ Mo uncompressed) of unused tests.
        ;; Removing it makes it possible to compile on some systems.
        (modules '((guix build utils)))
@@ -351,6 +353,20 @@
                                   (string-drop hash 8)))))))
           (replace 'install
             (lambda _ (invoke "./mach" "install")))
+          (add-after 'install 'wrap-glxtest
+            ;; glxtest uses dlopen() to load mesa and pci
+            ;; libs, wrap it to set LD_LIBRARY_PATH.
+            (lambda* (#:key inputs outputs #:allow-other-keys)
+              (let* ((out (assoc-ref outputs "out"))
+                     (lib (string-append out "/lib"))
+                     (libs (map
+                            (lambda (lib-name)
+                              (string-append (assoc-ref inputs
+                                                        lib-name)
+                                             "/lib"))
+                            '("mesa" "pciutils"))))
+                (wrap-program (car (find-files lib "^glxtest$"))
+                  `("LD_LIBRARY_PATH" prefix ,libs)))))
           (add-after 'install 'wrap-program
             (lambda* (#:key inputs outputs #:allow-other-keys)
               ;; The following two functions are from Guix's icecat package in
@@ -380,28 +396,11 @@
                      ;; and libva depend on).
                      (pciaccess-lib (string-append (assoc-ref inputs "libpciaccess")
                                                    "/lib"))
-                     ;; VA-API is run in the RDD (Remote Data Decoder) sandbox
-                     ;; and must be explicitly given access to files it needs.
-                     ;; Rather than adding the whole store (as Nix had
-                     ;; upstream do, see
-                     ;; <https://github.com/NixOS/nixpkgs/pull/165964> and
-                     ;; linked upstream patches), we can just follow the
-                     ;; runpaths of the needed libraries to add everything to
-                     ;; LD_LIBRARY_PATH.  These will then be accessible in the
-                     ;; RDD sandbox.
-                     ;; TODO: Properly handle the runpath of libraries needed
-                     ;; (for RDD) recursively, so the explicit libpciaccess
-                     ;; can be removed.
-                     (rdd-whitelist
-                      (map (cut string-append <> "/")
-                           (delete-duplicates
-                            (append-map runpaths-of-input
-                                        '("mesa" "ffmpeg")))))
                      (pulseaudio-lib (string-append (assoc-ref inputs "pulseaudio")
                                                     "/lib"))
                      ;; For sharing on Wayland
                      (pipewire-lib (string-append (assoc-ref inputs "pipewire")
-                                                    "/lib"))
+                                                  "/lib"))
                      ;; For U2F and WebAuthn
                      (eudev-lib (string-append (assoc-ref inputs "eudev") "/lib"))
                      (gtk-share (string-append (assoc-ref inputs "gtk+")
@@ -409,7 +408,7 @@
                 (wrap-program (car (find-files lib "^firefox$"))
                   `("LD_LIBRARY_PATH" prefix (,mesa-lib ,libnotify-lib ,libva-lib
                                               ,pciaccess-lib ,pulseaudio-lib ,eudev-lib
-                                              ,@rdd-whitelist ,pipewire-lib))
+                                              ,pipewire-lib))
                   `("XDG_DATA_DIRS" prefix (,gtk-share))
                   `("MOZ_LEGACY_PROFILES" = ("1"))
                   `("MOZ_ALLOW_DOWNGRADE" = ("1"))))))
@@ -485,6 +484,7 @@
         nspr-4.32
         ;; nss
         pango
+        pciutils
         pipewire
         pixman
         pulseaudio
@@ -550,7 +550,8 @@ Release (ESR) version.")
                 patch))
              '("firefox-restore-desktop-files.patch"
                "firefox-ge-138-compare-paths.patch"
-               "firefox-use-system-wide-dir.patch")))
+               "firefox-use-system-wide-dir.patch"
+               "firefox-add-store-to-rdd-allowlist.patch")))
        ;; XXX: 75 Mo (800+ Mo uncompressed) of unused tests.
        ;; Removing it makes it possible to compile on some systems.
        (modules '((guix build utils)))
