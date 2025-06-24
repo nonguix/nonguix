@@ -352,14 +352,14 @@ stable, responsive and smooth desktop experience.")))
 (define-public linux-firmware
   (package
     (name "linux-firmware")
-    (version "20250509")
+    (version "20250613")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://kernel.org/linux/kernel/firmware/"
                                   "linux-firmware-" version ".tar.xz"))
               (sha256
                (base32
-                "0gkhpl60iw83pa8pq4hf8rrrc8nk8kjychsnrcq838i6y9k0vipj"))))
+                "1pkz38wi9gljipzs9d2wri97p866vqqan872hwjrvgx8ghrl61yl"))))
     (build-system gnu-build-system)
     (arguments
      (list #:tests? #f
