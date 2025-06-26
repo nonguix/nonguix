@@ -2,10 +2,10 @@ Replace "/usr/lib/mozilla" (the system-wide directory for extensions and
 native manifests) with "$ICECAT_SYSTEM_DIR".
 
 diff --git a/toolkit/xre/nsXREDirProvider.cpp b/toolkit/xre/nsXREDirProvider.cpp
-index d3af49b495..4beef0aa7e 100644
+index e3be04e70c..a3501c4f44 100644
 --- a/toolkit/xre/nsXREDirProvider.cpp
 +++ b/toolkit/xre/nsXREDirProvider.cpp
-@@ -296,24 +296,12 @@ nsresult nsXREDirProvider::GetBackgroundTasksProfilesRootDir(
+@@ -280,24 +280,11 @@ nsresult nsXREDirProvider::GetBackgroundTasksProfilesRootDir(
  static nsresult GetSystemParentDirectory(nsIFile** aFile) {
    nsresult rv;
    nsCOMPtr<nsIFile> localDir;
@@ -25,13 +25,12 @@ index d3af49b495..4beef0aa7e 100644
 -      "/usr/lib/mozilla"_ns
 -#    endif
 -      ;
--  rv = NS_NewNativeLocalFile(dirname, false, getter_AddRefs(localDir));
+-  rv = NS_NewNativeLocalFile(dirname, getter_AddRefs(localDir));
 -#  endif
-+
 +  const char* systemParentDir = getenv("ICECAT_SYSTEM_DIR");
 +  if (!systemParentDir || !*systemParentDir) return NS_ERROR_FAILURE;
 +
-+  rv = NS_NewNativeLocalFile(nsDependentCString(systemParentDir), false,
++  rv = NS_NewNativeLocalFile(nsDependentCString(systemParentDir),
 +                             getter_AddRefs(localDir));
  
    if (NS_SUCCEEDED(rv)) {
