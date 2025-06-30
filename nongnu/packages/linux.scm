@@ -23,7 +23,7 @@
 ;;; Copyright © 2023 Jelle Licht <jlicht@fsfe.org>
 ;;; Copyright © 2023 Adam Kandur <rndd@tuta.io>
 ;;; Copyright © 2023 Hilton Chain <hako@ultrarare.space>
-;;; Copyright © 2023 Ada Stevenson <adanskana@gmail.com>
+;;; Copyright © 2023, 2024, 2025 Ada Stevenson <adanskana@gmail.com>
 ;;; Copyright © 2023 Tomas Volf <~@wolfsden.cz>
 ;;; Copyright © 2023 PRESFIL <presfil@protonmail.com>
 ;;; Copyright © 2024, 2025 Maxim Cournoyer <maxim.cournoyer@gmail.com>
@@ -352,14 +352,14 @@ stable, responsive and smooth desktop experience.")))
 (define-public linux-firmware
   (package
     (name "linux-firmware")
-    (version "20250613")
+    (version "20250627")
     (source (origin
               (method url-fetch)
               (uri (string-append "mirror://kernel.org/linux/kernel/firmware/"
                                   "linux-firmware-" version ".tar.xz"))
               (sha256
                (base32
-                "1pkz38wi9gljipzs9d2wri97p866vqqan872hwjrvgx8ghrl61yl"))))
+                "12bb5alicd7vxv490n2akaqyndfi7kp2z02qjnzpldiqlp9b3vzd"))))
     (build-system gnu-build-system)
     (arguments
      (list #:tests? #f
