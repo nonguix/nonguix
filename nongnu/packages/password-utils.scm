@@ -12,7 +12,7 @@
 (define-public bitwarden-desktop
   (package
     (name "bitwarden-desktop")
-    (version "2025.5.1")
+    (version "2025.6.1")
     (source
      (origin
        (method url-fetch)
@@ -22,7 +22,7 @@
        (file-name (string-append name "-" version ".deb"))
        (sha256
         (base32
-         "0q0jwhn6mbfwnkrxl99qxqf0qqns1b3n7w4ndqghw7hkz8aywd2s"))))
+         "15zd3prfkgh52mjjw1904hpdakmp8gwn0151x5rqi4m29j2cmmrq"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list
