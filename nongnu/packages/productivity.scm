@@ -316,7 +316,7 @@ LibreOffice, and Google Docs for over 10,000 citation styles.")
                #:name "Obsidian"
                #:type "Application"
                #:generic-name "Markdown Editor"
-               #:exec (string-append #$output "/obsidian")
+               #:exec (string-append #$output "/bin/obsidian")
                #:icon "obsidian"
                #:keywords '("obsidian")
                #:categories '("Application" "Office")
