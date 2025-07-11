@@ -50,6 +50,7 @@
   #:use-module (gnu packages python)
   #:use-module (gnu packages python-web)
   #:use-module (gnu packages python-xyz)
+  #:use-module (gnu packages tls)
   #:use-module (gnu packages toolkits)
   #:use-module (gnu packages video)
   #:use-module (gnu packages xorg)
@@ -225,6 +226,7 @@ implementation with gogdl and Amazon Games using Nile.")
 
 (define heroic-extra-client-libs
   `(("curl" ,curl)                      ; Required for Heroic to download e.g. Wine.
+    ("openssl" ,openssl)                ; Required for MonoGame mods.
     ("which" ,which)                    ; Heroic complains about trying to use which (though works).
     ("gtk+" ,gtk+)))                    ; Required for Heroic interface (gtk filechooser schema).
 
