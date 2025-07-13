@@ -1146,7 +1146,7 @@ giving you trouble, you can try this module.")
      ;; for a new kernel release should be as simple as chaging the commit to
      ;; the newest available and adding any new patches.
      (map (lambda (name hash)
-            (let ((commit "9a5a0d7195e0f6b05ff97e948b97fb0b7427cbf2"))
+            (let ((commit "b0d19578ebd0daae9c5b7f9e9511a6d73ac4d957"))
               (origin
                 (method url-fetch)
                 (uri (string-append
@@ -1183,7 +1183,11 @@ giving you trouble, you can try this module.")
             "wl-kmod-027_wpa_supplicant-2.11_add_max_scan_ie_len.patch"
             "wl-kmod-028_kernel_6.12_adaptation.patch"
             "wl-kmod-029_kernel_6.13_adaptation.patch"
-            "wl-kmod-030_kernel_6.14_adaptation.patch")
+            "wl-kmod-030_kernel_6.14_adaptation.patch"
+            "wl-kmod-031_replace_EXTRA_CFLAGS_EXTRA_LDFLAGS_with_ccflags-y_ldflags-y.patch"
+            "wl-kmod-032_add_MODULE_DESCRIPTION_macro.patch"
+            "wl-kmod-033_disable_objtool_add_warning_unmaintained.patch"
+            "wl-kmod-034_kernel_6.15_adaptation_replace_del_timer_with_timer_delete.patch")
           ;; find * -name '*.patch' -exec sh -c 'printf "\"%s\"\n" "$(guix hash {})"' \;
           '("0lxj36r90kxhlfm3r0byh3p2l1dw9ama658ysfwib08ln5322mrq"
             "0h8wck6akys7dxxwqgax9x7mninfx3ypy2af3drrarksmcvv4v2j"
@@ -1214,7 +1218,11 @@ giving you trouble, you can try this module.")
             "138w812969d54wa184jaghmi0wmkvfi63mnswcyxg10ykaglk1rn"
             "14wc1ba6kcg8b9prvzvhi0wplq5m3cnbghybi8i2kxnh1zyw53gk"
             "0ys1n01ydhafrqqv68c0ijm39m491xp9qacinzf6svpirbs0ns84"
-            "0ky90dz8gkf5z1h0253a1g8z6ixypm4jfrzb1x9z415m2al4afc7")))
+            "0ky90dz8gkf5z1h0253a1g8z6ixypm4jfrzb1x9z415m2al4afc7"
+            "17l6q016l1xw55l79v64qfgj50p5s8lskw0vid6785b9va0ifknj"
+            "1kl77y3n73piyqdvr0brs53bydid1pjrkkvvaqyzz3pjrm69xvbg"
+            "19xbxxfi4yqqcvf40xspidznr3f6f900rmp0b9nfb2727a51l4p7"
+            "119ya966kg4ikjw51zsvbl9wkrjx82bhvznq9c8csr2v4n9h7h90")))
     (sha256
      (base32
       "1gj485qqr190idilacpxwgqyw21il03zph2rddizgj7fbd6pfyaz"))))
