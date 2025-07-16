@@ -99,6 +99,7 @@ some freedo package or an output of package-version procedure."
                    ;; Use module options to override this:
                    ;; radeon.cik_support=0 amdgpu.cik_support=1
                    ("3.10" . "CONFIG_DRM_AMDGPU_CIK=y")
+                   ("3.10" . "CONFIG_DRM_AMDGPU_SI=y")
                    ;; Driver for MediaTek mt7921e wireless chipset
                    ("5.15" . "CONFIG_MT7921E=m")
                    ;; Activate driver module for RT1318/RT713 (Lunar Lake)
