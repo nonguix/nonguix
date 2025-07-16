@@ -28,6 +28,7 @@
 ;;; Copyright © 2023 PRESFIL <presfil@protonmail.com>
 ;;; Copyright © 2024, 2025 Maxim Cournoyer <maxim.cournoyer@gmail.com>
 ;;; Copyright © 2025 David Wilson <david@systemcrafters.net>
+;;; Copyright © 2025 Murilo <murilo@disroot.org>
 
 (define-module (nongnu packages linux)
   #:use-module (gnu packages)
@@ -94,6 +95,10 @@ some freedo package or an output of package-version procedure."
                  '(
                    ;; Driver for MT7612U-based wireless USB 3.0 dongles.
                    ("3.10" . "CONFIG_MT76x2U=m")
+                   ;; Enable support for CIK (Sea Islands) asics
+                   ;; Use module options to override this:
+                   ;; radeon.cik_support=0 amdgpu.cik_support=1
+                   ("3.10" . "CONFIG_DRM_AMDGPU_CIK=y")
                    ;; Driver for MediaTek mt7921e wireless chipset
                    ("5.15" . "CONFIG_MT7921E=m")
                    ;; Activate driver module for RT1318/RT713 (Lunar Lake)
