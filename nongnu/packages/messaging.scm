@@ -111,7 +111,13 @@ its core.")
                    ;; Fix the .desktop file binary location.
                    (substitute* '("share/applications/signal-desktop.desktop")
                      (("/opt/Signal/")
-                      (string-append #$output "/bin/")))))
+                      (string-append #$output "/bin/"))
+                     ;; Use a lowercase 'signal' WMClass, to match the
+                     ;; application ID, otherwise the icon is not displayed
+                     ;; correctly (see:
+                     ;; <https://github.com/signalapp/Signal-Desktop/issues/6868>)
+                     (("StartupWMClass=Signal")
+                      "StartupWMClass=signal"))))
                (add-after 'install 'symlink-binary-file
                  (lambda _
                    (mkdir-p (string-append #$output "/bin"))
