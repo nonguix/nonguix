@@ -307,7 +307,7 @@ Browser source."))))
 (define-public grayjay
   (package
     (name "grayjay")
-    (version "8")
+    (version "9")
     (source
      (origin
        (method url-fetch)
@@ -316,7 +316,7 @@ Browser source."))))
                            version ".zip"))
        (file-name (string-append name "-" version "-x86_64.zip"))
        (sha256
-        (base32 "168p343wn33c8fjm75fz1smr3z1gw09jp7r1b7givyqkiv02pq25"))))
+        (base32 "1k27rlqbmhfc3v4x4vfl7kvshmmp0dvwra94bi0jr2anfyrzvh0j"))))
     (supported-systems '("x86_64-linux"))
     (build-system binary-build-system)
     (arguments
