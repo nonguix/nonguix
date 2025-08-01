@@ -42,7 +42,6 @@
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
   #:use-module (gnu packages compression)
-  #:use-module (gnu packages crates-io)
   #:use-module (gnu packages cups)
   #:use-module (gnu packages fontutils)
   #:use-module (gnu packages gl)
