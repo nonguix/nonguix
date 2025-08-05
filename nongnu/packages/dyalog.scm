@@ -65,7 +65,7 @@
                   glib
                   glibc
                   gtk+
-                  icu4c-70 ; incompatible with 71
+                  icu4c
                   libdrm
                   libx11
                   libxcb
