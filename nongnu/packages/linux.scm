@@ -7,7 +7,7 @@
 ;;; Copyright © 2020-2025 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2020, 2022 Michael Rohleder <mike@rohleder.de>
 ;;; Copyright © 2020, 2021, 2022 Tobias Geerinckx-Rice <me@tobias.gr>
-;;; Copyright © 2020, 2021, 2022 Zhu Zihao <all_but_last@163.com>
+;;; Copyright © 2020-2023, 2025 Zhu Zihao <all_but_last@163.com>
 ;;; Copyright © 2021 Mathieu Othacehe <m.othacehe@gmail.com>
 ;;; Copyright © 2021 Brice Waegeneire <brice@waegenei.re>
 ;;; Copyright © 2021 Risto Stevcev <me@risto.codes>
@@ -981,8 +981,8 @@ network adapters.")
       (license gpl2))))
 
 (define-public rtl8821ce-linux-module
-  (let ((commit "98cff1d7dcbf17b36a98bac342df75dfe0b79017")
-        (revision "13"))
+  (let ((commit "66c015af7738039a2045b6da755875e126d3fe73")
+        (revision "14"))
     (package
       (name "rtl8821ce-linux-module")
       (version (git-version "0.0.0" revision commit))
@@ -995,7 +995,7 @@ network adapters.")
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "0h254rasg0ppxf402hdi8p2vd1p4lh9qhgh5p3iyfnikf49hjxfv"))))
+           "042x2i390asl4w6vwbdd9qwxdzhhjdwgfipf4nkix899cixj0kr5"))))
       (build-system linux-module-build-system)
       (arguments
        (list #:make-flags
