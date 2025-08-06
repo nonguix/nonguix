@@ -21,18 +21,9 @@
 
 (define nvidia-latest-url "https://www.nvidia.com/en-us/drivers/unix/")
 
-(define (archive->guix-arch system)
-  (match system
-    ("https://www.nvidia.com/object/linux-amd64-display-archive.html"
-     "x86_64-linux")
-    ("https://www.nvidia.com/en-us/drivers/unix/linux-aarch64-archive/"
-     "aarch64-linux")
-    (_ #f)))
-
-(define (archive? cand)
-  (or (string= cand (string-append nvidia-latest-url "linux-aarch64-archive/"))
-      (and (string-prefix? "https://www.nvidia.com/object/" cand)
-           (string-suffix? "-archive.html" cand))))
+(define nvidia-system-links
+  '(("https://download.nvidia.com/XFree86/Linux-x86_64/" . "x86_64-linux")
+    ("https://download.nvidia.com/XFree86/Linux-aarch64/" . "aarch64-linux")))
 
 (define nvidia-versions
   (memoize
@@ -68,9 +59,7 @@
                      (list (or (string= version "Archive")
                                (string-trim version))
                            ...)
-                     (list (if (archive? url)
-                               (archive->guix-arch url)
-                               url)
+                     (list (or (assoc-ref nvidia-system-links url) url)
                            ...)))))
             (system #f)
             (versions
