@@ -4,7 +4,7 @@
 ;;; Copyright © 2021 pineapples
 ;;; Copyright © 2021 Jean-Baptiste Volatier <jbv@pm.me>
 ;;; Copyright © 2021 Kozo <kozodev@runbox.com>
-;;; Copyright © 2021, 2022 John Kehayias <john.kehayias@protonmail.com>
+;;; Copyright © 2021-2025 John Kehayias <john.kehayias@protonmail.com>
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2023 Attila Lendvai <attila@lendvai.name>
 ;;; Copyright © 2023 Elijah Malaby
@@ -324,6 +324,7 @@ in a sandboxed FHS environment."
                                  "^LIBGL_DEBUG$"))
                 (expose `("/dev/bus/usb" ; Needed for libusb.
                           "/dev/dri"
+                          ,@(exists-> "/dev/ntsync") ; Needed for NTSYNC.
                           "/dev/input"  ; Needed for controller input.
                           "/dev/uinput" ; Needed for Steam Input.
                           ,@(exists-> "/dev/nvidia0") ; needed for nvidia proprietary driver
