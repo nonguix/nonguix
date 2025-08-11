@@ -43,6 +43,7 @@
 (define-module (nonguix multiarch-container)
   #:use-module (gnu packages)
   #:use-module (gnu packages base)
+  #:use-module (gnu packages bash)
   #:use-module (guix build-system trivial)
   #:use-module (guix gexp)
   #:use-module (guix records)
@@ -451,7 +452,9 @@ the exact path for the fhs-internal package."
                  (package-version (ngc-wrap-package container))))
     (source #f)
     (inputs `(("fhs-internal-script"
-               ,(make-internal-script container))))
+               ,(make-internal-script container))
+              ;; For ‘wrap-program’.
+              ("bash-minimal" ,bash-minimal)))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
@@ -462,7 +465,13 @@ the exact path for the fhs-internal package."
                 (internal-target (assoc-ref %build-inputs "fhs-internal-script"))
                 (internal-dest (string-append bin "/" ,(ngc-internal-name container))))
            (mkdir-p bin)
-           (symlink internal-target internal-dest)))))
+           (symlink internal-target internal-dest)
+
+           ;; We want to install the locale manually after symlinking it.
+           ;; See <https://gitlab.com/nonguix/nonguix/-/issues/407>
+           (wrap-program internal-dest
+             #:sh (search-input-file %build-inputs "/bin/bash")
+             '("GUILE_INSTALL_LOCALE" = ("0")))))))
     (home-page #f)
     (synopsis "Script used to set up sandbox")
     (description "Script used inside the FHS Guix container to set up the
@@ -612,6 +621,15 @@ application."
              ;; Set GStreamer plugin paths so both 64-bit and 32-bit plugins are visible
              ;; inside the container. Needed for GStreamer plugins to load in container.
              (setenv "GST_PLUGIN_SYSTEM_PATH" "/lib64/gstreamer-1.0:/lib/gstreamer-1.0")
+
+             ;; Try to install the locale after symlinking it.
+             ;; See <https://gitlab.com/nonguix/nonguix/-/issues/407>
+             (with-exception-handler
+                 (lambda ()
+                   (format #t "~%~%Failed to install locale. Is glibc-locales available in the container?~%"))
+               (lambda ()
+                 (setlocale LC_ALL ""))
+               #:unwind? #t)
 
              ;; Process FHS-specific command line options.
              (let* ((options (getopt-long (or fhs-args '("")) fhs-option-spec))
