@@ -45,6 +45,7 @@
   #:use-module (gnu packages logging)
   #:use-module (gnu packages lsof)
   #:use-module (nongnu packages nvidia)
+  #:use-module (gnu packages nss)
   #:use-module (gnu packages pciutils)
   #:use-module (gnu packages pulseaudio)
   #:use-module (gnu packages python)
