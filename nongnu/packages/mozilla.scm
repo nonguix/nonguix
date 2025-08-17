@@ -22,6 +22,7 @@
 ;;; Copyright © 2022 Pierre Langlois <pierre.langlois@gmx.com>
 ;;; Copyright © 2023-2025 Tomas Volf <wolf@wolfsden.cz>
 ;;; Copyright © 2025 Nicolas Graves <ngraves@ngraves.fr>
+;;; Copyright © 2025 caem <me@caem.dev>
 
 (define-module (nongnu packages mozilla)
   #:use-module (srfi srfi-26)
@@ -481,7 +482,7 @@
         libxt
         mesa
         mit-krb5
-        nspr-4.32
+        nspr
         ;; nss
         pango
         pciutils
