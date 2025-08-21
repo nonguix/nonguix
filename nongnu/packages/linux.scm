@@ -178,9 +178,6 @@ on hardware which requires nonfree software to function."))))
 (define-public linux-6.15
   (corrupt-linux linux-libre-6.15))
 
-(define-public linux-6.14
-  (corrupt-linux linux-libre-6.14))
-
 (define-public linux-6.12
   (corrupt-linux linux-libre-6.12))
 
