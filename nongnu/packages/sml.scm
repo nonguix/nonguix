@@ -30,9 +30,9 @@
       (build-system gnu-build-system)
       (arguments
        (list #:make-flags
-             #~(list (string-append "CC=" #$(cc-for-target))
+             #~(list (string-append "CC=" #$(cc-for-target) " --std=gnu89")
                      (string-append "PREFIX=" #$output)
-                     "-C" "src" )
+                     "-C" "src")
              #:phases
              #~(modify-phases %standard-phases
                  (delete 'configure)    ;No configure script.
@@ -57,9 +57,12 @@
        "Moscow ML is a light-weight implementation of Standard ML (SML), a
 strict functional language used in teaching and research")
       (license
-       ;; XXX: This package is redistributable but has licensing issue, its own
-       ;; code is GPL but contain non-free bundled sources.  GPL is commented
-       ;; here because showing it along with nonfree ones is confusing.
-       (list ;; license-gnu:gpl2
-             (license:nonfree "file://copyright/copyrght.att")
-             (license:nonfree "file://copyright/copyrght.cl"))))))
+       (list (license-gnu:fsf-free
+              "file://copyright/copyrght.att"
+              "Standard ML of New Jersey License")
+             ;; XXX: License issue: the two licenses below are conflict.
+             (license:nonfree
+              "file://copyright/copyrght.cl"
+              "Copyright notice from INRIA, no commercial distribution, apply
+same conditions to derivative works")
+             license-gnu:gpl2)))))
