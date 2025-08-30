@@ -834,11 +834,10 @@ variables @code{__GLX_VENDOR_LIBRARY_NAME=nvidia} and
 
 (define* (replace-mesa obj #:key (driver nvda))
   (with-transformation
-      (compose (package-input-grafting
-                `((,mesa . ,driver)
-                  (,nvidia-driver . ,driver)))
-               (package-input-grafting
-                `((,ffmpeg . ,ffmpeg-nvenc))))
+      (package-input-grafting
+       `((,mesa . ,driver)
+         (,nvidia-driver . ,driver)
+         (,ffmpeg . ,ffmpeg-nvenc)))
     obj))
 
 
