@@ -242,6 +242,20 @@ specifically designed to be used by Firefox for accelerated decoding of web
 content.")
     (license license:expat)))
 
+(define-public obs-nvidia
+  (package/inherit obs
+    (name "obs-nvidia")
+    (arguments
+     (substitute-keyword-arguments (package-arguments obs)
+       ((#:configure-flags flags #~'())
+        #~(append #$flags '("-DENABLE_NVENC=ON")))))
+    (inputs
+     (modify-inputs (package-inputs obs)
+       (prepend nv-codec-headers)))
+    (synopsis
+     "Live streaming software (with hardware acceleration for NVIDIA graphics
+cards)")))
+
 (define-public obs-with-cef
   (package
     (inherit obs)
