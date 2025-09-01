@@ -245,8 +245,8 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                     ("x86_64-linux" ".")
                     (_ "."))
                 "lib/" #:include-regexp ("^./[^/]+\\.so"))
-               ("." "lib/nvidia/wine/" #:include-regexp ("_?nvngx\\.dll$"))
-               ("." "share/nvidia/" #:include-regexp ("nvidia-application-profiles"))
+               ("." "lib/nvidia/wine/" #:include-regexp ("_?nvngx.*?\\.dll$"))
+               ("." "share/nvidia/" #:include-regexp ("nvidia-application-profiles|nvoptix.bin"))
                ("." "share/egl/egl_external_platform.d/" #:include-regexp ("(gbm|wayland|xcb|xlib)\\.json"))
                ("10_nvidia.json" "share/glvnd/egl_vendor.d/")
                ("90-nvidia.rules" "lib/udev/rules.d/")
@@ -287,6 +287,8 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                    (substitute* '("nvidia_icd.json"
                                   "nvidia_layers.json")
                      (("libGLX_nvidia\\.so\\.." all)
+                      (string-append #$output "/lib/" all))
+                     (("libnvidia-present\\.so\\.[0-9.]*" all)
                       (string-append #$output "/lib/" all)))
 
                    ;; VulkanSC ICD configuration
