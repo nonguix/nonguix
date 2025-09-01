@@ -43,6 +43,8 @@
     (version "27.3.11")
     (source (electron-source version
                              "0qs5n6m0gj0rknjq5aqrbbpqwh2829a1cl51l6xj79p7aiggb9p3"))
+    ;; TODO: Better multi-arch source support for binary pacakges.
+    (supported-systems '("x86_64-linux"))
     (build-system chromium-binary-build-system)
     (arguments
      (list
