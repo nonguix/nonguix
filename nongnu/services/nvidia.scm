@@ -32,7 +32,7 @@
     (list (shepherd-service
            (documentation "Prepare system environment for NVIDIA driver.")
            (provision '(nvidia))
-           (requirement '(kernel-module-loader))
+           (requirement '(udev))
            (one-shot? #t)
            (modules '(((guix build utils) #:select (invoke/quiet))
                       ((rnrs io ports) #:select (get-line))))
