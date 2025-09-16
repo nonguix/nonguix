@@ -161,7 +161,8 @@ implementation with gogdl and Amazon Games using Nile.")
     (home-page "https://store.steampowered.com")
     (synopsis "Digital distribution platform for managing and playing games")
     (description "Steam is a digital software distribution platform created by Valve.")
-    (license (license:nonfree "file:///share/doc/steam/steam_subscriber_agreement.txt"))))
+    (license (license:nonfree "file:///share/doc/steam/steam_subscriber_agreement.txt"))
+    (supported-systems '("x86_64-linux"))))
 
 (define steam-client-libs
   `(("at-spi2-core" ,at-spi2-core)      ; Required (often) for SteamVR interface.
