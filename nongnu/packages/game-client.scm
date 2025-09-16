@@ -105,7 +105,8 @@
     (description "Heroic is an Open Source Game Launcher.  Right now it supports launching
 games from the Epic Games Store using Legendary, GOG Games using our custom
 implementation with gogdl and Amazon Games using Nile.")
-    (license license:gpl3)))
+    (license license:gpl3)
+    (supported-systems '("x86_64-linux"))))
 
 (define steam-client
   (package
