@@ -457,7 +457,7 @@
         cups
         dbus-glib
         freetype
-        ffmpeg
+        ffmpeg-6
         gdk-pixbuf
         glib
         gtk+
