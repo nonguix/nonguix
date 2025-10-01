@@ -47,14 +47,6 @@
   (package
     (inherit ffmpeg)
     (name "ffmpeg-nvenc")
-    (version "6.1.2")
-    (source (origin
-              (method url-fetch)
-              (uri (string-append "https://ffmpeg.org/releases/ffmpeg-"
-                                  version ".tar.xz"))
-              (sha256
-               (base32
-                "0f2fr8ywchhlkdff88lr4d4vscqzsi1ndjh3r5jwbkayf94lcqiv"))))
     (inputs
      (modify-inputs
          (package-inputs ffmpeg)
