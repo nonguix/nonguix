@@ -32,7 +32,7 @@
 (define-public anytype
   (package
     (name "anytype")
-    (version "0.49.0")
+    (version "0.52.4")
     (source
      (origin
        (method url-fetch)
@@ -42,7 +42,7 @@
        (file-name (string-append "anytype-" version ".deb"))
        (sha256
         (base32
-         "17gym5bcbq748ilmhh0vmr64ipi0nm1ap45855zv3wbia7mcs21q"))))
+         "0b6x20wqi428qki6379sjrvq7xfp7g4ghcxc0d2j9nv7vspqmyy6"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list
