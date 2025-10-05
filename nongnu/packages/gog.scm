@@ -22,7 +22,7 @@
 (define-public lgogdownloader
   (package
     (name "lgogdownloader")
-    (version "3.15")
+    (version "3.17")
     (source
      (origin
        (method git-fetch)
@@ -31,7 +31,7 @@
              (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "0bjjn2wam4f2lzmk0hkdxxc7k0wk3f0lyszl0birsr9h3jjpjqw7"))))
+        (base32 "1j828vnj7vn7qwwh10is9cid0i1k38jy3c2sw99qd2kfyp05qi5c"))))
     (build-system qt-build-system)
     (arguments
      `(#:configure-flags '("-DUSE_QT_GUI=ON")
