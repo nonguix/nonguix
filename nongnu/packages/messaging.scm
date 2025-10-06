@@ -37,16 +37,16 @@
 (define-public element-desktop
   (package
     (name "element-desktop")
-    (version "1.11.104")
+    (version "1.12.0")
     (source
      (origin
        (method url-fetch)
        (uri
         (string-append
-         "https://packages.riot.im/debian/pool/main/e/" name "/" name "_" version
+         "https://packages.element.io/debian/pool/main/e/" name "/" name "_" version
          "_amd64.deb"))
        (sha256
-        (base32 "1b1rzcsf0pdgccsl0cmrp9lnrcbhy50ygwkwik7hdnygr2721mbl"))))
+        (base32 "1jib6vzggywj4xjbzw5i4p08zc152acyh4gr9db1gx8p25amr3rl"))))
     (supported-systems '("x86_64-linux"))
     (build-system chromium-binary-build-system)
     (arguments
@@ -71,13 +71,13 @@
                    (mkdir-p (string-append #$output "/bin"))
                    (symlink (string-append #$output "/lib/Element/element-desktop")
                             (string-append #$output "/bin/element-desktop")))))))
-    (home-page "https://github.com/vector-im/element-desktop")
+    (home-page "https://element.io/")
     (synopsis "Matrix collaboration client for desktop")
     (description "Element Desktop is a Matrix client for desktop with Element Web at
 its core.")
     ;; not working?
     (properties
-     '((release-monitoring-url . "https://github.com/vector-im/element-desktop/releases")))
+     '((release-monitoring-url . "https://github.com/element-hq/element-desktop/releases")))
     (license license:asl2.0)))
 
 (define-public signal-desktop
