@@ -19,7 +19,7 @@
   #:use-module (guix gexp)
   #:use-module (nonguix utils)
   #:use-module (guix build-system gnu)
-  #:use-module (guix build-system python)
+  #:use-module (guix build-system pyproject)
   #:use-module (gnu packages audio)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
@@ -49,6 +49,7 @@
   #:use-module (gnu packages pciutils)
   #:use-module (gnu packages pulseaudio)
   #:use-module (gnu packages python)
+  #:use-module (gnu packages python-build)
   #:use-module (gnu packages python-web)
   #:use-module (gnu packages python-xyz)
   #:use-module (gnu packages tls)
@@ -296,26 +297,29 @@ installed.")))
 (define-public heroic-nvidia
   (package-with-alias "heroic-nvidia" (heroic-for nvda)))
 
-(define-public protonup-ng
+(define-public protonup
   (package
-    (name "protonup-ng")
-    (version "0.2.1")
+    (name "protonup")
+    (version "0.1.5")
     (source
      (origin
        (method git-fetch)
        (uri (git-reference
-             (url "https://github.com/cloudishBenne/protonup-ng")
+             (url "https://github.com/AUNaseef/protonup")
              (commit version)))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "0yd2mhhqxzarqxk85zf42s931jzc94f1cssn1hblsqghr79laa45"))))
-    (build-system python-build-system)
+        (base32 "16i6flaljd3fb5dpr915ajxyx5mgfvzh42gx183kssmdy8hhk87r"))))
+    (build-system pyproject-build-system)
     (arguments
      (list #:tests? #f)) ; there are no tests
-    (inputs
-     (list python-configparser python-requests))
-    (home-page "https://github.com/cloudishBenne/protonup-ng")
+    (inputs (list python-configparser python-requests))
+    (native-inputs (list python-setuptools))
+    (home-page "https://github.com/AUNaseef/protonup")
     (synopsis "Manage Proton-GE Installations")
-    (description "ProtonUp-ng is a CLI program and API to automate the installation
-and update of GloriousEggroll's Proton-GE.")
+    (description "Protonup is a CLI program and API to automate the
+installation and update of GloriousEggroll's Proton-GE.")
     (license license:gpl3)))
+
+(define-public protonup-ng
+  (deprecated-package "protonup-ng" protonup))
