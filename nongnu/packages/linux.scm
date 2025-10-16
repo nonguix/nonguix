@@ -29,6 +29,7 @@
 ;;; Copyright © 2024, 2025 Maxim Cournoyer <maxim.cournoyer@gmail.com>
 ;;; Copyright © 2025 David Wilson <david@systemcrafters.net>
 ;;; Copyright © 2025 Murilo <murilo@disroot.org>
+;;; Copyright © 2025 dan <i@dan.games>
 
 (define-module (nongnu packages linux)
   #:use-module (gnu packages)
@@ -1489,3 +1490,23 @@ audio DSPs that can be found on the Intel Skylake architecture.  This
 firmware can be built from source but need to be signed by Intel in order to be
 loaded by Linux.")
     (license bsd-3)))
+
+(define-public mali-csf-firmware
+  (package
+    (inherit linux-firmware)
+    (name "mali-csf-firmware")
+    (arguments
+     (cons* #:license-file-regexp "LICENCE.mali_csffw"
+            (substitute-keyword-arguments (package-arguments linux-firmware)
+              ((#:phases phases #~%standard-phases)
+               #~(modify-phases #$phases
+                   (add-after 'unpack 'select-firmware
+                     #$(select-firmware "^arm/mali/arch10.8/mali_csffw.bin")))))))
+    (home-page "https://developer.arm.com/Architectures/Valhall")
+    (synopsis "Nonfree firmware for ARM Mali Valhall 3rd generation GPUs")
+    (description "Nonfree firmware for ARM Mali Valhall 3rd generation GPUs.
+This package is required for the Panthor kernel driver.")
+    (license
+     (nonfree (string-append
+               "https://git.kernel.org/pub/scm/linux/kernel/git/firmware"
+               "/linux-firmware.git/plain/LICENCE.mali_csffw")))))
