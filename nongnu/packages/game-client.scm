@@ -220,7 +220,8 @@ implementation with gogdl and Amazon Games using Nile.")
     ("mangohud" ,mangohud)
     ("openal" ,openal)                  ; Prevents corrupt audio in Crypt of the Necrodancer.
     ("pulseaudio" ,pulseaudio)          ; Prevents corrupt audio in Sven Coop.
-    ("python" ,python)                  ; Required for KillingFloor2 and Wreckfest.
+    ;; XXX: Change this back to 'python' when it is ungrafted in Guix.
+    ("python" ,python-3.11/fixed)       ; Required for KillingFloor2 and Wreckfest.
     ("spdlog" ,spdlog)))                ; Required for MangoHud.
 
 (define steam-container-libs
