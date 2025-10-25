@@ -34,7 +34,7 @@
      `(#:validate-runpath? #f
        #:strip-binaries? #f             ;; For some reason it breaks the program
        #:patchelf-plan
-       `(("usr/bin/anydesk" ("atk"
+       `(("usr/bin/anydesk" ("at-spi2-core"
                      "cairo"
                      "fontconfig"
                      "freetype"
@@ -97,7 +97,7 @@
                (install-file desktop-file applications))
              #t)))))
     (inputs
-     `(("atk" ,atk)
+     `(("at-spi2-core" ,at-spi2-core)
        ("cairo" ,cairo)
        ("fontconfig" ,fontconfig)
        ("freetype" ,freetype)

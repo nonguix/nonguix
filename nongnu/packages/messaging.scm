@@ -151,9 +151,7 @@ or iOS.")
            ;; Note: it seems like some (all?) of these only do anything in
            ;; LD_LIBRARY_PATH, or at least needed there as well.
            #~(let ((libs '("alsa-lib"
-                           "at-spi2-atk"
                            "at-spi2-core"
-                           "atk"
                            "cairo"
                            "cups"
                            "dbus"
@@ -236,8 +234,6 @@ or iOS.")
                                       ;; aomhost has a shorter needed list,
                                       ;; but untested.
                                       '("alsa-lib"
-                                        "atk"
-                                        "at-spi2-atk"
                                         "at-spi2-core"
                                         "cairo"
                                         "cups"
@@ -277,8 +273,6 @@ or iOS.")
                               #$@(map (lambda (pkg)
                                         (file-append (this-package-input pkg) "/lib"))
                                       '("alsa-lib"
-                                        "atk"
-                                        "at-spi2-atk"
                                         "at-spi2-core"
                                         "cairo"
                                         "cups"
@@ -352,9 +346,7 @@ or iOS.")
                         (#f "Zoom Video Conference")))))))))
     (native-inputs (list tar))
     (inputs (list alsa-lib
-                  at-spi2-atk
                   at-spi2-core
-                  atk
                   bash-minimal
                   cairo
                   cups

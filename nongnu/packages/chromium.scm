@@ -50,9 +50,7 @@
       (arguments
        `(#:patchelf-plan
          `(("Release/libcef.so" ("alsa-lib"
-                                 "at-spi2-atk"
                                  "at-spi2-core"
-                                 "atk"
                                  "cairo"
                                  "cups"
                                  "dbus"
@@ -91,9 +89,7 @@
       (inputs
        (list
         alsa-lib
-        at-spi2-atk
         at-spi2-core
-        atk
         cairo
         cups
         dbus

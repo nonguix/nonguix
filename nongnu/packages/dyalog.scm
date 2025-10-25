@@ -49,9 +49,7 @@
     (build-system gnu-build-system)
     (outputs '("out" "fonts"))
     (inputs (list alsa-lib
-                  at-spi2-atk
                   at-spi2-core
-                  atk
                   cairo
                   coreutils
                   cups
@@ -175,9 +173,7 @@
                                            (string-append (assoc-ref inputs pkg)
                                                           "/lib"))
                                          '("alsa-lib"
-                                           "at-spi2-atk"
                                            "at-spi2-core"
-                                           "atk"
                                            "cairo"
                                            "cups"
                                            "dbus"

@@ -329,9 +329,7 @@ Browser source."))))
      (list #:strip-binaries? #f         ; prevent corruption of .NET programs
            #:patchelf-plan
            #~(let ((libs '("alsa-lib"
-                           "at-spi2-atk"
                            "at-spi2-core"
-                           "atk"
                            "cairo"
                            "cups"
                            "dbus"
@@ -438,9 +436,7 @@ Browser source."))))
                     #:comment "Universal media aggregator"))))))
     (native-inputs (list unzip))
     (inputs (list alsa-lib
-                  at-spi2-atk
                   at-spi2-core
-                  atk
                   bash-minimal
                   cairo
                   cups
