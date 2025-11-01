@@ -86,9 +86,6 @@
                    (substitute* (string-append usr/share "/applications/google-" #$appname ".desktop")
                      (("^Exec=.*") (string-append "Exec=" exe "\n")))
                    (substitute* (string-append usr/share "/gnome-control-center/default-apps/google-" #$appname ".xml")
-                     ((old-exe) exe))
-                   (substitute* (string-append usr/share "/menu/google-" #$appname ".menu")
-                     (("/opt") share)
                      ((old-exe) exe)))))
              (add-after 'install 'install-icons
                 (lambda _
