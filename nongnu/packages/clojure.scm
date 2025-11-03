@@ -25,14 +25,16 @@
 (define leiningen-jar
   (package
     (name "leiningen-jar")
-    (version "2.10.0")
+    (version "2.12.0")
     (source (origin
               (method url-fetch)
-              (uri "https://codeberg.org/attachments/43cebda5-a7c2-405b-b641-5143a00051b5")
+              (uri (string-append
+                    "https://codeberg.org/leiningen/leiningen/releases/download/"
+                    version "/leiningen-" version "-standalone.jar"))
               (file-name "leiningen-standalone.jar")
               (sha256
                (base32
-                "0d5vmpyp9ddxpj1s5c60fv2f5iimz1chbgfhchlaqxa0sfx9jwnj"))))
+                "18hsm37px3yk2v9mdbai76fpsa6iwqcyflnbgkr885v3mxrsa8dp"))))
     (build-system trivial-build-system)
     (arguments
      `(#:modules ((guix build utils))
