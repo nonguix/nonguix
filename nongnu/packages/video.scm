@@ -313,7 +313,7 @@ Browser source."))))
 (define-public grayjay
   (package
     (name "grayjay")
-    (version "9")
+    (version "12")
     (source
      (origin
        (method url-fetch)
@@ -322,7 +322,7 @@ Browser source."))))
                            version ".zip"))
        (file-name (string-append name "-" version "-x86_64.zip"))
        (sha256
-        (base32 "1k27rlqbmhfc3v4x4vfl7kvshmmp0dvwra94bi0jr2anfyrzvh0j"))))
+        (base32 "0m0sq3qwg21wgyplsgq421wryl22gg9c64jnpanzgzsm68aql05s"))))
     (supported-systems '("x86_64-linux"))
     (build-system binary-build-system)
     (arguments
@@ -386,9 +386,11 @@ Browser source."))))
                  ("cef/libGLESv2.so" ,libs)
                  ;; XXX: Can replace with chromium-embedded-framework?
                  ("cef/libcef.so" ,libs)
+                 ("cef/libsteam_api.so" ,libs)
                  ("cef/libvk_swiftshader.so" ,libs)
                  ("cef/libvulkan.so.1" ,libs)
                  ("libe_sqlite3.so" ,libs)
+                 ("libfcast_sender_sdk.so" ,libs)
                  ("libsodium.so" ,libs)))
            #:install-plan ''(("." "lib/grayjay"))
            #:phases
