@@ -2,6 +2,7 @@
 ;;; Copyright © 2019, 2020 Pierre Neidhardt <mail@ambrevar.xyz>
 ;;; Copyright © 2022 Attila Lendvai <attila@lendvai.name>
 ;;; Copyright © 2024 Timotej Lazar <timotej.lazar@araneo.si>
+;;; Copyright © 2025 dan <i@dan.games>
 
 (define-module (nongnu packages game-development)
   #:use-module (ice-9 match)
@@ -9,6 +10,8 @@
   #:use-module ((nonguix licenses) :prefix license:)
   #:use-module (guix packages)
   #:use-module (nonguix build-system binary)
+  #:use-module (nonguix download)
+  #:use-module (nongnu packages dotnet)
   #:use-module (guix build-system gnu)
   #:use-module (guix download)
   #:use-module (guix gexp)
@@ -17,11 +20,13 @@
   #:use-module ((guix licenses) :prefix license:)
   #:use-module (gnu packages audio)
   #:use-module (gnu packages base)
+  #:use-module (gnu packages game-development)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages gl)
   #:use-module (gnu packages gtk)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages pkg-config)
+  #:use-module (gnu packages python)
   #:use-module (gnu packages sdl)
   #:use-module (gnu packages video)
   #:use-module (gnu packages xiph)
@@ -255,3 +260,73 @@ with game files or or put @file{.grp} game files manually in
      "This is the @code{eduke32} engine built with support for the Ion Fury
 game.  Game data is not provided.  Run @command{fury} with the option
 @option{-j} to specify the directory containing @file{fury.grp}.")))
+
+(define-public godot-mono
+  (let ((base godot))
+    (package
+      (inherit base)
+      (name "godot-mono")
+      (arguments
+       (substitute-keyword-arguments (package-arguments base)
+         ((#:scons-flags flags)
+          #~(cons* "module_mono_enabled=yes" #$flags))
+         ((#:phases phases)
+          #~(modify-phases #$phases
+              (add-after 'build 'generate-mono-glue
+                (lambda _
+                  (mkdir "/tmp/dotnet-home")
+                  (setenv "HOME" "/tmp/dotnet-home")
+                  (setenv "NUGET_PACKAGES"
+                          (string-append #+(this-package-native-input
+                                            "restored-nuget-dependencies")
+                                         "/nuget-packages"))
+                  (let ((arch #$(cond ((target-aarch64?) "arm64")
+                                      (else "x86_64"))))
+                    (invoke (string-append "bin/godot.linuxbsd.editor." arch ".mono")
+                            "--headless"
+                            "--generate-mono-glue"
+                            "modules/mono/glue"))
+                  (invoke "modules/mono/build_scripts/build_assemblies.py"
+                          (string-append "--godot-output-dir=" "./bin")
+                          "--godot-platform=linuxbsd")))
+              (replace 'install
+                (lambda* (#:key inputs #:allow-other-keys)
+                  (let ((zenity (search-input-file inputs "bin/zenity"))
+                        (lib (string-append #$output "/lib"))
+                        (bin (string-append #$output "/bin")))
+                    ;; Strip build info from filenames.
+                    (with-directory-excursion "bin"
+                      (for-each
+                       (lambda (file)
+                         (let ((dest (car (string-split (basename file) #\.))))
+                           (rename-file file dest)))
+                       (find-files "." "godot.*\\.linuxbsd\\.editor.*"))
+                      (install-file "godot" lib)
+                      (copy-recursively "GodotSharp"
+                                        (string-append lib "/GodotSharp")))
+                    (mkdir-p bin)
+                    (symlink (string-append lib "/godot")
+                             (string-append bin "/godot"))
+                    ;; Tell the editor where to find zenity for OS.alert().
+                    ;; TODO: This could be changed in
+                    ;; platform/linuxbsd/os_linuxbsd.cpp directly, along with the
+                    ;; other alert programs.
+                    (wrap-program (string-append lib "/godot")
+                      `("PATH" ":" prefix (,(string-append zenity "/bin")))))))))))
+      (inputs
+       (modify-inputs (package-inputs base)
+         (append dotnet)))
+      (native-inputs
+       (modify-inputs (package-native-inputs base)
+         (append python
+                 (origin
+                   (method (nuget-restore #:dotnet dotnet
+                                          #:solutions
+                                          '("modules/mono/editor/GodotTools"
+                                            "modules/mono/editor/Godot.NET.Sdk"
+                                            "modules/mono/glue/GodotSharp")))
+                   (uri (package-source base))
+                   (file-name "restored-nuget-dependencies")
+                   (sha256
+                    (base32
+                     "1lhwmpgnfc880nk0nns65vik7qg0q0kvvg63rhsshp697q8avynf")))))))))
