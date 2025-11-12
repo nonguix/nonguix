@@ -1,5 +1,6 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2019 Julien Lepiller <julien@lepiller.eu>
+;;; Copyright © 2025 dan <i@dan.games>
 
 (define-module (nonguix download)
   #:use-module (guix build-system gnu)
@@ -10,6 +11,7 @@
   #:use-module (guix store)
   #:use-module (ice-9 match)
   #:export (go-mod-vendor
+            nuget-restore
             unredistributable-url-fetch))
 
 (define* (go-mod-vendor #:key go)
@@ -52,6 +54,49 @@ to \"vendored-go-dependencies\" and can be specified by NAME."
        "http_proxy" "https_proxy"
        "LC_ALL" "LC_MESSAGES" "LANG"
        "COLUMNS"))))
+
+(define* (nuget-restore #:key dotnet (solutions '()))
+  (lambda* (src hash-algo hash #:optional name #:key (system (%current-system)))
+    "Return a fixed-output derivation to run \"dotnet restore\" against SRC
+and use the produced \"nuget-packages\" directory as the result.  The
+derivation is expected to have HASH of type HASH-ALGO (a symbol).  File name
+of the derivation defaults to \"restored-nuget-dependencies\" and can be
+specified by NAME."
+
+    (define nss-certs
+      (module-ref (resolve-interface '(gnu packages nss)) 'nss-certs))
+
+    (gexp->derivation
+        (or name "restored-nuget-dependencies")
+      (with-imported-modules %default-gnu-imported-modules
+        #~(begin
+            (use-modules (guix build gnu-build-system)
+                         (guix build utils))
+            ;; HTTPS support.
+            (setenv "SSL_CERT_DIR" #+(file-append nss-certs "/etc/ssl/certs"))
+            ;; dotnet fails to run without a HOME directory.
+            (mkdir "/tmp/dotnet-home")
+
+            ((assoc-ref %standard-phases 'unpack) #:source #+src)
+            (if (nil? (list #$@solutions))
+                (invoke #+(file-append dotnet "/bin/dotnet") "restore")
+                (for-each (lambda (solution)
+                            (invoke #+(file-append dotnet "/bin/dotnet") "restore" solution))
+                          (list #$@solutions)))
+            (copy-recursively "/tmp/dotnet-home/.nuget/packages"
+                              (string-append #$output "/nuget-packages"))))
+      #:system system
+      #:hash-algo hash-algo
+      #:hash hash
+      ;; Is a directory.
+      #:recursive? #t
+      #:env-vars
+      '(("HOME" . "/tmp/dotnet-home"))
+      ;; Honor the user's proxy and locale settings.
+      #:leaked-env-vars
+      '("http_proxy" "https_proxy"
+        "LC_ALL" "LC_MESSAGES" "LANG"
+        "COLUMNS"))))
 
 (define* (unredistributable-url-fetch url hash-algo hash
                                       #:optional name
