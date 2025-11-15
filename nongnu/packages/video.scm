@@ -69,6 +69,28 @@
 @code{h264_nvenc} and @code{hevc_nvenc} hardware encoding on NVIDIA GPUs."))
     (properties '((upstream-name . "ffmpeg")))))
 
+(define-public ffmpeg-6/nvidia
+  (package
+    (inherit ffmpeg-6)
+    (name "ffmpeg-nvidia")
+    (inputs
+     (modify-inputs
+         (package-inputs ffmpeg-6)
+       (prepend nv-codec-headers)))
+    (arguments
+     (substitute-keyword-arguments (package-arguments ffmpeg-6)
+       ((#:configure-flags flags)
+        ;; Currently only interested in NVENC.
+        ;; Might be better to make a ffmpeg-nonfree with all nonfree codecs
+        ;; in the future.
+        #~(cons* "--enable-cuvid"
+                 "--enable-ffnvcodec"
+                 "--enable-encoder=hevc_nvenc"
+                 "--enable-encoder=h264_nvenc"
+                 #$flags))))
+    (description (package-description ffmpeg/nvidia))
+    (properties '((upstream-name . "ffmpeg")))))
+
 (define-deprecated-package ffmpeg-nvenc ffmpeg/nvidia)
 
 (define-public gmmlib
