@@ -43,10 +43,10 @@
   #:use-module (nonguix build-system binary)
   #:use-module ((nonguix licenses) #:prefix nonguix-license:))
 
-(define-public ffmpeg-nvenc
+(define-public ffmpeg/nvidia
   (package
     (inherit ffmpeg)
-    (name "ffmpeg-nvenc")
+    (name "ffmpeg-nvidia")
     (inputs
      (modify-inputs
          (package-inputs ffmpeg)
@@ -68,6 +68,8 @@
       "  This build of FFmpeg includes the nonfree NVIDIA encoder for
 @code{h264_nvenc} and @code{hevc_nvenc} hardware encoding on NVIDIA GPUs."))
     (properties '((upstream-name . "ffmpeg")))))
+
+(define-deprecated-package ffmpeg-nvenc ffmpeg/nvidia)
 
 (define-public gmmlib
   (package

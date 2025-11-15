@@ -839,7 +839,7 @@ variables @code{__GLX_VENDOR_LIBRARY_NAME=nvidia} and
       (package-input-grafting
        `((,mesa . ,driver)
          (,nvidia-driver . ,driver)
-         (,ffmpeg . ,ffmpeg-nvenc)))
+         (,ffmpeg . ,ffmpeg/nvidia)))
     obj))
 
 
