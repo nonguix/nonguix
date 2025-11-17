@@ -5,6 +5,7 @@
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2023 Raven Hallsby <karl@hallsby.org>
 ;;; Copyright © 2025 Ashish SHUKLA <ashish.is@lostca.se>
+;;; Copyright © 2025 Luca Kredel <luca.kredel@web.de>
 
 (define-module (nongnu packages messaging)
   #:use-module (gnu packages base)
@@ -17,6 +18,7 @@
   #:use-module (gnu packages glib)
   #:use-module (gnu packages gnome)
   #:use-module (gnu packages gtk)
+  #:use-module (gnu packages java)
   #:use-module (gnu packages kerberos)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages nss)
@@ -24,6 +26,7 @@
   #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xml)
   #:use-module (gnu packages xorg)
+  #:use-module (guix build-system copy)
   #:use-module (guix download)
   #:use-module (guix gexp)
   #:use-module (guix packages)
@@ -131,6 +134,32 @@ or iOS.")
     (properties
      '((release-monitoring-url . "https://github.com/signalapp/Signal-Desktop/releases")))
     (license license:agpl3)))
+
+(define-public signal-cli
+  (package
+    (name "signal-cli")
+    (version "0.14.1")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://github.com/AsamK/signal-cli/releases/download/v" version
+             "/signal-cli-" version ".tar.gz"))
+       (sha256
+        (base32 "1s1n2s62zs31yfji1cnglp114qjkfw9z18gkcx28iha25jqs9kff"))))
+    (build-system copy-build-system)
+    (arguments
+     `(#:install-plan '(("bin/" "bin/"
+                         #:exclude ("signal-cli.bat"))
+                        ("man/" ,"share/man")
+                        ("lib/" "lib/"))))
+    (propagated-inputs (list openjdk))
+    (synopsis "Signal messenger CLI")
+    (description
+     "signal-cli provides an unofficial commandline, JSON-RPC and dbus
+interface for the Signal messenger.")
+    (home-page "https://github.com/AsamK/signal-cli")
+    (license license:gpl3)))
 
 (define-public zoom
   (package
