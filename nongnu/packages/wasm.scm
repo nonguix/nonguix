@@ -108,7 +108,9 @@ other APIs.")
 (define llvm-monorepo (@@ (gnu packages llvm) llvm-monorepo))
 
 (define-public wasm32-wasi-clang
-  (let ((base (clang-from-llvm llvm-17 wasm32-wasi-clang-runtime)))
+  (let ((base
+         (clang-from-llvm llvm-17 wasm32-wasi-clang-runtime
+                          #:patches '("clang-17.0-fix-build-with-gcc-14-on-arm.patch"))))
     (package (inherit base)
       (name "wasm32-wasi-clang")
       (inputs
