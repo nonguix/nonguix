@@ -354,6 +354,10 @@ in a sandboxed FHS environment."
                          ,(string-append sandbox-home "=" home)
                          ,@(exists-> (string-append home "/.config/pulse"))
                          ,@(exists-> (string-append xdg-runtime "/pulse"))
+                         ;; Share Monado service socket for use in SteamVR (will
+                         ;; still need to set PRESSURE_VESSEL_FILESYSTEMS_RW in
+                         ;; launch options).
+                         ,@(exists-> (string-append xdg-runtime "/monado_comp_ipc"))
                          ,@(exists-> (string-append xdg-runtime "/bus"))
                          ,@(exists-> (string-append xdg-runtime "/" wayland-display))
                          ,@(exists-> (getenv "XAUTHORITY"))
