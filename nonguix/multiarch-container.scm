@@ -9,6 +9,7 @@
 ;;; Copyright © 2023 Attila Lendvai <attila@lendvai.name>
 ;;; Copyright © 2023 Elijah Malaby
 ;;; Copyright © 2023 Timo Wilken <guix@twilken.net>
+;;; Copyright © 2025 James Smith <jsubuntuxp@disroot.org>
 
 ;;; The script provided by this package may optionally be started as
 ;;; a shell instead of automatically launching the wrapped entrypoint by setting
@@ -335,14 +336,10 @@ in a sandboxed FHS environment."
                           ,@(exists-> "/etc/machine-id")
                           "/etc/localtime" ; Needed for correct time zone.
                           "/etc/os-release" ; Needed for distro info.
-                          "/sys/class/drm" ; Needed for hw monitoring like MangoHud.
-                          "/sys/class/hwmon" ; Needed for hw monitoring like MangoHud.
-                          "/sys/class/hidraw" ; Needed for devices like the Valve Index.
-                          "/sys/class/input" ; Needed for controller input.
-                          ,@(exists-> "/sys/class/power_supply") ; Needed for power monitoring like MangoHud.
-                          ,@(exists-> "/sys/class/powercap") ; Needed for power monitoring like MangoHud.
-                          "/sys/dev"
-                          "/sys/devices"
+                          ;; /sys needs to be shared directly for SteamVR to
+                          ;; access the HMD.  Tested with both Monado and
+                          ;; OpenHMD with an Oculus Rift CV1.
+                          "/sys"
                           ,@(exists-> "/var/run/dbus")
                           #$@(ngc-exposed container)))
                 ;; /dev/hidraw is needed for SteamVR to access the HMD, although here we
