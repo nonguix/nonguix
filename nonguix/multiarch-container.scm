@@ -544,7 +544,13 @@ application."
                 ((,union64 "share/drirc.d") . "/usr/share/drirc.d")
                 ((,union64 "share/fonts") . "/usr/share/fonts")
                 ((,union64 "share/fonts") . "/run/current-system/profile/share/fonts")
-                ((,union64 "etc/fonts") . "/etc/fonts")))
+                ((,union64 "etc/fonts") . "/etc/fonts")
+                ;; Expose Monado and OpenHMD SteamVR drivers in a predictable
+                ;; path.  This is to make it easier to symlink SteamVR drivers
+                ;; if desired.
+                ;; TODO: Only expose the path if it actually exists?
+                ((,union64 "share/steamvr-monado") . "/usr/share/steamvr-monado")
+                ((,union64 "share/steamvr-openhmd") . "/usr/share/steamvr-openhmd")))
              (for-each
               (cut file-symlink <> "/usr/share/egl/egl_external_platform.d")
               (append-map
