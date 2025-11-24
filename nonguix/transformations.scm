@@ -138,9 +138,13 @@ TODO: Xorg configuration."
                (remove
                 (cut string-prefix? "nvidia_drm.modeset=" <>)
                 (operating-system-user-kernel-arguments os)))))
+      (packages
+       (replace-mesa (operating-system-packages os) #:driver driver))
       (services
-       `(,(or (assoc-ref %presets driver)
-              (leave
-               (G_ "no NVIDIA service configuration available for '~a'~%")
-               (package-name driver)))
-         ,@(operating-system-user-services os))))))
+       (replace-mesa
+        `(,(or (assoc-ref %presets driver)
+               (leave
+                (G_ "no NVIDIA service configuration available for '~a'~%")
+                (package-name driver)))
+          ,@(operating-system-user-services os))
+        #:driver driver)))))
