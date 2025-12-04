@@ -1157,7 +1157,7 @@ giving you trouble, you can try this module.")
      ;; for a new kernel release should be as simple as chaging the commit to
      ;; the newest available and adding any new patches.
      (map (lambda (name hash)
-            (let ((commit "b0d19578ebd0daae9c5b7f9e9511a6d73ac4d957"))
+            (let ((commit "7786b3a3e54962124d24b4b61a6472bb0c4bbd94"))
               (origin
                 (method url-fetch)
                 (uri (string-append
@@ -1198,7 +1198,8 @@ giving you trouble, you can try this module.")
             "wl-kmod-031_replace_EXTRA_CFLAGS_EXTRA_LDFLAGS_with_ccflags-y_ldflags-y.patch"
             "wl-kmod-032_add_MODULE_DESCRIPTION_macro.patch"
             "wl-kmod-033_disable_objtool_add_warning_unmaintained.patch"
-            "wl-kmod-034_kernel_6.15_adaptation_replace_del_timer_with_timer_delete.patch")
+            "wl-kmod-034_kernel_6.15_adaptation_replace_del_timer_with_timer_delete.patch"
+            "wl-kmod-035_kernel_6.17_adaptation_fix_functions_prototypes.patch")
           ;; find * -name '*.patch' -exec sh -c 'printf "\"%s\"\n" "$(guix hash {})"' \;
           '("0lxj36r90kxhlfm3r0byh3p2l1dw9ama658ysfwib08ln5322mrq"
             "0h8wck6akys7dxxwqgax9x7mninfx3ypy2af3drrarksmcvv4v2j"
@@ -1233,7 +1234,8 @@ giving you trouble, you can try this module.")
             "17l6q016l1xw55l79v64qfgj50p5s8lskw0vid6785b9va0ifknj"
             "1kl77y3n73piyqdvr0brs53bydid1pjrkkvvaqyzz3pjrm69xvbg"
             "19xbxxfi4yqqcvf40xspidznr3f6f900rmp0b9nfb2727a51l4p7"
-            "119ya966kg4ikjw51zsvbl9wkrjx82bhvznq9c8csr2v4n9h7h90")))
+            "119ya966kg4ikjw51zsvbl9wkrjx82bhvznq9c8csr2v4n9h7h90"
+            "0n5n6pasxqk8x40hjkginm4fb36bi3waqr2z3l2f30i0aqqmlsrx")))
     (sha256
      (base32
       "1gj485qqr190idilacpxwgqyw21il03zph2rddizgj7fbd6pfyaz"))))
