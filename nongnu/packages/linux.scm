@@ -180,9 +180,6 @@ on hardware which requires nonfree software to function."))))
 (define-public linux-6.17
   (corrupt-linux linux-libre-6.17))
 
-(define-public linux-6.16
-  (corrupt-linux linux-libre-6.16))
-
 (define-public linux-6.12
   (corrupt-linux linux-libre-6.12))
 
