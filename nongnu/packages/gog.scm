@@ -37,7 +37,7 @@
      `(#:configure-flags '("-DUSE_QT_GUI=ON")
        #:tests? #f))                    ; no tests
     (inputs
-     (list boost
+     (list boost-1.83
            curl
            jsoncpp
            qtwebengine
