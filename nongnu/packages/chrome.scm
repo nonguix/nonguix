@@ -141,6 +141,9 @@
      (home-page "https://www.google.com/chrome/")
      (license (nonfree "https://www.google.com/intl/en/chrome/terms/")))))
 
+;; Available versions can be here: https://chromereleases.googleblog.com
+;; The following has a nicer representation: https://deb.pkgs.org/apps/google-amd64/
+
 (define-public google-chrome-stable
   (make-google-chrome "stable" "142.0.7444.175" "119fdvnabicl387jy54p0r8bdr7lsv4in9fyyf6gmdg7dfsp27cf"))
 
