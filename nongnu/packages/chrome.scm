@@ -145,7 +145,7 @@
 ;; The following has a nicer representation: https://deb.pkgs.org/apps/google-amd64/
 
 (define-public google-chrome-stable
-  (make-google-chrome "stable" "142.0.7444.175" "119fdvnabicl387jy54p0r8bdr7lsv4in9fyyf6gmdg7dfsp27cf"))
+  (make-google-chrome "stable" "143.0.7499.40" "11c03807d5wqq41pb4kimxza6n30p6g4hh14v7n8c3qzvxy747mg"))
 
 (define-public google-chrome-beta
   (make-google-chrome "beta" "143.0.7499.40" "0rzvn2xs0835nziamgghvl1mvaja4999r1df72llqcnll0bwwp1d"))
