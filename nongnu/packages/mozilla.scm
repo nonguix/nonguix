@@ -529,20 +529,20 @@ Release (ESR) version.")
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-build-id "20251118130425")
+(define %firefox-build-id "20251208134803")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "145.0.1")
+    (version "146.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "0mzlkymgp1dcyjlv30xaq96f0ls0mxn25264xygidw2g62yib0dl"))
+        (base32 "05nz4b2063z7j1k80v5nsdi8xnl13xfil2blxw1idhxb23hcmm08"))
        (patches
         (map (lambda (patch)
                (search-path
@@ -567,7 +567,33 @@ Release (ESR) version.")
     (native-inputs
      (modify-inputs (package-native-inputs firefox-esr)
        (replace "rust" rust-firefox)
-       (replace "rust:cargo" `(,rust-firefox "cargo"))))
+       (replace "rust:cargo" `(,rust-firefox "cargo"))
+       (replace "rust-cbindgen"
+         (package
+           (inherit rust-cbindgen-0.28)
+           (name "rust-cbindgen")
+           (version "0.29.2")
+           (inputs
+            (modify-inputs (package-inputs rust-cbindgen-0.28)
+              (append (@@ (gnu packages rust-crates) rust-heck-0.5.0))
+              (append (@@ (gnu packages rust-crates) rust-indexmap-2.11.4))
+              (append (@@ (gnu packages rust-crates) rust-serde-1.0.228))
+              (append (@@ (gnu packages rust-crates) rust-serde-core-1.0.228))
+              (append (@@ (gnu packages rust-crates) rust-serde-derive-1.0.228))
+              (append (@@ (gnu packages rust-crates) rust-serde-spanned-1.0.3))
+              (append (@@ (gnu packages rust-crates) rust-toml-0.9.8))
+              (append (@@ (gnu packages rust-crates) rust-toml-datetime-0.7.3))
+              (append (@@ (gnu packages rust-crates) rust-toml-parser-1.0.4))
+              (append (@@ (gnu packages rust-crates) rust-toml-writer-1.0.4))
+              (append (@@ (gnu packages rust-crates) rust-winnow-0.7.13))))
+           (source
+            (origin
+              (method url-fetch)
+              (uri (crate-uri "cbindgen" version))
+              (file-name (string-append name "-" version ".tar.gz"))
+              (sha256
+               (base32
+                "168pl7jrz6zw7yi4hggqa78fgr8z8g7fyyjhihpw10cf583zvyxy"))))))))
     (description
      "Full-featured browser client built from Firefox source tree, without
 the official icon and the name \"firefox\".")))
