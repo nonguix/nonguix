@@ -463,9 +463,9 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
   (package
     (inherit nvidia-driver)
     (name "nvidia-driver-beta")
-    (version "580.65.06")
+    (version "590.44.01")
     (source (nvidia-source
-             version "1zr4a2mcd1x1x9r03azbbcvi5labbznkkkzxzdf7cpjqmxkhic84"))))
+             version "0sry98w45i0gjfrpgmv4i7k7ywzyydwr1w9plarsd584mil1bfam"))))
 
 (define-public nvidia-libs
   (deprecated-package "nvidia-libs" nvidia-driver))
@@ -689,10 +689,10 @@ configuration, creating application profiles, gpu monitoring and more.")
   (package
     (inherit nvidia-settings)
     (name "nvidia-settings-beta")
-    (version "580.65.06")
+    (version "590.44.01")
     (source (nvidia-settings-source
              name version
-             "0vjk08iln89d6i3xa5lsi31nwn0fyw02svsy78ycpz46va7sdxgl"))))
+             "0plqs5pv30af49py7f9q6ic57riiskij2pi01a0975xm9f3gamy1"))))
 
 
 ;;;
