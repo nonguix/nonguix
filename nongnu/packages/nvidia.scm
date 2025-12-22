@@ -228,9 +228,9 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
 (define-public nvidia-driver
   (package
     (name "nvidia-driver")
-    (version "580.82.09")
+    (version "580.119.02")
     (source (nvidia-source
-             version "1dwmardvxb2w6mx7hich5wc06f50qz92jk63kbhf059fv8rgiv1y"))
+             version "1mzc700ngsnpmngblw51x58lgrdgsb1x1449lgksx27fsggza840"))
     (build-system copy-build-system)
     (arguments
      (list #:modules '((guix build copy-build-system)
@@ -629,9 +629,9 @@ add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
 (define-public nvidia-settings
   (package
     (name "nvidia-settings")
-    (version "580.82.09")
+    (version "580.119.02")
     (source (nvidia-settings-source
-             name version "0sy3mrg3vmyba6m87nanzmpvv2hzhb6nqdckhlaxv8wppmr7fvms"))
+             name version "1hkr2d54s85a94fzg1pl6yvsqi5f3d1mlmli84s4qs8dm35yb3xh"))
     (build-system gnu-build-system)
     (arguments
      (list #:tests? #f ;no test suite
