@@ -165,4 +165,4 @@
   (make-google-chrome "unstable" "145.0.7572.2" "0mx13ri3s2rcadn3qnlwnqyqxmql71n05m3qx589vj91q09gih0q"))
 
 (define-public google-chrome-canary
-  (make-google-chrome "canary" "145.0.7572.0" "1j2rf83ninr49f0q0dpkav8sbz7576xy5wwsv0vpkx44025lrdj2"))
+  (make-google-chrome "canary" "145.0.7592.0" "1nfmx3jpk1ads5n042frd7nxsv1nd9pwc73hjh5gqa1d2kcgsjbz"))
