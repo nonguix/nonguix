@@ -330,6 +330,8 @@ in a sandboxed FHS environment."
                           ,@(exists-> "/dev/nvidia0") ; needed for nvidia proprietary driver
                           ,@(exists-> "/dev/nvidiactl")
                           ,@(exists-> "/dev/nvidia-modeset")
+                          ,@(exists-> "/dev/nvidia-uvm")
+                          ,@(exists-> "/dev/nvidia-uvm-tools")
                           ,@(exists-> "/etc/machine-id")
                           "/etc/localtime" ; Needed for correct time zone.
                           "/etc/os-release" ; Needed for distro info.
