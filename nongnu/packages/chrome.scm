@@ -143,6 +143,17 @@
 
 ;; Available versions can be here: https://chromereleases.googleblog.com
 ;; The following has a nicer representation: https://deb.pkgs.org/apps/google-amd64/
+;;
+;; Another place to find them (many thanks NixOS for this!):
+;;
+;;   (string-append
+;;     "https://versionhistory.googleapis.com/v1/chrome/platforms/linux/channels/"
+;;     CHAN
+;;     "/versions/all/releases?"
+;;     "filter=endtime=none,fraction%3E=0.5&order_by=version%20desc")
+;;
+;; in which CHAN can be stable, beta, canary and dev (dev corresponds to our unstable)
+;; TODO: write a nice importer for this in Scheme.
 
 (define-public google-chrome-stable
   (make-google-chrome "stable" "143.0.7499.40" "11c03807d5wqq41pb4kimxza6n30p6g4hh14v7n8c3qzvxy747mg"))
