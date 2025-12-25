@@ -40,7 +40,13 @@
                  (lambda _
                    (delete-file (string-append #$output "/bin/yarn.cmd"))
                    (delete-file (string-append #$output "/bin/yarnpkg.cmd"))))
-               (add-after 'delete-powershell-entrypoints 'wrap-entrypoints
+               (add-after 'delete-powershell-entrypoints 'patch-shebang-in-cli
+                 (lambda _
+                   (substitute* (string-append #$output "/lib/cli.js")
+                     (("#!/bin/sh")
+                      (string-append "#!" #$(this-package-input "bash-minimal")
+                                     "/bin/sh")))))
+               (add-after 'patch-shebang-in-cli 'wrap-entrypoints
                  (lambda _
                    (for-each
                     (lambda (entrypoint)
