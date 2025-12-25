@@ -14,7 +14,7 @@
 (define-public vscodium
   (package
     (name "vscodium")
-    (version "1.106.37943")
+    (version "1.107.18605")
     (source
      (let ((arch (match (or (%current-target-system) (%current-system))
                    ("aarch64-linux" "arm64")
@@ -22,11 +22,11 @@
                    (_ "x64")))
            (hash (match (or (%current-target-system) (%current-system))
                    ("aarch64-linux"
-                    "07i5d59qkr4pj598gk6v63i8d0z5lxs5jkycs1a2cmxam6dz8j39")
+                    "01vr2nyzhkfijba0921l6c5n9j65lwpvzrpnhblrpfmvy817ajx5")
                    ("armhf-linux"
-                    "0wlg9r8rwlw125r4a9xs1j29kisk1mkma9nlb28bm31siblx7pq9")
+                    "0qs1bb4f449pdb60x66n4fr1w11m5bcxgz0k4cxnn5c20lk8d8hs")
                    (_
-                    "1v744v3n6a7h1qyz68j1cyqjbiq2v6iv9q4p6ala8sk2hmw5mg9z"))))
+                    "1g9aschvrqnzgryvbbl4nh19wiaqrk0f5d1zlz6aa2p2va6bdc3f"))))
        (origin
         (method url-fetch)
         (uri
