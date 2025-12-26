@@ -10,6 +10,7 @@
   #:use-module (gnu packages clojure)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages gcc)
+  #:use-module (gnu packages java)
   #:use-module (gnu packages readline)
   #:use-module (guix build-system copy)
   #:use-module (guix build-system gnu)
@@ -214,21 +215,19 @@ perform refactors and more.")
                    (chmod "bb" #o755)))
                (add-after 'patch-shebangs 'wrap-programs
                  (lambda _
-                   (let ((clojure-tools #$(this-package-input "clojure-tools")))
+                   (let ((openjdk #$(this-package-input "openjdk"))
+                         (clojure-tools #$(this-package-input
+                                           "babashka-clojure-tools")))
                      (wrap-program (string-append #$output "/bin/bb")
-                       `("BABASHKA_CLASSPATH" ":" suffix
-                         ,(find-files clojure-tools "\\.jar$"))))))
+                       `("DEPS_CLJ_TOOLS_DIR" =
+                         ,(list (string-append clojure-tools "/lib/clojure")))
+                       `("JAVA_HOME" = ,(list openjdk))))))
                (add-after 'validate-runpath 'validate-classpath
                  (lambda _
-                   (call-with-temporary-output-file
-                    (lambda (name port)
-                      (display "{:deps {org.clojure/data.xml {:mvn/version \"1.1.0\"}}}" port)
-                      (close port)
-                      (unless (invoke (string-append #$output "/bin/bb")
-                                      "--config" name
-                                      "-e" "(System/exit 0)")
-                        (error "Classpath error. See output.")))))))))
-    (inputs (list clojure-tools zlib))
+                   (let ((bb (string-append #$output "/bin/bb")))
+                     (and (invoke bb "-e" "(System/exit 0)")
+                          (invoke bb "-e" "(+ 1 1)"))))))))
+    (inputs (list babashka-clojure-tools openjdk zlib))
     (supported-systems '("x86_64-linux"))
     (home-page "https://github.com/babashka/babashka")
     (synopsis "Native, fast starting Clojure interpreter for scripting")
