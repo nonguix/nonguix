@@ -181,19 +181,20 @@ perform refactors and more.")
     (inherit clojure-tools-bin)
     (name "babashka-clojure-tools")
     ;; Version must match the one hardcoded in #'borkdude.deps/version.
-    (version "1.12.0.1530")
+    (version "1.12.4.1582")
     (source
      (origin
        (inherit (package-source clojure-tools-bin))
        (uri (string-append "https://download.clojure.org/install/clojure-tools-"
                            version
                            ".tar.gz"))
-       (sha256 (base32 "0jgd0lki1mml7ppccxnbhj9jbpy5cy3s11775p9kkfi6h654pwhg"))))))
+       (sha256
+        (base32 "08gzfblnz0zhnk6pwr9vcm6y168psgrwmqww3wqk1v7j5gr68n7x"))))))
 
 (define-public babashka
   (package
     (name "babashka")
-    (version "1.12.200")
+    (version "1.12.213")
     (source (origin
               (method url-fetch/tarbomb)
               (uri (string-append "https://github.com/babashka/babashka"
@@ -201,7 +202,7 @@ perform refactors and more.")
                                   version "-linux-amd64.tar.gz"))
               (sha256
                (base32
-                "1bmfnkh7mi15h6gkw9az6f2p4grcyi7cj90f86xg4ljbjnidp2n3"))))
+                "0p2rxkjk1n3wgzhnpasigs09b0h8q5vhjgpn04mfd3fg20fgkax3"))))
     (build-system binary-build-system)
     (arguments
      (list #:patchelf-plan
