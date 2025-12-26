@@ -123,6 +123,38 @@ lets you focus on your code.")
 and EDN, without the need of a running REPL.")
    (license license:epl1.0)))
 
+(define-public cljfmt
+  (package
+    (name "cljfmt")
+    (version "0.15.6")
+    (source (origin
+              (method url-fetch/tarbomb)
+              (uri (string-append
+                    "https://github.com/weavejester/cljfmt/releases/download/"
+                    version "/cljfmt-" version "-linux-amd64.tar.gz"))
+              (sha256
+               (base32
+                "1hnk0kb5za18gla2lgskl53aws721r9lpwif2fnm6jixymkv32ih"))))
+    (build-system binary-build-system)
+    (arguments
+     (list #:patchelf-plan `'(("cljfmt" ("gcc" "zlib")))
+           #:install-plan `'(("./cljfmt" "/bin/"))
+           #:phases #~(modify-phases %standard-phases
+                        (add-after 'unpack 'chmod
+                          (lambda _
+                            (chmod "cljfmt" #o755))))))
+    (native-inputs
+     (list unzip))
+    (inputs
+     (list `(,gcc "lib")
+           zlib))
+    (supported-systems '("x86_64-linux"))
+    (home-page "https://github.com/weavejester/cljfmt")
+    (synopsis  "Formatter for Clojure code")
+    (description "cljfmt is a tool for detecting and fixing formatting errors
+in Clojure code.")
+    (license license:epl1.0)))
+
 (define-public clojure-lsp
   (package
     (name "clojure-lsp")
