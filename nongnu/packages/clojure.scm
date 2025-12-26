@@ -4,6 +4,7 @@
 ;;; Copyright © 2020 Alex Griffin <a@ajgrf.com>
 ;;; Copyright © 2023 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2025 Remco van 't Veer <remco@remworks.net>
+;;; Copyright © 2025 Mathieu Lirzin <mthl@reuz.fr>
 
 (define-module (nongnu packages clojure)
   #:use-module (gnu packages clojure)
@@ -171,6 +172,22 @@ perform refactors and more.")
        ((#:phases phases)
         #~(modify-phases #$phases
             (delete 'copy-tools-deps-alpha-jar)))))))
+
+(define-public babashka-clojure-tools
+  ;; Babashka code is using upstream `clojure-tools-VERSION.jar` containing
+  ;; bytecode, which is removed Guix clojure-tools output.
+  (package
+    (inherit clojure-tools-bin)
+    (name "babashka-clojure-tools")
+    ;; Version must match the one hardcoded in #'borkdude.deps/version.
+    (version "1.12.0.1530")
+    (source
+     (origin
+       (inherit (package-source clojure-tools-bin))
+       (uri (string-append "https://download.clojure.org/install/clojure-tools-"
+                           version
+                           ".tar.gz"))
+       (sha256 (base32 "0jgd0lki1mml7ppccxnbhj9jbpy5cy3s11775p9kkfi6h654pwhg"))))))
 
 (define-public babashka
   (package
