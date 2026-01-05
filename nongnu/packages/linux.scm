@@ -984,8 +984,8 @@ network adapters.")
       (license gpl2))))
 
 (define-public rtl8821ce-linux-module
-  (let ((commit "66c015af7738039a2045b6da755875e126d3fe73")
-        (revision "14"))
+  (let ((commit "4e6b887f0d8c4091a4df9da9fcead9a8294b41ad")
+        (revision "15"))
     (package
       (name "rtl8821ce-linux-module")
       (version (git-version "0.0.0" revision commit))
@@ -998,7 +998,7 @@ network adapters.")
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "042x2i390asl4w6vwbdd9qwxdzhhjdwgfipf4nkix899cixj0kr5"))))
+           "0dn1cmp8gn2g42q67lny15rrf092kw2rrb3gxc1qn07hbklj73bx"))))
       (build-system linux-module-build-system)
       (arguments
        (list #:make-flags
