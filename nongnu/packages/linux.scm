@@ -1033,8 +1033,8 @@ network adapters.")
       (license gpl2))))
 
 (define-public rtl8821cu-linux-module
-  (let ((commit "132dcf025806a436b9a95fb4af24eacfd07222f5")
-        (revision "3"))
+  (let ((commit "7f63a9da2e8ed83403f6f920e9b1628a37b38ef4")
+        (revision "4"))
     (package
       (name "rtl8821cu-linux-module")
       (version (git-version "0.0.0" revision commit))
@@ -1042,11 +1042,11 @@ network adapters.")
        (origin
          (method git-fetch)
          (uri (git-reference
-               (url "https://github.com/morrownr/8821cu-20210916")
-               (commit commit)))
+                (url "https://github.com/morrownr/8821cu-20210916")
+                (commit commit)))
          (file-name (git-file-name name version))
          (sha256
-          (base32 "1iy7vfkcwcx153nsp40s73sq6p09gkqd78zxlz38c6hq5jmkqkn6"))))
+          (base32 "1ril9xnv3bbmfj9yynm3nzpdgjyh0a93rag51hia7ix6ppm8w0a6"))))
       (build-system linux-module-build-system)
       (arguments
        (list
