@@ -1049,22 +1049,23 @@ network adapters.")
           (base32 "1ril9xnv3bbmfj9yynm3nzpdgjyh0a93rag51hia7ix6ppm8w0a6"))))
       (build-system linux-module-build-system)
       (arguments
-       (list
-        #:make-flags #~(list (string-append "CC="
-                                            #$(cc-for-target))
-                             (string-append "KSRC="
-                                            (assoc-ref %build-inputs
-                                                       "linux-module-builder")
-                                            "/lib/modules/build"))
-        #:phases #~(modify-phases %standard-phases
-                     (replace 'build
-                       (lambda* (#:key (make-flags '())
-                                 (parallel-build? #t) #:allow-other-keys)
-                         (apply invoke "make"
-                                `(,@(if parallel-build?
-                                        `("-j" ,(number->string (parallel-job-count)))
-                                        '()) ,@make-flags)))))
-        #:tests? #f))
+       (list #:tests? #f                     ; no test suite
+             #:make-flags
+             #~(list (string-append "CC=" #$(cc-for-target)))
+             #:phases
+             #~(modify-phases %standard-phases
+                 (replace 'build
+                   (lambda* (#:key (make-flags '()) (parallel-build? #t) inputs
+                             #:allow-other-keys)
+                     (apply invoke "make"
+                            (string-append "KSRC="
+                                           (search-input-directory
+                                            inputs "lib/modules/build"))
+                            `(,@(if parallel-build?
+                                    `("-j" ,(number->string
+                                             (parallel-job-count)))
+                                    '())
+                              ,@make-flags)))))))
       (home-page "https://github.com/morrownr/8821cu-20210916")
       (synopsis "Linux driver for Realtek USB WiFi adapters")
       (description
