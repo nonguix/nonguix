@@ -964,17 +964,23 @@ package contains nonfree firmware for the following chips:
            "0lklpn1gl202i49xjrd735pl595ynh2wpkdk1nlpcvxssi3qi0l7"))))
       (build-system linux-module-build-system)
       (arguments
-       `(#:make-flags
-         (list "CC=gcc"
-               (string-append "KSRC="
-                              (assoc-ref %build-inputs "linux-module-builder")
-                              "/lib/modules/build"))
-         #:phases
-         (modify-phases %standard-phases
-           (replace 'build
-             (lambda* (#:key (make-flags '()) #:allow-other-keys)
-               (apply invoke "make" make-flags))))
-         #:tests? #f))                  ; no test suite
+       (list #:tests? #f                ; no test suite
+             #:make-flags
+             #~(list (string-append "CC=" #$(cc-for-target)))
+             #:phases
+             #~(modify-phases %standard-phases
+                 (replace 'build
+                   (lambda* (#:key (make-flags '()) (parallel-build? #t) inputs
+                             #:allow-other-keys)
+                     (apply invoke "make"
+                            (string-append "KSRC="
+                                           (search-input-directory
+                                            inputs "lib/modules/build"))
+                            `(,@(if parallel-build?
+                                    `("-j" ,(number->string
+                                             (parallel-job-count)))
+                                    '())
+                              ,@make-flags)))))))
       (home-page "https://github.com/clnhub/rtl8192eu-linux")
       (synopsis "Linux driver for Realtek RTL8192EU wireless network adapters")
       (description "This is Realtek's RTL8192EU Linux driver for wireless
