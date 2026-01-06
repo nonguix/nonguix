@@ -381,6 +381,9 @@ in a sandboxed FHS environment."
            ;; so set this path to where the drivers will actually be located in
            ;; the container.
            (setenv "LIBVA_DRIVERS_PATH" "/lib64/dri:/lib/dri")
+           ;; Set GStreamer plugin paths so both 64-bit and 32-bit plugins are visible
+           ;; inside the container. Needed for GStreamer plugins to load in container.
+           (setenv "GST_PLUGIN_SYSTEM_PATH" "/lib64/gstreamer-1.0:/lib/gstreamer-1.0")
            (format #t "\n* Launching ~a in sandbox: ~a.\n\n"
                    #$(package-name (ngc-wrap-package container)) sandbox-home)
            (when DEBUG
