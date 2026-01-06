@@ -947,21 +947,21 @@ package contains nonfree firmware for the following chips:
   (deprecated-package "rtl-bt-firmware" realtek-firmware))
 
 (define-public rtl8192eu-linux-module
-  (let ((commit "c014d0970c8052e8b2306e24ccc92f6fe738458d")
-        (revision "8"))
+  (let ((commit "ed045d0e04303dce7b7b174abcb27bd24d207ee6")
+        (revision "9"))
     (package
       (name "rtl8192eu-linux-module")
-      (version (git-version "0.0.0" revision commit))
+      (version (git-version "5.11.2.3" revision commit))
       (source
        (origin
          (method git-fetch)
          (uri (git-reference
-               (url "https://github.com/clnhub/rtl8192eu-linux")
-               (commit commit)))
+                (url "https://github.com/clnhub/rtl8192eu-linux")
+                (commit commit)))
          (file-name (git-file-name name version))
          (sha256
           (base32
-           "15lcf6bgxw7k846ijp0fqlcr6vj59v8s7hm16sikf0nd4xk0mdn5"))))
+           "0lklpn1gl202i49xjrd735pl595ynh2wpkdk1nlpcvxssi3qi0l7"))))
       (build-system linux-module-build-system)
       (arguments
        `(#:make-flags
