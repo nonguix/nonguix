@@ -1001,23 +1001,23 @@ network adapters.")
            "0dn1cmp8gn2g42q67lny15rrf092kw2rrb3gxc1qn07hbklj73bx"))))
       (build-system linux-module-build-system)
       (arguments
-       (list #:make-flags
-             #~(list (string-append "CC=" #$(cc-for-target))
-                     (string-append "KSRC="
-                                    (assoc-ref %build-inputs
-                                               "linux-module-builder")
-                                    "/lib/modules/build"))
+       (list #:tests? #f                ; no test suite
+             #:make-flags
+             #~(list (string-append "CC=" #$(cc-for-target)))
              #:phases
              #~(modify-phases %standard-phases
                  (replace 'build
-                   (lambda* (#:key (make-flags '()) (parallel-build? #t)
-                                   #:allow-other-keys)
+                   (lambda* (#:key (make-flags '()) (parallel-build? #t) inputs
+                             #:allow-other-keys)
                      (apply invoke "make"
+                            (string-append "KSRC="
+                                           (search-input-directory
+                                            inputs "lib/modules/build"))
                             `(,@(if parallel-build?
-                                    `("-j" ,(number->string (parallel-job-count)))
+                                    `("-j" ,(number->string
+                                             (parallel-job-count)))
                                     '())
-                              ,@make-flags)))))
-             #:tests? #f))                  ; no test suite
+                              ,@make-flags)))))))
       (home-page "https://github.com/tomaspinho/rtl8821ce")
       (synopsis "Linux driver for Realtek RTL8821CE wireless network adapters")
       (description "This is Realtek's RTL8821CE Linux driver for wireless
