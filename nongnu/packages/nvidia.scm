@@ -1128,15 +1128,24 @@ functions.")
   (package
     (name "python-py3nvml")
     (version "0.2.7")
-    (source (origin
-              (method url-fetch)
-              (uri (pypi-uri "py3nvml" version))
-              (sha256
-               (base32
-                "0wxxky9amy38q7qjsdmmznk1kqdzwd680ps64i76cvlab421vvh9"))))
-    (build-system python-build-system)
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/fbcotter/py3nvml")
+              (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "012j13jg8qbl5lvr4gww0jvl9i8yk42za4fxvdg2h1sy866yk49m"))))
+    (build-system pyproject-build-system)
     (arguments
-     (list #:phases #~(modify-phases %standard-phases
+     (list #:test-flags
+           ;; These tests require the NVIDIA driver to be loaded.
+           #~(list "-k" (string-join (list "not test_readme1"
+                                           "test_grabgpus2"
+                                           "test_grabgpus3")
+                                     " and not "))
+           #:phases #~(modify-phases %standard-phases
                         (add-after 'unpack 'fix-libnvidia
                           (lambda _
                             (substitute* "py3nvml/py3nvml.py"
@@ -1144,6 +1153,7 @@ functions.")
                                (string-append #$(this-package-input
                                                  "nvidia-driver")
                                               "/lib/libnvidia-ml.so.1"))))))))
+    (native-inputs (list python-numpy python-pytest python-setuptools))
     (propagated-inputs (list nvidia-driver python-xmltodict))
     (home-page "https://github.com/fbcotter/py3nvml")
     (synopsis "Unoffcial Python 3 Bindings for the NVIDIA Management Library")
