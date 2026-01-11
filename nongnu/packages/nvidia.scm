@@ -980,16 +980,23 @@ laptops.")
 (define-public nvidia-htop
   (package
     (name "nvidia-htop")
-    (version "1.0.5")
-    (source (origin
-              (method url-fetch)
-              (uri (pypi-uri "nvidia-htop" version))
-              (sha256
-               (base32
-                "0lv9cpccpkbg0d577irm1lp9rx6pacyk2pk9v41k9s9hyl4b7hvx"))))
-    (build-system python-build-system)
+    (version "1.2.0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/peci1/nvidia-htop")
+              (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1d5cd4cp7swq5np8b9ryibhg2zpfwzh2dzbsvsrp0gx33krxjvyj"))))
+    (build-system pyproject-build-system)
     (arguments
      (list #:phases #~(modify-phases %standard-phases
+                        (replace 'check
+                          (lambda args
+                            (with-directory-excursion "test"
+                              (apply (assoc-ref %standard-phases 'check) args))))
                         (add-after 'unpack 'fix-libnvidia
                           (lambda _
                             (substitute* "nvidia-htop.py"
@@ -997,6 +1004,7 @@ laptops.")
                                (string-append #$(this-package-input
                                                  "nvidia-driver")
                                               "/bin/nvidia-smi"))))))))
+    (native-inputs (list python-pytest python-setuptools))
     (inputs (list nvidia-driver))
     (propagated-inputs (list python-termcolor))
     (home-page "https://github.com/peci1/nvidia-htop")
