@@ -23,6 +23,7 @@
   #:use-module (guix build-system copy)
   #:use-module (guix build-system gnu)
   #:use-module (guix build-system meson)
+  #:use-module (guix build-system pyproject)
   #:use-module (guix build-system python)
   #:use-module (guix build-system trivial)
   #:use-module (gnu packages base)
@@ -41,6 +42,8 @@
   #:use-module (gnu packages m4)
   #:use-module (gnu packages lsof)
   #:use-module (gnu packages pkg-config)
+  #:use-module (gnu packages python-build)
+  #:use-module (gnu packages python-check)
   #:use-module (gnu packages python-xyz)
   #:use-module (gnu packages qt)
   #:use-module (gnu packages tls)
@@ -899,19 +902,31 @@ support XWayland via xlib (using @code{EGL_KHR_platform_x11}) or xcb (using
 (define-public gpustat
   (package
     (name "gpustat")
-    (version "1.0.0")
-    (source (origin
-              (method url-fetch)
-              (uri (pypi-uri "gpustat" version))
-              (sha256
-               (base32
-                "1wg3yikkqdrcxp5xscyb9rxifgfwv7qh73xv4airab63b3w8y7jq"))))
-    (build-system python-build-system)
+    (version "1.0")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/wookayin/gpustat")
+              (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "0d1ln9wrb4ij0yl3fz03vyby598y5hwlxbvcjw33pnndg8hvwi2v"))))
+    (build-system pyproject-build-system)
     (arguments
-     '(#:tests? #f))
-    (propagated-inputs (list python-blessed python-nvidia-ml-py python-psutil
-                             python-six))
-    (native-inputs (list python-mock python-pytest python-pytest-runner))
+     (list #:phases
+           #~(modify-phases %standard-phases
+               (add-after 'unpack 'set-version
+                 (lambda _
+                   (setenv "SETUPTOOLS_SCM_PRETEND_VERSION"
+                           #$(package-version this-package)))))))
+    (propagated-inputs
+     (list python-blessed python-nvidia-ml-py python-psutil))
+    (native-inputs
+     (list python-mockito
+           python-pytest
+           python-setuptools
+           python-setuptools-scm))
     (home-page "https://github.com/wookayin/gpustat")
     (synopsis "Utility to monitor NVIDIA GPU status and usage")
     (description
