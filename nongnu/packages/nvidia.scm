@@ -1080,9 +1080,10 @@ simultaneous NVML calls from multiple threads.")
               (sha256
                (base32
                 "09cnb7xasd7brby52j70y7fqsfm9n6gvgqf769v0cmj74ypy2s4g"))))
-    (build-system python-build-system)
+    (build-system pyproject-build-system)
     (arguments
-     (list #:phases #~(modify-phases %standard-phases
+     (list #:tests? #f                  ;No tests in PyPi archive.
+           #:phases #~(modify-phases %standard-phases
                         (add-after 'unpack 'fix-libnvidia
                           (lambda _
                             (substitute* "pynvml.py"
@@ -1090,6 +1091,7 @@ simultaneous NVML calls from multiple threads.")
                                (string-append #$(this-package-input
                                                  "nvidia-driver")
                                               "/lib/libnvidia-ml.so.1"))))))))
+    (native-inputs (list python-setuptools))
     (inputs (list nvidia-driver))
     (home-page "https://forums.developer.nvidia.com")
     (synopsis "Python Bindings for the NVIDIA Management Library")
