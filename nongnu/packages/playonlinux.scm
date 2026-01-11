@@ -4,7 +4,7 @@
 (define-module (nongnu packages playonlinux)
   #:use-module ((guix licenses) :prefix license:)
   #:use-module (guix packages)
-  #:use-module (guix build-system python)
+  #:use-module (guix build-system pyproject)
   #:use-module (guix git-download)
   #:use-module (gnu packages)
   #:use-module (gnu packages admin)
@@ -32,7 +32,7 @@
               (sha256
                (base32
                 "0jw43fmc298gb7ga2aldcdyrwlhki5k6hc198pl5x987x4gxfg2h"))))
-    (build-system python-build-system)
+    (build-system pyproject-build-system)
     (arguments
      `(#:python ,python-2
        #:tests? #f
