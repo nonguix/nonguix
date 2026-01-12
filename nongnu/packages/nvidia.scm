@@ -1145,18 +1145,21 @@ functions.")
                                            "test_grabgpus2"
                                            "test_grabgpus3")
                                      " and not "))
-           #:phases #~(modify-phases %standard-phases
-                        (add-after 'unpack 'fix-libnvidia
-                          (lambda _
-                            (substitute* "py3nvml/py3nvml.py"
-                              (("libnvidia-ml.so.1")
-                               (string-append #$(this-package-input
-                                                 "nvidia-driver")
-                                              "/lib/libnvidia-ml.so.1"))))))))
+           #:phases
+           #~(modify-phases %standard-phases
+               (add-after 'unpack 'fix-libnvidia
+                 (lambda* (#:key inputs #:allow-other-keys)
+                   (substitute* "py3nvml/py3nvml.py"
+                     (("libnvidia-ml.so.1" file)
+                      (search-input-file inputs (in-vicinity "lib" file)))))))))
     (native-inputs (list python-numpy python-pytest python-setuptools))
     (propagated-inputs (list nvidia-driver python-xmltodict))
     (home-page "https://github.com/fbcotter/py3nvml")
-    (synopsis "Unoffcial Python 3 Bindings for the NVIDIA Management Library")
-    (description "This package provides unofficial Python 3 Bindings for the
-NVIDIA Management Library")
+    (synopsis "Python bindings to NVIDIA Management Library")
+    (description
+     "This package provides unofficial Python bindings to @acronym{NVML, NVIDIA
+Management Library}.
+
+See @code{python-nvidia-ml-py} package for the official bindings provided by
+NVIDIA.")
     (license license-gnu:bsd-3)))
