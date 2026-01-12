@@ -1082,21 +1082,23 @@ simultaneous NVML calls from multiple threads.")
                 "09cnb7xasd7brby52j70y7fqsfm9n6gvgqf769v0cmj74ypy2s4g"))))
     (build-system pyproject-build-system)
     (arguments
-     (list #:tests? #f                  ;No tests in PyPi archive.
-           #:phases #~(modify-phases %standard-phases
-                        (add-after 'unpack 'fix-libnvidia
-                          (lambda _
-                            (substitute* "pynvml.py"
-                              (("libnvidia-ml.so.1")
-                               (string-append #$(this-package-input
-                                                 "nvidia-driver")
-                                              "/lib/libnvidia-ml.so.1"))))))))
+     (list
+      #:tests? #f                       ;No tests in PyPi archive.
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-after 'unpack 'fix-libnvidia
+            (lambda* (#:key inputs #:allow-other-keys)
+              (substitute* "pynvml.py"
+                (("libnvidia-ml.so.1" file)
+                 (search-input-file inputs (in-vicinity "lib" file)))))))))
     (native-inputs (list python-setuptools))
     (inputs (list nvidia-driver))
     (home-page "https://forums.developer.nvidia.com")
-    (synopsis "Python Bindings for the NVIDIA Management Library")
-    (description "This package provides official Python Bindings for the NVIDIA
-Management Library")
+    (synopsis "Python bindings to NVIDIA Management Library")
+    (description
+     "This package is a wrapper around @acronym{NVML, NVIDIA Management
+Library}.  It provides a Python interface to GPU management and monitoring
+functions.")
     (license license-gnu:bsd-3)))
 
 (define-public python-py3nvml
