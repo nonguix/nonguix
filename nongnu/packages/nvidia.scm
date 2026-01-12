@@ -992,25 +992,25 @@ laptops.")
         (base32 "1d5cd4cp7swq5np8b9ryibhg2zpfwzh2dzbsvsrp0gx33krxjvyj"))))
     (build-system pyproject-build-system)
     (arguments
-     (list #:phases #~(modify-phases %standard-phases
-                        (replace 'check
-                          (lambda args
-                            (with-directory-excursion "test"
-                              (apply (assoc-ref %standard-phases 'check) args))))
-                        (add-after 'unpack 'fix-libnvidia
-                          (lambda _
-                            (substitute* "nvidia-htop.py"
-                              (("nvidia-smi")
-                               (string-append #$(this-package-input
-                                                 "nvidia-driver")
-                                              "/bin/nvidia-smi"))))))))
+     (list #:phases
+           #~(modify-phases %standard-phases
+               (replace 'check
+                 (lambda args
+                   (with-directory-excursion "test"
+                     (apply (assoc-ref %standard-phases 'check) args))))
+               (add-after 'unpack 'fix-libnvidia
+                 (lambda* (#:key inputs #:allow-other-keys)
+                   (substitute* "nvidia-htop.py"
+                     (("nvidia-smi" file)
+                      (search-input-file inputs (in-vicinity "bin" file)))))))))
     (native-inputs (list python-pytest python-setuptools))
     (inputs (list nvidia-driver))
     (propagated-inputs (list python-termcolor))
     (home-page "https://github.com/peci1/nvidia-htop")
-    (synopsis "Tool to enrich the output of nvidia-smi")
-    (description "This package provides tool for enriching the output of
-nvidia-smi.")
+    (synopsis "Enriched nvidia-smi output")
+    (description
+     "This package provides a tool for enriching the output of
+@command{nvidia-smi}.")
     (license license-gnu:bsd-3)))
 
 (define-public nvidia-nvml
