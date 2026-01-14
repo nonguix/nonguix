@@ -4,7 +4,7 @@
 ;;; Copyright © 2020 Alex Griffin <a@ajgrf.com>
 ;;; Copyright © 2023 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2025 Remco van 't Veer <remco@remworks.net>
-;;; Copyright © 2025 Mathieu Lirzin <mthl@reuz.fr>
+;;; Copyright © 2025, 2026 Mathieu Lirzin <mthl@reuz.fr>
 
 (define-module (nongnu packages clojure)
   #:use-module (gnu packages clojure)
@@ -189,12 +189,12 @@ perform refactors and more.")
                            version
                            ".tar.gz"))
        (sha256
-        (base32 "1k5s3sdz72j2faz4rsbgqq4i5f30npf6ms0sg3lp764bx0x53y5v"))))))
+        (base32 "08gzfblnz0zhnk6pwr9vcm6y168psgrwmqww3wqk1v7j5gr68n7x"))))))
 
 (define-public babashka
   (package
     (name "babashka")
-    (version "1.12.213")
+    (version "1.12.214")
     (source (origin
               (method url-fetch/tarbomb)
               (uri (string-append "https://github.com/babashka/babashka"
