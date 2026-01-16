@@ -136,6 +136,8 @@
       (home-page "https://www.google.com/chrome/")
       (license (nonfree "https://www.google.com/intl/en/chrome/terms/")))))
 
+;; See also (guix import google-chrome) for the `guix refresh' updater.
+;;
 ;; Available versions can be here: https://chromereleases.googleblog.com
 ;; The following has a nicer representation: https://deb.pkgs.org/apps/google-amd64/
 ;;
@@ -152,8 +154,6 @@
 ;; Yet another (From AUR scripts):
 ;;   https://dl.google.com/linux/chrome/deb/dists/stable/main/binary-amd64/Packages
 ;; This link provides a Debian-like control file containing most recent versions.
-;;
-;; TODO: write a nice importer for this in Scheme.
 
 (define-public google-chrome-stable
   (package
