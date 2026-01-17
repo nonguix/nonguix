@@ -223,72 +223,114 @@ firmware, and blacklisting of conflicting modules:
 #+END_SRC
 
 ** NVIDIA graphics card
+NVIDIA support in Nonguix is implemented with a few interfaces and packages:
+=nonguix-transformation-nvidia= for system setup, =replace-mesa= and =nvda= for
+application setup.
 
-NVIDIA graphics card support in Nonguix consists of a system service =nvidia-service-type= and a package =nvda= for application setup.
+*** System setup
+Procedure =nonguix-transformation-nvidia= is defined in the
+=(nonguix transformations)= module.
 
-The following code serves as an example for system setup:
+#+begin_example
+  nonguix-transformation-nvidia [#:driver nvda]
+                                [#:kernel-mode-setting? #t]
+                                [#:configure-xorg? #f]
+                                [#:open-source-kernel-module?]
+
+  Return a procedure that transforms an operating system, setting up
+  DRIVER (default: nvda) for NVIDIA graphics card.
+
+  KERNEL-MODE-SETTING? (default: #t) is required for Wayland and rootless Xorg
+  support.
+
+  CONFIGURE-XORG? (default: #f) is required for display managers that can start
+  the Xorg server (e.g. GDM).
+
+  OPEN-SOURCE-KERNEL-MODULE? (default: #f) only supports Turing and later
+  architectures and is expected to work with 'linux-lts'.
+
+  Use 'replace-mesa', for application setup out of the operating system
+  declaration.
+
+  TODO: Power management.
+#+end_example
+
+For example, assuming the follow operating system declaration, defined as
+variable =%my-os=:
 
 #+BEGIN_SRC scheme
-  (use-modules (gnu services gnome)
-               (gnu services xorg)
-               (nongnu packages nvidia)
-               (nongnu services nvidia))
+  (use-modules (nonguix transformations))
 
-  (operating-system
-    (kernel-arguments '("modprobe.blacklist=nouveau"
-                        ;; Set this if the card is not used for displaying or
-                        ;; you're using Wayland:
-                        "nvidia_drm.modeset=1"))
-    (services
-     (cons* (service nvidia-service-type)
-            ;; Configure desktop environment, GNOME for example.
-            (service gnome-desktop-service-type
-                     ;; Enable NVIDIA support, only do this when the card is
-                     ;; used for displaying.
-                     (gnome-desktop-configuration
-                      (gnome (replace-mesa gnome))))
-            ;; Configure Xorg server, only do this when the card is used for
-            ;; displaying.
-            (set-xorg-configuration
-             (xorg-configuration
-              (modules (cons nvda %default-xorg-modules))
-              (drivers '("nvidia"))))
-            ...))
-    ...)
+  (define %my-os
+    (operating-system ...))
 #+END_SRC
 
-For application setup, =mesa= has to be replaced with =nvda= for every individual package that requires the NVIDIA driver, this can be done with grafting (which doesn't rebuild packages) or rewriting inputs (which rebuilds packages) (see [[https://guix.gnu.org/manual/devel/en/guix.html#Package-Transformation-Options][Package Transformation Options]] in GNU Guix Reference Manual).  For example:
+No arguments are required for headless and Wayland environments:
+
+#+begin_src scheme
+  ((nonguix-transformation-nvidia)
+   %my-os)
+#+end_src
+
+For Xorg environmnets, set =#:configure-xorg?= argument to =#t=:
+
+#+begin_src scheme
+  ((nonguix-transformation-nvidia #:configure-xorg? #t)
+   %my-os)
+#+end_src
+
+Full example below, using =compose= so that other system transformations can be
+mixed in:
+
+#+begin_src scheme
+  (use-modules (nonguix transformations) ...)
+
+  (define %my-os
+    (operating-system ...))
+
+  ((compose (nonguix-transformation-nvidia))
+   %my-os)
+#+end_src
+
+*** Application setup
+Application setup involves replacing the underlying graphics library from =mesa=
+to =nvda=.  Within an operating system declaration, it's handled by
+=nonguix-transformation-nvidia=.  In other cases we'll use the [[https://guix.gnu.org/manual/devel/en/html_node/Security-Updates.html][grafts]] mechanism
+explictly.
+
+In Guix command-line interface, we can use the =--with-graft== [[https://guix.gnu.org/manual/devel/en/guix.html#Package-Transformation-Options][package
+transformation option]].
+
+For example, spawning a one-off software environmnet with =guix shell=:
 
 #+BEGIN_SRC shell
-  guix build mesa-utils --with-graft=mesa=nvda
-  guix build mesa-utils --with-input=mesa=nvda
+  guix shell mesa-utils nvda --with-graft=mesa=nvda -- glxinfo
 #+END_SRC
 
-The above transformation can be used within an one-off software environment spawned by =guix shell= as well, for correct environment variables, the =nvda= package may be added into the environment:
+Note that =nvda= is added into the shell, it's for [[https://guix.gnu.org/manual/devel/en/html_node/Search-Paths.html][search paths]].
 
-#+BEGIN_SRC shell
-  guix shell mesa-utils nvda --with-graft=mesa=nvda \
-       -- glxinfo
-#+END_SRC
-
-To graft mesa with nvda programmatically, use =replace-mesa= defined in =(nongnu packages nvidia)=:
+A programmatical approach is provided by procedure =(replace-mesa)= defined in
+=(nongnu packages nvidia)= module.  It can be applied onto any object:
 
 #+BEGIN_SRC scheme
   (use-modules (nongnu packages nvidia))
 
-  ;; Replace mesa with nvda for a single package.
-  (replace-mesa <some-package>)
-
-  ;; Replace mesa with nvda for a package list.
-  (map replace-mesa (list <some-package> ...))
-
-  ;; A package with mesa replaced is still a package, it can be part of a
-  ;; package list.
-  (list (replace-mesa <some-package>)
-        ...)
+  (replace-mesa <any-object>)
 #+END_SRC
 
-When the card is not used for displaying, environment variables =__GLX_VENDOR_LIBRARY_NAME=nvidia= and =__NV_PRIME_RENDER_OFFLOAD=1= may be set.
+Additional note for PRIME render offload on switchable graphics setup: launch
+graphical applications with environment variables
+=__NV_PRIME_RENDER_OFFLOAD=1= and =__GLX_VENDOR_LIBRARY_NAME=nvidia=.
+
+*** Package variants
+A few packages require extra effort to support and they're implemented as
+package variants.  When you need one of them, install the variant below instead
+of the normal one.  Application setup is still necessary.
+
+- heroic-nvidia
+- mpv-nvidia
+- obs-nvidia
+- steam-nvidia
 
 ** Substitutes for nonguix
 
