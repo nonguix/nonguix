@@ -92,7 +92,10 @@ and INITRD (default: microcode-initrd)."
     (operating-system
       (inherit os)
       (kernel linux)
-      (firmware firmware)
+      (firmware
+       (delete-duplicates
+        (append firmware
+                (operating-system-firmware os))))
       (initrd initrd))))
 
 (define* (nonguix-transformation-nvidia #:key (driver nvda)
