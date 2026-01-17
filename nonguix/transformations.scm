@@ -13,6 +13,7 @@
   #:use-module (nongnu system linux-initrd)
   #:use-module (gnu services)
   #:use-module (gnu services base)
+  #:use-module (gnu services xorg)
   #:use-module (nongnu services nvidia)
   #:use-module (gnu packages package-management)
   #:use-module (nongnu packages linux)
@@ -100,6 +101,7 @@ and INITRD (default: microcode-initrd)."
 
 (define* (nonguix-transformation-nvidia #:key (driver nvda)
                                         (kernel-mode-setting? #t)
+                                        (configure-xorg? #f)
                                         (open-source-kernel-module? #f))
   "Return a procedure that transforms an operating system, setting up
 DRIVER (default: nvda) for NVIDIA graphics card.
@@ -107,12 +109,16 @@ DRIVER (default: nvda) for NVIDIA graphics card.
 KERNEL-MODE-SETTING? (default: #t) is required for Wayland and rootless Xorg
 support.
 
+CONFIGURE-XORG? (default: #f) is required for display managers that can start
+the Xorg server (e.g. GDM).
+
 OPEN-SOURCE-KERNEL-MODULE? (default: #f) only supports Turing and later
 architectures and is expected to work with 'linux-lts'.
 
-For application setup, use 'replace-mesa'.
+Use 'replace-mesa', for application setup out of the operating system
+declaration.
 
-TODO: Xorg configuration."
+TODO: Power management."
   (define %presets
     `((,nvda . ,(service nvidia-service-type
                   (nvidia-configuration
@@ -149,5 +155,10 @@ TODO: Xorg configuration."
                (leave
                 (G_ "no NVIDIA service configuration available for '~a'~%")
                 (package-name driver)))
+          ,@(if configure-xorg?
+                (list (set-xorg-configuration
+                       (xorg-configuration
+                         (modules (cons driver %default-xorg-modules)))))
+                '())
           ,@(operating-system-user-services os))
         #:driver driver)))))
