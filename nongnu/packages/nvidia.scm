@@ -126,7 +126,7 @@ its unpacked checkout."
   (origin
     (method url-fetch)
     (uri (string-append
-          "https://us.download.nvidia.com/XFree86/Linux-x86_64/"
+          "https://download.nvidia.com/XFree86/Linux-x86_64/"
           version "/NVIDIA-Linux-x86_64-" version ".run"))
     (file-name (string-append "NVIDIA-Linux-x86_64-" version))
     (sha256 (base32 hash))
@@ -231,9 +231,9 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
 (define-public nvidia-driver
   (package
     (name "nvidia-driver")
-    (version "580.119.02")
+    (version "580.126.09")
     (source (nvidia-source
-             version "1mzc700ngsnpmngblw51x58lgrdgsb1x1449lgksx27fsggza840"))
+             version "09pchs4lk2h8zpm8q2fqky6296h54knqi1vwsihzdpwaizj57b2c"))
     (build-system copy-build-system)
     (arguments
      (list #:modules '((guix build copy-build-system)
@@ -632,9 +632,9 @@ add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
 (define-public nvidia-settings
   (package
     (name "nvidia-settings")
-    (version "580.119.02")
+    (version "580.126.09")
     (source (nvidia-settings-source
-             name version "1hkr2d54s85a94fzg1pl6yvsqi5f3d1mlmli84s4qs8dm35yb3xh"))
+             name version "1w6ippwzb4ly7jh3m2v8ygplf3j8gf3bh77fqxz4mhgckmdc49z1"))
     (build-system gnu-build-system)
     (arguments
      (list #:tests? #f ;no test suite

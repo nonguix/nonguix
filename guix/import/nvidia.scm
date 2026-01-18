@@ -92,7 +92,7 @@
      (package name)
      (version version)
      (urls (list (string-append
-                  "https://us.download.nvidia.com/XFree86/Linux-x86_64/"
+                  "https://download.nvidia.com/XFree86/Linux-x86_64/"
                   version "/NVIDIA-Linux-x86_64-" version ".run"))))))
 
 (define (nvidia-package? package)
