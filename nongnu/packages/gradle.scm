@@ -3,6 +3,7 @@
 ;;; Copyright © 2025 Maxim Cournoyer <maxim@guixotic.coop>
 
 (define-module (nongnu packages gradle)
+  #:use-module (gnu packages base)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages java)
   #:use-module (guix build-system copy)
@@ -35,9 +36,16 @@
                      `("JAVA_HOME" =
                        (,(dirname
                           (dirname
-                           (search-input-file inputs "bin/javac")))))))))))
+                           (search-input-file inputs "bin/javac")))))
+                     `("PATH" prefix
+                       (,(dirname
+                          (search-input-file inputs "bin/sed"))
+                        ,(dirname
+                          (search-input-file inputs "bin/uname"))
+                        ,(dirname
+                          (search-input-file inputs "/bin/xargs"))))))))))
     (native-inputs (list unzip))
-    (inputs (list `(,openjdk "jdk")))
+    (inputs (list coreutils findutils `(,openjdk "jdk") sed))
     (home-page "https://gradle.org/")
     (synopsis "Flexible build automation tool for JVM")
     (description "Gradle is a build tool with a focus on build automation and
