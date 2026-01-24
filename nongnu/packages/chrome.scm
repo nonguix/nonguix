@@ -156,7 +156,7 @@
 ;; TODO: write a nice importer for this in Scheme.
 
 (define-public google-chrome-stable
-  (make-google-chrome "stable" "143.0.7499.169" "189whgh1mf299rs9jinnrjmikampga0jvqbm0yx8ix6gjy0q7mwg"))
+  (make-google-chrome "stable" "144.0.7559.109" "0is1gml9si519zbjlj5w7wlflq7wlx0bvaj6y4mpm150qh4waxrv"))
 
 (define-public google-chrome-beta
   (make-google-chrome "beta" "144.0.7559.31" "0rm89glhpv5mkbzswqmhfxgb1rr4yf610whczh35qj6gh3s54c0n"))
