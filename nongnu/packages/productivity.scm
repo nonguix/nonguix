@@ -130,17 +130,17 @@ synchronization.")
 (define-public zotero
   (package
     (name "zotero")
-    (version "7.0.15")
+    (version "8.0")
     (source
      (origin
        ;; Can switch to git-fetch from Github too!
        (method url-fetch)
        (uri
         (string-append "https://download.zotero.org/client/release/"
-                       version "/Zotero-" version "_linux-x86_64.tar.bz2"))
+                       version "/Zotero-" version "_linux-x86_64.tar.xz"))
        (sha256
         (base32
-         "1gr38pmnx2gcb0cmn1zncxgj5hbwpx7m4x720xg04b2n4g58lsni"))))
+         "06883y5839blg14hdqkym2rf01vw2gbrs8r3c5v8klyjavxy9s8g"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list
