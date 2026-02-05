@@ -265,19 +265,26 @@ variable =%my-os=:
     (operating-system ...))
 #+END_SRC
 
-No arguments are required for headless and Wayland environments:
+- Headless environmnet: disable =#:kernel-mode-setting?=:
 
-#+begin_src scheme
-  ((nonguix-transformation-nvidia)
-   %my-os)
-#+end_src
+    #+begin_src scheme
+      ((nonguix-transformation-nvidia #:kernel-mode-setting? #f)
+       %my-os)
+    #+end_src
 
-For Xorg environmnets, set =#:configure-xorg?= argument to =#t=:
+- Pure-Wayland environmnet: no argument required:
 
-#+begin_src scheme
-  ((nonguix-transformation-nvidia #:configure-xorg? #t)
-   %my-os)
-#+end_src
+    #+begin_src scheme
+      ((nonguix-transformation-nvidia)
+       %my-os)
+    #+end_src
+
+- Xorg environmnet: =#:configure-xorg?=:
+
+    #+begin_src scheme
+      ((nonguix-transformation-nvidia #:configure-xorg? #t)
+       %my-os)
+    #+end_src
 
 Full example below, using =compose= so that other system transformations can be
 mixed in:
