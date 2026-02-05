@@ -101,6 +101,7 @@ and INITRD (default: microcode-initrd)."
 
 (define* (nonguix-transformation-nvidia #:key (driver nvda)
                                         (open-source-kernel-module? #f)
+                                        (s0ix-power-management? #f)
                                         (kernel-mode-setting? #t)
                                         (configure-xorg? #f))
   "Return a procedure that transforms an operating system, setting up
@@ -109,6 +110,9 @@ DRIVER (default: nvda) for NVIDIA graphics card.
 OPEN-SOURCE-KERNEL-MODULE? (default: #f) only supports Turing and later
 architectures and is expected to work with 'linux-lts'.
 
+S0IX-POWER-MANAGEMENT? (default: #f) improves suspend and hibernate on systems
+with supported graphics cards.
+
 KERNEL-MODE-SETTING? (default: #t) is required for Wayland and rootless Xorg
 support.
 
@@ -116,9 +120,7 @@ CONFIGURE-XORG? (default: #f) is required for Xorg display managers.  Currently
 this argument configures the one used by '%desktop-services', GDM or SDDM.
 
 Use 'replace-mesa', for application setup out of the operating system
-declaration.
-
-TODO: Power management."
+declaration."
   (define %presets
     `((,nvda . ,(service nvidia-service-type
                   (nvidia-configuration
@@ -142,6 +144,10 @@ TODO: Power management."
       (kernel-arguments
        (delete-duplicates
         `("modprobe.blacklist=nouveau"
+          ,@(if s0ix-power-management?
+                '("mem_sleep_default=s2idle"
+                  "nvidia.NVreg_EnableS0ixPowerManagement=1")
+                '())
           ,(if kernel-mode-setting?
                "nvidia_drm.modeset=1"
                "nvidia_drm.modeset=0")

@@ -234,6 +234,7 @@ Procedure =nonguix-transformation-nvidia= is defined in the
 #+begin_example
   nonguix-transformation-nvidia [#:driver nvda]
                                 [#:open-source-kernel-module? #f]
+                                [#:s0ix-power-management? #f]
                                 [#:kernel-mode-setting? #t]
                                 [#:configure-xorg? #f]
 
@@ -243,6 +244,9 @@ Procedure =nonguix-transformation-nvidia= is defined in the
   OPEN-SOURCE-KERNEL-MODULE? (default: #f) only supports Turing and later
   architectures and is expected to work with 'linux-lts'.
 
+  S0IX-POWER-MANAGEMENT? (default: #f) improves suspend and hibernate on systems
+  with supported graphics cards.
+
   KERNEL-MODE-SETTING? (default: #t) is required for Wayland and rootless Xorg
   support.
 
@@ -251,8 +255,6 @@ Procedure =nonguix-transformation-nvidia= is defined in the
 
   Use 'replace-mesa', for application setup out of the operating system
   declaration.
-
-  TODO: Power management.
 #+end_example
 
 For example, assuming the follow operating system declaration, defined as
