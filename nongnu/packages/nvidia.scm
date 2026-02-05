@@ -497,15 +497,13 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
       (propagated-inputs '())
       (inputs '())
       (native-inputs '())
-      (synopsis "Proprietary NVIDIA driver (GSP firmwares)")
+      (synopsis "Proprietary NVIDIA driver (GPU System Processor firmwares)")
       (description
-       "This package provides firmwares for NVIDIA's GPU System Processor.
-Firmware installation can be done with @code{nvidia-service-type}, however
-whether GSP mode is enabled by default or not depends on the specific GPU
-product.
+       "This package provides @acronym{GSP, GPU System Processor} firmwares of
+the proprietary NVIDIA driver.
 
-To enable GSP mode manually, add @code{\"NVreg_EnableGpuFirmware=1\"} to
-@code{kernel-arguments} field of the @code{operating-system} configuration."))))
+For free driver (@code{nouveau}) support, use @code{linux-firmware}
+instead."))))
 
 (define-public nvidia-firmware-beta
   (package
@@ -557,15 +555,10 @@ To enable GSP mode manually, add @code{\"NVreg_EnableGpuFirmware=1\"} to
                             ,@make-flags)))))))
     (supported-systems '("x86_64-linux"))
     (home-page "https://www.nvidia.com")
-    (synopsis "Proprietary NVIDIA driver (kernel modules)")
+    (synopsis "Proprietary NVIDIA driver (proprietary kernel modules)")
     (description
-     "This package provides kernel modules of the proprietary NVIDIA driver.
-Module setup can be done with @code{nvidia-service-type}, to actually use these
-modules, also add @code{modprobe.blacklist=nouveau} to @code{kernel-arguments}
-field of the @code{operating-system} configuration.
-
-If the NVIDIA card is not used for displaying, or on a Wayland environment,
-add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
+     "This package provides proprietary kernel modules of the proprietary NVIDIA
+driver.")
     (license
      (license:nonfree
       (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
@@ -590,20 +583,10 @@ add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
          ;; <https://github.com/llvm/llvm-project/issues/55820>
          ((#:source-directory _) "kernel-open")))
       (home-page "https://github.com/NVIDIA/open-gpu-kernel-modules")
-      (synopsis "Open source NVIDIA kernel modules")
+      (synopsis "Proprietary NVIDIA driver (open source kernel modules)")
       (description
-       "This package provides open source NVIDIA kernel modules, however
-proprietary firmware and libraries are still necessary, and these modules
-require GPU System Processor to be present (Turing or later architectures) and
-enabled (see also the description of @code{nvidia-firmware} package).
-
-Module setup can be done with @code{nvidia-service-type} (with @code{module}
-field of @code{nvidia-configuration} set to @code{nvidia-module-open}), to
-actually use these modules, also add @code{modprobe.blacklist=nouveau} to
-@code{kernel-arguments} field of the @code{operating-system} configuration.
-
-If the NVIDIA card is not used for displaying, or on a Wayland environment,
-add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
+       "This package provides open source kernel modules of the proprietary
+NVIDIA driver.")
       (license license-gnu:gpl2))))
 
 (define-public nvidia-module-open-beta
@@ -681,10 +664,10 @@ add @code{nvidia_drm.modeset=1} to @code{kernel-arguments} as well.")
                   libxv
                   libxxf86vm
                   vulkan-headers))
-    (synopsis "Nvidia driver control panel")
+    (synopsis "NVIDIA driver control panel")
     (description
-     "This package provides Nvidia driver control panel for monitor
-configuration, creating application profiles, gpu monitoring and more.")
+     "This package provides NVIDIA driver control panel for monitor
+configuration, application profiles, GPU monitoring and more.")
     (home-page "https://github.com/NVIDIA/nvidia-settings")
     (license license-gnu:gpl2)))
 
@@ -806,17 +789,8 @@ configuration, creating application profiles, gpu monitoring and more.")
        (files '("share")))))
     (synopsis "Nonguix's user-facing NVIDIA driver package")
     (description
-     "This package provides a drop-in replacement for @code{mesa} and is
-intended to be installed by @code{nvidia-service-type}.
-
-To actually use the NVIDIA card, replacement must be applied for individual
-packages, this can be done either by rewriting inputs with
-@code{--with-input=mesa=nvda} or grafting with @code{--with-graft=mesa=nvda}.
-For a programmatical way, the procedure @code{replace-mesa} can be used.
-
-Additionally, if the NVIDIA card is not used for displaying, environment
-variables @code{__GLX_VENDOR_LIBRARY_NAME=nvidia} and
-@code{__NV_PRIME_RENDER_OFFLOAD=1} may be set.")
+     "This package provides a @code{mesa} variant with NVIDIA proprietary driver
+support.  For dependency of other packages, use @code{nvidia-driver} instead.")
     (native-inputs '())
     (propagated-inputs
      (append
