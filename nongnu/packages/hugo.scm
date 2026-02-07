@@ -17,7 +17,7 @@
 (define-public hugo
   (package
     (name "hugo")
-    (version "0.152.2")
+    (version "0.158.0")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -26,19 +26,27 @@
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "093p1k0m2n5b2bbk49kmciwr92wy9b8b4hw5wwmlhs2v304rw9cx"))))
+                "037f3nwn95zhs6i5vn21r8qg265g3zwjiapxnx3kam09v8jypz7g"))))
     (build-system go-build-system)
     (arguments
      (list
-      #:go go-1.24
+      #:go go-1.26
       #:install-source? #f
       #:import-path "."
       #:build-flags
-      #~(list "-tags" "extended withdeploy"
+      #~(list "-tags" "extended"
               (string-append
                "-ldflags="
                " -X github.com/gohugoio/hugo/common/hugo.vendorInfo=Nonguix"))
-      #:test-flags ''("-skip=^TestCommands/mod|^TestCommands/server")
+      #:test-flags
+      #~(list (string-append
+               "-skip="
+               (string-join
+                '("^TestCommands/hugo__static_issue14507" ;tries to use network.
+                  "^TestCommands/mod"
+                  "^TestCommands/server"
+                  "^TestWithdeploy")
+                "|")))
       #:test-subdirs ''(".")
       #:modules
       '(((guix build gnu-build-system) #:prefix gnu:)
@@ -59,20 +67,6 @@
             (assoc-ref gnu:%standard-phases 'install-license-files))
           (add-after 'unpack 'fix-paths
             (lambda* (#:key native-inputs inputs #:allow-other-keys)
-              (setenv
-               "C_INCLUDE_PATH"
-               (format #f "~a:~a"
-                       (getenv "C_INCLUDE_PATH")
-                       ((compose dirname dirname dirname)
-                        (search-input-file
-                         (or native-inputs inputs)
-                         "src/dec/alphai_dec.h"))))
-              (with-directory-excursion "vendor/github.com/bep/gowebp"
-                (substitute* (find-files "internal/libwebp")
-                  (("../../libwebp_src/(.*)\"" _ file)
-                   (format #f "~a\""
-                           (search-input-file
-                            (or native-inputs inputs) file)))))
               (with-directory-excursion "vendor/github.com/bep/golibsass"
                 (substitute* (find-files "internal/libsass")
                   (("../../libsass_src/(.*)\"" _ file)
@@ -81,14 +75,13 @@
                             (or native-inputs inputs) file))))))))))
     (native-inputs
      (list (origin
-             (method (go-mod-vendor #:go go-1.24))
+             (method (go-mod-vendor #:go go-1.26))
              (uri (package-source this-package))
              (file-name "vendored-go-dependencies")
              (sha256
               (base32
-               "1yhk8as1jz5459bzkmqjwdp82xqsr7sx1m1jkkk58cfzagznpz78")))
-           (package-source libsass)
-           (package-source libwebp)))
+               "0kn2skk9zd2gga44smjnm8c8j2qzg1by6qbr089ri45qs3mh6smn")))
+           (package-source libsass)))
     (home-page "https://gohugo.io/")
     (synopsis "Static site generator written in Go")
     (description
