@@ -9,6 +9,7 @@
   #:use-module (gnu packages cpio)
   #:use-module (gnu packages efi)
   #:use-module (gnu packages firmware)
+  #:use-module (gnu packages golang-compression)
   #:use-module (guix build-system copy)
   #:use-module (guix build-system gnu)
   #:use-module (guix download)
@@ -17,8 +18,7 @@
   #:use-module ((guix licenses) #:prefix guix-license:)
   #:use-module (guix packages)
   #:use-module (guix utils)
-  #:use-module (nonguix licenses)
-  #:use-module (nongnu packages compression))
+  #:use-module (nonguix licenses))
 
 ;; fwupd with LVFS nonfree repositories enabled
 (define-public fwupd-nonfree
@@ -294,14 +294,17 @@ patjak's facetimehd wiki} for more information.")
         #~(modify-phases %standard-phases
             (add-before 'install 'extract
               (lambda* (#:key inputs #:allow-other-keys)
-                (invoke (search-input-file inputs "/bin/unrar")
-                        "x"
-                        "BootCamp/Drivers/Apple/AppleCamera64.exe")
+                (invoke (search-input-file inputs "/bin/arc")
+                        "-ext" ".rar"
+                        "unarchive" "BootCamp/Drivers/Apple/AppleCamera64.exe")
+
                 (for-each (lambda (spec)
-                            (apply #$dump-file-chunk "AppleCamera.sys" spec))
+                            (apply #$dump-file-chunk
+                                   "AppleCamera64/AppleCamera.sys"
+                                   spec))
                           '#$calibration-files)))))))
     (native-inputs
-     (list unrar unzip))
+     (list go-arc unzip))
     (synopsis "Calibration files for the FacetimeHD (Broadcom 1570) PCIe webcam")
     (description "Calibration files for the FacetimeHD webcam.  These are
 optional but make the colors look much better.  See
