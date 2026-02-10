@@ -38,6 +38,7 @@
   #:use-module ((guix build utils) #:select (alist-replace))
 
   #:use-module (gnu packages)
+  #:use-module (nongnu packages)
   #:use-module (gnu packages assembly)
   #:use-module (gnu packages autotools)
   #:use-module (gnu packages base)
@@ -101,15 +102,11 @@
        (sha256
         (base32 "0a8mrc4pja4cjhayg4af5lsfrf7161gfq03idwik0vvjf68772k0"))
        (patches
-        (map (lambda (patch)
-               (search-path
-                (map (cut string-append <> "/nongnu/packages/patches")
-                     %load-path)
-                patch))
-             '("firefox-restore-desktop-files.patch"
-               "firefox-ge-138-compare-paths.patch"
-               "firefox-esr-use-system-wide-dir.patch"
-               "firefox-esr-add-store-to-rdd-allowlist.patch")))
+        (nongnu-patches
+         "firefox-restore-desktop-files.patch"
+         "firefox-ge-138-compare-paths.patch"
+         "firefox-esr-use-system-wide-dir.patch"
+         "firefox-esr-add-store-to-rdd-allowlist.patch"))
        ;; XXX: 75 Mo (800+ Mo uncompressed) of unused tests.
        ;; Removing it makes it possible to compile on some systems.
        (modules '((guix build utils)))
@@ -544,15 +541,11 @@ Release (ESR) version.")
        (sha256
         (base32 "064w9nk928jydig31ph18k93ain152nabv6fgl3zz20sslb8m8xz"))
        (patches
-        (map (lambda (patch)
-               (search-path
-                (map (cut string-append <> "/nongnu/packages/patches")
-                     %load-path)
-                patch))
-             '("firefox-restore-desktop-files.patch"
-               "firefox-ge-138-compare-paths.patch"
-               "firefox-use-system-wide-dir.patch"
-               "firefox-add-store-to-rdd-allowlist.patch")))
+        (nongnu-patches
+         "firefox-restore-desktop-files.patch"
+         "firefox-ge-138-compare-paths.patch"
+         "firefox-use-system-wide-dir.patch"
+         "firefox-add-store-to-rdd-allowlist.patch"))
        ;; XXX: 75 Mo (800+ Mo uncompressed) of unused tests.
        ;; Removing it makes it possible to compile on some systems.
        (modules '((guix build utils)))
