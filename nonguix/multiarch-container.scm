@@ -283,6 +283,11 @@ in a sandboxed FHS environment."
                                  "^DRI_PRIME$"
                                  "^GDK_SCALE$" ; For UI scaling.
                                  "^GUIX_LOCPATH$" ; For pressure-vessel locales.
+                                 ;; Input method support.
+                                 ;; https://github.com/ValveSoftware/steam-for-linux/issues/3255#issuecomment-2565050431
+                                 "_IM_MODULES?$"
+                                 "^LANG$"
+                                 "^XMODIFIERS$"
                                  ;; For startup of added non-Steam games as it
                                  ;; seems they start in an early environment
                                  ;; before our additional settings.  (Likely
