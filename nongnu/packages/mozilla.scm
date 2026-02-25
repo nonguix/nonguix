@@ -84,7 +84,7 @@
 ;;; it is a tradeoff worth making.
 ;;; 0: https://firefox-source-docs.mozilla.org/writing-rust-code/update-policy.html
 (define-public rust-firefox-esr rust)
-(define-public rust-firefox     rust)
+(define-public rust-firefox     rust-1.92)
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
@@ -526,20 +526,20 @@ Release (ESR) version.")
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-build-id "20260216125045")
+(define %firefox-build-id "20260223140545")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "147.0.4")
+    (version "148.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "1xwl5vc7504gx15yj0kvrxn3k250sja22d8j6dyrhxxican441xw"))
+        (base32 "0vybaiiknrzk2zvg46w5sxb0i0m9rmy4msvpxklxpdr3182fb4zc"))
        (patches
         (nongnu-patches
          "firefox-restore-desktop-files.patch"
