@@ -4,7 +4,7 @@
 ;;; Copyright © 2024 Andre A. Gomes <andremegafone@gmail.com>
 ;;; Copyright © 2024 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2025 Ricardo Wurmus <rekado@elephly.net>
-;;; Copyright © 2025 Simen Endsjø <contact@simendsjo.me>
+;;; Copyright © 2025,2026 Simen Endsjø <contact@simendsjo.me>
 ;;; Copyright © 2025 Nicolas Graves <ngraves@ngraves.fr>
 
 (define-module (nongnu packages electron)
@@ -150,6 +150,6 @@ Chromium and is used by the Atom editor and many other apps.")
 (define-public electron-36
   (package
     (inherit electron-35)
-    (version "36.8.1")
+    (version "36.9.5")
     (source (electron-source version
-                             "1qapdkchs2cpsksvmy1biglwx5h3cl2jg9jmdml7l185h5dfcw7y"))))
+                             "05l6cab4cq4cy5ajf8gz26h5s65dnvbzgmlc1wr1d0fnxr53dmjj"))))
