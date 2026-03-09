@@ -231,9 +231,9 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
 (define-public nvidia-driver
   (package
     (name "nvidia-driver")
-    (version "580.126.09")
+    (version "580.142")
     (source (nvidia-source
-             version "09pchs4lk2h8zpm8q2fqky6296h54knqi1vwsihzdpwaizj57b2c"))
+             version "0qvm8hh3d90i3674dqlj1lam6m189ah60fzr1iaw72gy7z7mz490"))
     (build-system copy-build-system)
     (arguments
      (list #:modules '((guix build copy-build-system)
@@ -615,9 +615,9 @@ NVIDIA driver.")
 (define-public nvidia-settings
   (package
     (name "nvidia-settings")
-    (version "580.126.09")
+    (version "580.142")
     (source (nvidia-settings-source
-             name version "1w6ippwzb4ly7jh3m2v8ygplf3j8gf3bh77fqxz4mhgckmdc49z1"))
+             name version "00sdrka3mslqgyhpnxyr6165nbrrfqdp1shgmbgp9ga07sbchyh6"))
     (build-system gnu-build-system)
     (arguments
      (list #:tests? #f ;no test suite
