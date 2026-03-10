@@ -144,6 +144,7 @@ declaration."
       (kernel-arguments
        (delete-duplicates
         `("modprobe.blacklist=nouveau"
+          "modprobe.blacklist=nova_core,nova_drm"
           ,@(if s0ix-power-management?
                 '("mem_sleep_default=s2idle"
                   "nvidia.NVreg_EnableS0ixPowerManagement=1")
