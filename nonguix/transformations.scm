@@ -166,7 +166,7 @@ declaration."
           ,@(if configure-xorg?
                 (list (set-xorg-configuration
                        (xorg-configuration
-                         (modules (cons driver %default-xorg-modules)))))
+                         (modules (list driver)))))
                 '())
           ,@(operating-system-user-services os))
         #:driver driver)))))
