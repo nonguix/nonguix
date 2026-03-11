@@ -598,6 +598,46 @@ NVIDIA driver.")
 
 
 ;;;
+;;; nvidia-modprobe
+;;;
+
+(define-public nvidia-modprobe
+  (package
+    (name "nvidia-modprobe")
+    (version "580.142")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                     (url "https://github.com/NVIDIA/nvidia-modprobe")
+                     (commit version)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "1rbl52d40q86y9dbj5qlm5k3rindg5fqh121wxfzrc68fl3gjila"))))
+    (build-system gnu-build-system)
+    (arguments
+     (list #:tests? #f                  ;No test suite
+           #:make-flags
+           #~(list (string-append "PREFIX=" #$output)
+                   (string-append "CC=" #$(cc-for-target))
+                   (string-append "STRIP_CMD=" #$(strip-for-target))
+                   "HOST_CC=gcc")
+           #:phases
+           #~(modify-phases %standard-phases
+               ;; No configure script.
+               (delete 'configure))))
+    (native-inputs (list m4 pkg-config))
+    (home-page "https://github.com/NVIDIA/nvidia-modprobe")
+    (synopsis
+     "Load the NVIDIA kernel module and create NVIDIA character device files")
+    (description
+     "The @command{nvidia-modprobe} utility is used by user-space NVIDIA driver
+components to make sure the NVIDIA kernel module is loaded, the NVIDIA character
+device files are present and configure certain runtime settings in the kernel.")
+    (license license-gnu:gpl2)))
+
+
+;;;
 ;;; ‘nvidia-settings’ packages
 ;;;
 
