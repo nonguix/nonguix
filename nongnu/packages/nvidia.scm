@@ -636,6 +636,21 @@ components to make sure the NVIDIA kernel module is loaded, the NVIDIA character
 device files are present and configure certain runtime settings in the kernel.")
     (license license-gnu:gpl2)))
 
+(define-public nvidia-modprobe-beta
+  (package
+    (inherit nvidia-modprobe)
+    (name "nvidia-modprobe-beta")
+    (version "595.45.04")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                     (url "https://github.com/NVIDIA/nvidia-modprobe")
+                     (commit version)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "0s1p89js7f65pzss7fqglddz052lq357xjxyqwpca9kmljxr4dqc"))))))
+
 
 ;;;
 ;;; ‘nvidia-settings’ packages
