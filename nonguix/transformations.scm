@@ -129,7 +129,8 @@ declaration."
                    (module
                     (if open-source-kernel-module?
                         nvidia-module-open
-                        nvidia-module)))))
+                        nvidia-module))
+                   (modprobe nvidia-modprobe))))
       (,nvdb . ,(service nvidia-service-type
                   (nvidia-configuration
                    (driver nvdb)
@@ -137,7 +138,8 @@ declaration."
                    (module
                     (if open-source-kernel-module?
                         nvidia-module-open-beta
-                        nvidia-module-beta)))))))
+                        nvidia-module-beta))
+                   (modprobe nvidia-modprobe-beta))))))
   (lambda (os)
     (operating-system
       (inherit os)
