@@ -37,7 +37,8 @@
 
 ;; Create paths hard-coded in NVIDIA libraries.
 (define (nvidia-special-files config)
-  `(("/usr/bin/nvidia-modprobe" "/run/privileged/bin/nvidia-modprobe")))
+  `(("/usr/bin/nvidia-modprobe" "/run/privileged/bin/nvidia-modprobe")
+    ("/usr/share/nvidia" "/run/booted-system/profile/share/nvidia")))
 
 ;; https://github.com/Frogging-Family/nvidia-all/blob/master/system/60-nvidia.rules
 (define (nvidia-udev-rule config)
