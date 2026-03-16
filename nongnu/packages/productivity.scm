@@ -6,6 +6,7 @@
 (define-module (nongnu packages productivity)
   #:use-module (gnu packages base)
   #:use-module (gnu packages compression)
+  #:use-module (gnu packages fontutils)
   #:use-module (gnu packages freedesktop)
   #:use-module (gnu packages gcc)
   #:use-module (gnu packages gl)
@@ -14,20 +15,122 @@
   #:use-module (gnu packages image)
   #:use-module (gnu packages imagemagick)
   #:use-module (gnu packages inkscape)
+  #:use-module (gnu packages kerberos)
   #:use-module (gnu packages linux)
+  #:use-module (gnu packages nss)
   #:use-module (gnu packages pciutils)
   #:use-module (gnu packages photo)
+  #:use-module (gnu packages python)
+  #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xiph)
+  #:use-module (gnu packages xml)
   #:use-module (gnu packages xorg)
   #:use-module (gnu packages video)
   #:use-module (gnu packages wget)
+  #:use-module (guix build-system copy)
   #:use-module (guix download)
   #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module (ice-9 match)
+  #:use-module (nonguix build-system binary)
   #:use-module (nonguix build-system chromium-binary)
+  #:use-module (nonguix multiarch-container)
   #:use-module ((nonguix licenses) #:prefix license:)
   #:use-module ((guix licenses) #:prefix free-license:))
+
+(define anki-client
+  (package
+    (name "anki-client")
+    (version "25.09")
+    (source
+     (origin
+       (method url-fetch)
+       (uri
+        (string-append "https://github.com/ankitects/anki/releases/download/"
+                       version "/anki-launcher-" version "-linux.tar.zst"))
+       (file-name (string-append name "-" version ".tar.zst"))
+       (sha256
+        (base32
+         "0adhpcmraqywsqnh3had184czxval3fvp2dc1hv48jg4fjpdvjwp"))))
+    (build-system copy-build-system)
+    (arguments
+     (list
+      #:install-plan
+      `'(("anki" "/share/anki/")
+         ("launcher.amd64" "/share/anki/")
+         ("uv.amd64" "/share/anki/")
+         ("pyproject.toml" "/share/anki/")
+         ("versions.py" "/share/anki/")
+         (".python-version" "/share/anki/")
+         ("anki.xpm" "/share/pixmaps/")
+         ("anki.png" "/share/pixmaps/")
+         ("anki.desktop" "/share/applications/")
+         ("anki.1" "/share/man/man1/"))
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-after 'install 'install-entrypoint
+            (lambda _
+              (let* ((bin (string-append #$output "/bin")))
+                (mkdir-p bin)
+                (symlink (string-append #$output "/share/anki/anki")
+                         (string-append bin "/anki"))))))))
+    (synopsis "Spaced repetition flashcard program")
+    (supported-systems '("x86_64-linux"))
+    (description "Anki is a flashcard program that helps you spend more time
+on challenging material, and less on what you already know.
+
+Note: The first run of Anki needs to be done from a terminal in order for it
+to fully install itself.")
+    (home-page "https://apps.ankiweb.net/")
+    (license free-license:agpl3+)))
+
+(define-public anki
+  (nonguix-container->package
+   (nonguix-container
+     (name "anki")
+     (wrap-package anki-client)
+     (run "/bin/anki")
+     (union64
+      (fhs-union
+       (append fhs-min-libs
+               `(("alsa-lib" ,alsa-lib)
+                 ("dbus" ,dbus)
+                 ("coreutils" ,coreutils) ; needs uname to check arch
+                 ("expat" ,expat)
+                 ("gcc:lib" ,gcc "lib")
+                 ("flatpak-xdg-utils" ,flatpak-xdg-utils)
+                 ("fontconfig" ,fontconfig)
+                 ("freetype" ,freetype)
+                 ("glib" ,glib)
+                 ("libdrm" ,libdrm)
+                 ("libx11" ,libx11)
+                 ("libxcb" ,libxcb)
+                 ("libxcomposite" ,libxcomposite)
+                 ("libxdamage" ,libxdamage)
+                 ("libxext" ,libxext)
+                 ("libxfixes" ,libxfixes)
+                 ("libxi" ,libxi)
+                 ("libxkbcommon" ,libxkbcommon)
+                 ("libxkbfile" ,libxkbfile)
+                 ("libxrandr" ,libxrandr)
+                 ("libxrender" ,libxrender)
+                 ("libxshmfence" ,libxshmfence)
+                 ("libxtst" ,libxtst)
+                 ("mesa" ,mesa)
+                 ("mit-krb5" ,mit-krb5)
+                 ("mpv" ,mpv)
+                 ("nspr" ,nspr)
+                 ("nss" ,nss)
+                 ("nss-certs" ,nss-certs)
+                 ("eudev" ,eudev)
+                 ("xcb-util-image" ,xcb-util-image)
+                 ("xcb-util-cursor" ,xcb-util-cursor)
+                 ("xcb-util-keysyms" ,xcb-util-keysyms)
+                 ("xcb-util-renderutil" ,xcb-util-renderutil)
+                 ("xcb-util-wm" ,xcb-util-wm)
+                 ("zlib" ,zlib)
+                 ("zstd:lib" ,zstd "lib")))
+       #:system "x86_64-linux")))))
 
 (define-public anytype
   (package
