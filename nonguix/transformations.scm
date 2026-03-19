@@ -2,6 +2,7 @@
 ;;; Copyright © 2025 Hilton Chain <hako@ultrarare.space>
 
 (define-module (nonguix transformations)
+  #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:use-module (guix channels)
@@ -116,8 +117,10 @@ with supported graphics cards.
 KERNEL-MODE-SETTING? (default: #t) is required for Wayland and rootless Xorg
 support.
 
-CONFIGURE-XORG? (default: #f) is required for Xorg display managers.  Currently
-this argument configures the one used by '%desktop-services', GDM or SDDM.
+CONFIGURE-XORG? (default: #f) is required for Xorg display managers.  When
+setting to #t, it configures the one specified by '%desktop-services'.  If you
+set up the display manager on your own, use its service type instead,
+'sddm-service-type', for example.
 
 Use 'replace-mesa', for application setup out of the operating system
 declaration."
@@ -150,6 +153,19 @@ declaration."
                              nvidia-module-590))
                         (modprobe nvidia-modprobe-590))))))
 
+  (define %xorg-extension
+    (and=> configure-xorg?
+           (match-lambda
+             (#t
+              (set-xorg-configuration
+               (xorg-configuration
+                 (modules (list driver)))))
+             (display-manager
+              (set-xorg-configuration
+               (xorg-configuration
+                 (modules (list driver)))
+               display-manager)))))
+
   (lambda (os)
     (operating-system
       (inherit os)
@@ -176,9 +192,7 @@ declaration."
                 (G_ "no NVIDIA service configuration available for '~a'~%")
                 (package-name driver)))
           ,@(if configure-xorg?
-                (list (set-xorg-configuration
-                       (xorg-configuration
-                         (modules (list driver)))))
+                (list %xorg-extension)
                 '())
           ,@(operating-system-user-services os))
         #:driver driver)))))

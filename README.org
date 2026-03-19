@@ -250,8 +250,10 @@ Procedure =nonguix-transformation-nvidia= is defined in the
   KERNEL-MODE-SETTING? (default: #t) is required for Wayland and rootless Xorg
   support.
 
-  CONFIGURE-XORG? (default: #f) is required for Xorg display managers.  Currently
-  this argument configures the one used by '%desktop-services', GDM or SDDM.
+  CONFIGURE-XORG? (default: #f) is required for Xorg display managers.  When
+  setting to #t, it configures the one specified by '%desktop-services'.  If you
+  set up the display manager on your own, use its service type instead,
+  'sddm-service-type', for example.
 
   Use 'replace-mesa', for application setup out of the operating system
   declaration.
@@ -283,8 +285,17 @@ variable =%my-os=:
 
 - Xorg environmnet: =#:configure-xorg?=:
 
+    Set to =#t= when you're using =%desktop-services=.
+
     #+begin_src scheme
       ((nonguix-transformation-nvidia #:configure-xorg? #t)
+       %my-os)
+    #+end_src
+
+    Specify service type of your display manager otherwine.
+
+    #+begin_src scheme
+      ((nonguix-transformation-nvidia #:configure-xorg? sddm-service-type)
        %my-os)
     #+end_src
 
