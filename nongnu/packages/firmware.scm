@@ -26,7 +26,7 @@
     (inherit fwupd)
     (name "fwupd-nonfree")
     (arguments
-     (substitute-keyword-arguments (package-arguments fwupd)
+     (substitute-keyword-arguments arguments
        ((#:configure-flags _
          #~'())
         #~(list "--wrap-mode=nofallback"

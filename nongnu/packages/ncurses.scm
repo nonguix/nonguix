@@ -224,6 +224,6 @@ ncursesw library provides wide character support.")
   (package/inherit ncurses-5
     (name "ncurses-with-tinfo")
     (arguments
-     (substitute-keyword-arguments (package-arguments ncurses-5)
+     (substitute-keyword-arguments arguments
        ((#:configure-flags cf)
         #~(cons "--with-termlib=tinfo" #$cf))))))

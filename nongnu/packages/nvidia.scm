@@ -483,7 +483,7 @@ driver.")
       (inherit base)
       (name "nvidia-module-open")
       (arguments
-       (substitute-keyword-arguments (package-arguments base)
+       (substitute-keyword-arguments arguments
          ;; NOTE: Kernels compiled with CONFIG_LTO_CLANG_THIN would cause an
          ;; error here.  See also:
          ;; <https://github.com/NVIDIA/open-gpu-kernel-modules/issues/214>
@@ -653,7 +653,7 @@ configuration, application profiles, GPU monitoring and more.")
    (package
      (inherit libglvnd)
      (arguments
-      (substitute-keyword-arguments (package-arguments libglvnd)
+      (substitute-keyword-arguments arguments
         ((#:configure-flags flags #~'())
          #~(cons* "-Dc_link_args=-Wl,-rpath=$ORIGIN" #$flags))
         ((#:phases phases #~%standard-phases)
@@ -665,10 +665,10 @@ configuration, application profiles, GPU monitoring and more.")
    (package
      (inherit mesa)
      (propagated-inputs
-      (modify-inputs (package-propagated-inputs mesa)
+      (modify-inputs propagated-inputs
         (prepend libglvnd-for-nvda)))
      (arguments
-      (substitute-keyword-arguments (package-arguments mesa)
+      (substitute-keyword-arguments arguments
         ((#:configure-flags flags #~'())
          #~(cons* "-Dglvnd=true" #$flags))
         ((#:phases phases #~%standard-phases)

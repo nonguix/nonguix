@@ -241,7 +241,7 @@ with game files or or put @file{.grp} game files manually in
   (package/inherit eduke32
     (name "fury")
     (arguments
-     (substitute-keyword-arguments (package-arguments eduke32)
+     (substitute-keyword-arguments arguments
        ((#:make-flags flags #~'())
         #~(cons* "FURY=1" #$flags))
        ((#:phases phases #~%standard-phases)
@@ -254,7 +254,8 @@ with game files or or put @file{.grp} game files manually in
               (lambda _
                 (install-file "fury" (string-append #$output "/bin"))))))))
     (inputs
-       (alist-delete "libvpx" (package-inputs eduke32)))
+     (modify-inputs inputs
+       (delete "libvpx")))
     (synopsis "Game engine for the first-person shooter Ion Fury")
     (description
      "This is the @code{eduke32} engine built with support for the Ion Fury
@@ -267,7 +268,7 @@ game.  Game data is not provided.  Run @command{fury} with the option
       (inherit base)
       (name "godot-mono")
       (arguments
-       (substitute-keyword-arguments (package-arguments base)
+       (substitute-keyword-arguments arguments
          ((#:scons-flags flags)
           #~(cons* "module_mono_enabled=yes" #$flags))
          ((#:phases phases)
@@ -314,10 +315,10 @@ game.  Game data is not provided.  Run @command{fury} with the option
                     (wrap-program (string-append lib "/godot")
                       `("PATH" ":" prefix (,(string-append zenity "/bin")))))))))))
       (inputs
-       (modify-inputs (package-inputs base)
+       (modify-inputs inputs
          (append dotnet)))
       (native-inputs
-       (modify-inputs (package-native-inputs base)
+       (modify-inputs native-inputs
          (append python
                  (origin
                    (method (nuget-restore #:dotnet dotnet

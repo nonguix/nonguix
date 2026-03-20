@@ -111,13 +111,14 @@ other APIs.")
   (let ((base
          (clang-from-llvm llvm-17 wasm32-wasi-clang-runtime
                           #:patches '("clang-17.0-fix-build-with-gcc-14-on-arm.patch"))))
-    (package (inherit base)
+    (package
+      (inherit base)
       (name "wasm32-wasi-clang")
       (inputs
-       (modify-inputs (package-inputs base)
+       (modify-inputs inputs
          (prepend wasi-libc)))
       (arguments
-       (substitute-keyword-arguments (package-arguments base)
+       (substitute-keyword-arguments arguments
          ((#:configure-flags flags)
           #~(list "-DCLANG_INCLUDE_TESTS=True"
                   ;; Use a sane default include directory.

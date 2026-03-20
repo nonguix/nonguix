@@ -551,17 +551,17 @@ Release (ESR) version.")
        (modules '((guix build utils)))
        (snippet #~(delete-file-recursively "testing/web-platform"))))
     (arguments
-     (substitute-keyword-arguments (package-arguments firefox-esr)
+     (substitute-keyword-arguments arguments
        ((#:phases phases)
         #~(modify-phases #$phases
             (replace 'set-build-id
               (lambda _
                 (setenv "MOZ_BUILD_DATE" #$%firefox-build-id)))))))
     (inputs
-     (modify-inputs (package-inputs firefox-esr)
+     (modify-inputs inputs
        (replace "icu4c" icu4c-78)))
     (native-inputs
-     (modify-inputs (package-native-inputs firefox-esr)
+     (modify-inputs native-inputs
        (replace "rust" rust-firefox)
        (replace "rust:cargo" `(,rust-firefox "cargo"))
        (replace "rust-cbindgen" rust-cbindgen-0.29)))

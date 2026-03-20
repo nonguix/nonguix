@@ -26,7 +26,9 @@
                          (find-files "." (lambda (file stat)
                                            (elf-file? file))))
                        (origin-snippet (package-source hplip))))))
-    (inputs (alist-delete "python-pyqt" (package-inputs hplip)))
+    (inputs
+     (modify-inputs inputs
+       (delete "python-pyqt")))
     (native-inputs
      (append
       `(("hplip-plugin"
@@ -41,9 +43,9 @@
             (sha256
              (base32
               "1an5s2i6fxzxxk46k39hkhfqq0kgy3b5adhm30p8l6k64pfnng0z")))))
-      (package-native-inputs hplip)))
+      native-inputs))
     (arguments
-     (substitute-keyword-arguments (package-arguments hplip)
+     (substitute-keyword-arguments arguments
        ((#:configure-flags cf)
         #~(delete "--enable-qt5" #$cf))
        ((#:phases ph)

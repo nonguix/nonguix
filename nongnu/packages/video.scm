@@ -48,11 +48,10 @@
    (package
      (inherit ffmpeg)
      (inputs
-      (modify-inputs
-          (package-inputs ffmpeg)
+      (modify-inputs inputs
         (prepend nv-codec-headers)))
      (arguments
-      (substitute-keyword-arguments (package-arguments ffmpeg)
+      (substitute-keyword-arguments arguments
         ((#:configure-flags flags)
          ;; Currently only interested in NVENC.
          ;; Might be better to make a ffmpeg-nonfree with all nonfree codecs
@@ -74,11 +73,10 @@
    (package
      (inherit ffmpeg-6)
      (inputs
-      (modify-inputs
-          (package-inputs ffmpeg-6)
+      (modify-inputs inputs
         (prepend nv-codec-headers)))
      (arguments
-      (substitute-keyword-arguments (package-arguments ffmpeg-6)
+      (substitute-keyword-arguments arguments
         ((#:configure-flags flags)
          ;; Currently only interested in NVENC.
          ;; Might be better to make a ffmpeg-nonfree with all nonfree codecs
@@ -161,7 +159,7 @@ graphics hardware.")
     (inherit intel-media-driver)
     (name "intel-media-driver-nonfree")
     (arguments
-     (substitute-keyword-arguments (package-arguments intel-media-driver)
+     (substitute-keyword-arguments arguments
        ((#:configure-flags flags #~'())
         #~(cons "-DENABLE_NONFREE_KERNELS=ON"
                 (delete "-DENABLE_NONFREE_KERNELS=OFF" #$flags)))))
@@ -180,7 +178,7 @@ video decode capabilities of supported Intel GPUs."))))
     (inherit mpv)
     (name "mpv-nvidia")
     (inputs
-     (modify-inputs (package-inputs mpv)
+     (modify-inputs inputs
        (prepend nv-codec-headers)))
     (synopsis
      "Audio and video player (with hardware acceleration for NVIDIA graphics \
@@ -263,11 +261,11 @@ content.")
   (package/inherit obs
     (name "obs-nvidia")
     (arguments
-     (substitute-keyword-arguments (package-arguments obs)
+     (substitute-keyword-arguments arguments
        ((#:configure-flags flags #~'())
         #~(append #$flags '("-DENABLE_NVENC=ON")))))
     (inputs
-     (modify-inputs (package-inputs obs)
+     (modify-inputs inputs
        (prepend nv-codec-headers)))
     (synopsis
      "Live streaming software (with hardware acceleration for NVIDIA graphics
@@ -278,10 +276,10 @@ cards)")))
     (inherit obs)
     (name "obs-with-cef")
     (inputs
-     (append (package-inputs obs)
-             `(("chromium-embedded-framework" ,chromium-embedded-framework))))
+     (modify-inputs inputs
+       (append chromium-embedded-framework)))
     (arguments
-     (substitute-keyword-arguments (package-arguments obs)
+     (substitute-keyword-arguments arguments
        ((#:configure-flags flags)
         #~(append #$flags
                   '("-DBUILD_BROWSER=ON"

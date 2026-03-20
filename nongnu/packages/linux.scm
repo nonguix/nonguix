@@ -150,7 +150,7 @@ some freedo package or an output of package-version procedure."
           (inherit freedo)
           (version version)
           (arguments
-           (substitute-keyword-arguments (package-arguments freedo)
+           (substitute-keyword-arguments arguments
              ((#:phases phases '%standard-phases)
               #~(modify-phases #$phases
                   ;; Make sure the resulted package is compatible with
@@ -277,7 +277,7 @@ on hardware which requires nonfree software to function."))))
     (inherit base-kernel)
     (version version)
     (arguments
-     (substitute-keyword-arguments (package-arguments base-kernel)
+     (substitute-keyword-arguments arguments
        ((#:phases phases)
         #~(modify-phases #$phases
             ;; Since `customize-linux' replaces the configure phase, we add
@@ -306,7 +306,7 @@ on hardware which requires nonfree software to function."))))
                  ".config"
                  (string-append "arch/x86/configs/" #$xanmod-defconfig))))))))
     (native-inputs
-     (modify-inputs (package-native-inputs base-kernel)
+     (modify-inputs native-inputs
        ;; cpio is needed for CONFIG_IKHEADERS.
        (prepend cpio zstd)))
     (home-page "https://xanmod.org/")
@@ -425,7 +425,7 @@ if your hardware is supported by one of the smaller firmware packages.")
     (name "amdgpu-firmware")
     (arguments
      (cons* #:license-file-regexp "LICENSE.amdgpu"
-            (substitute-keyword-arguments (package-arguments linux-firmware)
+            (substitute-keyword-arguments arguments
               ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
@@ -448,7 +448,7 @@ advanced 3D.")
     (name "radeon-firmware")
     (arguments
      (cons* #:license-file-regexp "LICENSE.radeon"
-            (substitute-keyword-arguments (package-arguments linux-firmware)
+            (substitute-keyword-arguments arguments
               ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
@@ -505,7 +505,7 @@ and modules, userspace libraries, and bootloader/GPU firmware.")
     (name "atheros-firmware")
     (arguments
      (cons* #:license-file-regexp "LICEN[CS]E.*[Aa]th"
-            (substitute-keyword-arguments (package-arguments linux-firmware)
+            (substitute-keyword-arguments arguments
               ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
@@ -681,7 +681,7 @@ WLAN.TF.2.1-00021-QCARMSWP-1 (ath10k/QCA9377/hw1.0/firmware-6.bin)
     (name "ibt-hw-firmware")
     (arguments
      (cons* #:license-file-regexp "LICENCE.ibt_firmware"
-            (substitute-keyword-arguments (package-arguments linux-firmware)
+            (substitute-keyword-arguments arguments
               ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
@@ -702,7 +702,7 @@ laptops).")
     (name "iwlwifi-firmware")
     (arguments
      (cons* #:license-file-regexp "LICENCE.iwlwifi_firmware"
-            (substitute-keyword-arguments (package-arguments linux-firmware)
+            (substitute-keyword-arguments arguments
               ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
@@ -723,7 +723,7 @@ support for 5GHz and 802.11ac, among others.")
     (name "i915-firmware")
     (arguments
      (cons* #:license-file-regexp "LICENCE.i915"
-            (substitute-keyword-arguments (package-arguments linux-firmware)
+            (substitute-keyword-arguments arguments
               ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
@@ -744,7 +744,7 @@ integrated graphics chipsets, including GuC, HuC and DMC.")
     (arguments
      (cons* #:license-file-regexp "LICENCE\\.(mediatek\
 |ralink_a_mediatek_company_firmware)"
-            (substitute-keyword-arguments (package-arguments linux-firmware)
+            (substitute-keyword-arguments arguments
               ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
@@ -852,7 +852,7 @@ mediatek/sof-tplg/sof-mt8195-mt6359-rt1019-rt5682.tplg)
     (name "realtek-firmware")
     (arguments
      (cons* #:license-file-regexp "LICENCE.rtlwifi_firmware.txt"
-            (substitute-keyword-arguments (package-arguments linux-firmware)
+            (substitute-keyword-arguments arguments
               ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
@@ -1503,7 +1503,7 @@ your CPU.")
     (name "amd-microcode")
     (arguments
      (cons* #:license-file-regexp "LICENSE.amd-ucode"
-            (substitute-keyword-arguments (package-arguments linux-firmware)
+            (substitute-keyword-arguments arguments
               ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware
@@ -1552,7 +1552,7 @@ loaded by Linux.")
     (name "mali-csf-firmware")
     (arguments
      (cons* #:license-file-regexp "LICENCE.mali_csffw"
-            (substitute-keyword-arguments (package-arguments linux-firmware)
+            (substitute-keyword-arguments arguments
               ((#:phases phases #~%standard-phases)
                #~(modify-phases #$phases
                    (add-after 'unpack 'select-firmware

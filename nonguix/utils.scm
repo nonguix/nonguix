@@ -24,8 +24,7 @@ Only x86_64-linux and i686-linux are supported.
     ("x86_64-linux"
      (package
        (inherit package64)
-       (arguments `(#:system "i686-linux"
-                    ,@(package-arguments package64)))))
+       (arguments `(#:system "i686-linux" ,@arguments))))
     (_ package64)))
 
 (define (package-input-grafting replacements)

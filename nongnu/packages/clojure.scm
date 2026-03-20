@@ -164,7 +164,7 @@ perform refactors and more.")
        (inherit (package-source clojure-tools))
        (snippet #f)))
     (arguments
-     (substitute-keyword-arguments (package-arguments clojure-tools)
+     (substitute-keyword-arguments arguments
        ((#:install-plan plan)
         #~(cons (list (format #f "clojure-tools-~a.jar"
                               #$(package-version this-package))
