@@ -578,7 +578,7 @@ device files are present and configure certain runtime settings in the kernel.")
     (snippet '(delete-file-recursively "src/jansson"))
     (sha256 (base32 hash))))
 
-(define-public nvidia-settings
+(define-public nvidia-settings-580
   (package
     (name "nvidia-settings")
     (version "580.142")
@@ -639,12 +639,14 @@ configuration, application profiles, GPU monitoring and more.")
 
 (define-public nvidia-settings-beta
   (package
-    (inherit nvidia-settings)
+    (inherit nvidia-settings-580)
     (name "nvidia-settings-beta")
     (version "595.45.04")
     (source (nvidia-settings-source
              name version
              "0w7ndc2p2131h1wh3rj1dhhs59ihrdfl8ni44x9sdywc5jpnk3k3"))))
+
+(define-public nvidia-settings nvidia-settings-580)
 
 
 ;;;
