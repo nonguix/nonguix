@@ -896,11 +896,10 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 ;;; Other packages
 ;;;
 
-
 (define-public egl-gbm
   (package
     (name "egl-gbm")
-    (version "1.1.2.1")
+    (version "1.1.3")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -909,8 +908,20 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1zcr1jksnh0431marzvgg301aybli29r1xw5vs4wnxgcp9bigvn6"))))
+                "1p9w7xc7zdrwxxiwmmhmsqf0jlzcgnrkgci2j5da4xzjasyf109s"))))
     (build-system meson-build-system)
+    (arguments
+     (list
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-after 'install 'patch-library-reference
+            (lambda* (#:key outputs #:allow-other-keys)
+              (let ((dir "share/egl/egl_external_platform.d"))
+                (with-directory-excursion (in-vicinity #$output dir)
+                  (substitute* "15_nvidia_gbm.json"
+                    (("libnvidia-egl-.*\\.so\\.." lib)
+                     (search-input-file
+                      outputs (in-vicinity "lib" lib)))))))))))
     (native-inputs (list pkg-config))
     (inputs (list eglexternalplatform mesa-for-nvda))
     (synopsis "GBM EGL external platform library")
