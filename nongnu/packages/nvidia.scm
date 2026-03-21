@@ -367,6 +367,14 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
      (license:nonfree
       (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
 
+(define-public nvidia-driver-590
+  (package
+    (inherit nvidia-driver-580)
+    (name "nvidia-driver")
+    (version "590.48.01")
+    (source (nvidia-source
+             version "12fnddljvgxksil6n3d5a35wwg8kkq82kkglhz63253qjc3giqmr"))))
+
 (define-public nvidia-driver-beta
   (package
     (inherit nvidia-driver-580)
