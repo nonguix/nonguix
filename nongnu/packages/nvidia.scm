@@ -1172,7 +1172,6 @@ configuration, application profiles, GPU monitoring and more.")
 ;;; ‘nvda’ packages
 ;;;
 
-
 (define-public libglvnd-for-nvda
   (hidden-package
    (package
@@ -1214,103 +1213,91 @@ configuration, application profiles, GPU monitoring and more.")
 
 ;; nvda is used as a name because it has the same length as mesa which is
 ;; required for grafting
-(define-public nvda
-  (package
-    (name "nvda")
-    (version (string-pad-right
-              (package-version nvidia-driver)
-              (string-length (package-version mesa-for-nvda))
-              #\0))
-    (source #f)
-    (build-system trivial-build-system)
-    (arguments
-     (list #:modules '((guix build union))
-           #:builder
-           #~(begin
-               (use-modules (guix build union))
-               (union-build
-                #$output
-                '#$(list (this-package-input "libglvnd")
-                         (this-package-input "mesa")
-                         (this-package-input "nvidia-driver")
-                         (this-package-input "nvidia-vaapi-driver"))))))
-    (native-search-paths
-     (list
-      ;; https://github.com/NVIDIA/egl-wayland/issues/39
-      (search-path-specification
-       (variable "__EGL_EXTERNAL_PLATFORM_CONFIG_DIRS")
-       (files '("share/egl/egl_external_platform.d")))
-      ;; https://gitlab.freedesktop.org/glvnd/libglvnd/-/blob/master/src/EGL/icd_enumeration.md
-      (search-path-specification
-       (variable "__EGL_VENDOR_LIBRARY_DIRS")
-       (files '("share/glvnd/egl_vendor.d")))
-      ;; See also: ‘src/gbm/main/backend.c’ in mesa source.
-      (search-path-specification
-       (variable "GBM_BACKENDS_PATH")
-       (files '("lib/gbm")))
-      ;; XXX Because of <https://issues.guix.gnu.org/issue/22138>, we need to add
-      ;; this to all VA-API back ends instead of once to libva.
-      (search-path-specification
-       (variable "LIBVA_DRIVERS_PATH")
-       (files '("lib/dri")))
-      (search-path-specification
-       (variable "VDPAU_DRIVER_PATH")
-       (files '("lib/vdpau"))
-       (separator #f))
-      ;; https://github.com/KhronosGroup/Vulkan-Loader/blob/main/docs/LoaderLayerInterface.md
-      (search-path-specification
-       (variable "XDG_DATA_DIRS")
-       (files '("share")))))
-    (synopsis "Nonguix's user-facing NVIDIA driver package")
-    (description
-     "This package provides a @code{mesa} variant with NVIDIA proprietary driver
+(define* (make-nvda driver #:optional (name "nvda"))
+  ((package-input-rewriting `((,nvidia-driver . ,driver)))
+   (package
+     (name name)
+     (version (string-pad-right
+               (package-version driver)
+               (string-length (package-version mesa-for-nvda))
+               #\0))
+     (source #f)
+     (build-system trivial-build-system)
+     (arguments
+      (list #:modules '((guix build union))
+            #:builder
+            #~(begin
+                (use-modules (guix build union))
+                (union-build
+                 #$output
+                 '#$(list (this-package-input "libglvnd")
+                          (this-package-input "mesa")
+                          (this-package-input "nvidia-driver")
+                          (this-package-input "nvidia-vaapi-driver"))))))
+     (native-search-paths
+      (list
+       ;; https://github.com/NVIDIA/egl-wayland/issues/39
+       (search-path-specification
+         (variable "__EGL_EXTERNAL_PLATFORM_CONFIG_DIRS")
+         (files '("share/egl/egl_external_platform.d")))
+       ;; https://gitlab.freedesktop.org/glvnd/libglvnd/-/blob/master/src/EGL/icd_enumeration.md
+       (search-path-specification
+         (variable "__EGL_VENDOR_LIBRARY_DIRS")
+         (files '("share/glvnd/egl_vendor.d")))
+       ;; See also: ‘src/gbm/main/backend.c’ in mesa source.
+       (search-path-specification
+         (variable "GBM_BACKENDS_PATH")
+         (files '("lib/gbm")))
+       ;; XXX Because of <https://issues.guix.gnu.org/issue/22138>, we need to add
+       ;; this to all VA-API back ends instead of once to libva.
+       (search-path-specification
+         (variable "LIBVA_DRIVERS_PATH")
+         (files '("lib/dri")))
+       (search-path-specification
+         (variable "VDPAU_DRIVER_PATH")
+         (files '("lib/vdpau"))
+         (separator #f))
+       ;; https://github.com/KhronosGroup/Vulkan-Loader/blob/main/docs/LoaderLayerInterface.md
+       (search-path-specification
+         (variable "XDG_DATA_DIRS")
+         (files '("share")))))
+     (synopsis "Nonguix's user-facing NVIDIA driver package")
+     (description
+      "This package provides a @code{mesa} variant with NVIDIA proprietary driver
 support.  For dependency of other packages, use @code{nvidia-driver} instead.")
-    (native-inputs '())
-    (propagated-inputs
-     (append
-      (package-propagated-inputs mesa-for-nvda)
-      (package-propagated-inputs nvidia-driver)))
-    (inputs (list mesa-for-nvda nvidia-driver nvidia-vaapi-driver))
-    (outputs '("out"))
-    (license (package-license nvidia-driver))
-    (home-page (package-home-page nvidia-driver))))
+     (native-inputs '())
+     (propagated-inputs
+      (append
+       (package-propagated-inputs mesa-for-nvda)
+       (package-propagated-inputs driver)))
+     (inputs (list mesa-for-nvda nvidia-driver nvidia-vaapi-driver))
+     (outputs '("out"))
+     (license (package-license driver))
+     (home-page (package-home-page driver)))))
 
-(define-public nvda-390
-  ((package-input-rewriting `((,nvidia-driver . ,nvidia-driver-390)))
-   (package
-     (inherit nvda)
-     (version (string-pad-right
-               (package-version nvidia-driver-390)
-               (string-length (package-version mesa-for-nvda))
-               #\0)))))
+(define-syntax define-nvda-package
+  (syntax-rules ()
+    ((_ name driver)
+     (define-public name
+       (hidden-package (make-nvda driver))))
+    ((_ name driver alias)
+     (define-public name
+       (let ((nvda (make-nvda driver)))
+         (package
+           (inherit (package-with-alias alias nvda))
+           (version (package-version driver))))))))
 
-(define-public nvda-470
-  ((package-input-rewriting `((,nvidia-driver . ,nvidia-driver-470)))
-   (package
-     (inherit nvda)
-     (version (string-pad-right
-               (package-version nvidia-driver-470)
-               (string-length (package-version mesa-for-nvda))
-               #\0)))))
+(define-nvda-package nvda-390 nvidia-driver-390)
+(define-nvda-package nvda-470 nvidia-driver-470)
+(define-nvda-package nvda-580 nvidia-driver-580)
+(define-nvda-package nvda-590 nvidia-driver-590)
+(define-nvda-package nvda-user-alias-390 nvidia-driver-390 "nvda")
+(define-nvda-package nvda-user-alias-470 nvidia-driver-470 "nvda")
+(define-nvda-package nvda-user-alias-580 nvidia-driver-580 "nvda")
+(define-nvda-package nvda-user-alias-590 nvidia-driver-590 "nvda")
 
-(define-public nvda-590
-  ((package-input-rewriting `((,nvidia-driver . ,nvidia-driver-590)))
-   (package
-     (inherit nvda)
-     (version (string-pad-right
-               (package-version nvidia-driver-590)
-               (string-length (package-version mesa-for-nvda))
-               #\0)))))
-
-(define-public nvdb
-  ((package-input-rewriting `((,nvidia-driver . ,nvidia-driver-beta)))
-   (package
-     (inherit nvda)
-     (name "nvdb")
-     (version (string-pad-right
-               (package-version nvidia-driver-beta)
-               (string-length (package-version mesa-for-nvda))
-               #\0)))))
+(define-public nvdb (make-nvda nvidia-driver-beta "nvdb"))
+(define-public nvda nvda-580)
 
 (define* (replace-mesa obj #:key (driver nvda))
   (with-transformation
