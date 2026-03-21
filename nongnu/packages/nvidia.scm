@@ -516,6 +516,12 @@ driver.")
 NVIDIA driver.")
     (license license-gnu:gpl2)))
 
+(define-public nvidia-module-open-590
+  (package
+    (inherit nvidia-module-open-580)
+    (version (package-version nvidia-driver-590))
+    (source (package-source nvidia-driver-590))))
+
 (define-public nvidia-module-open-beta
   (package
     (inherit nvidia-module-open-580)
