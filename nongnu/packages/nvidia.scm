@@ -424,12 +424,11 @@ instead.")))
 ;;; NVIDIA kernel modules
 ;;;
 
-
-(define-public nvidia-module
+(define-public nvidia-module-580
   (package
     (name "nvidia-module")
-    (version (package-version nvidia-driver))
-    (source (package-source nvidia-driver))
+    (version (package-version nvidia-driver-580))
+    (source (package-source nvidia-driver-580))
     (build-system linux-module-build-system)
     (arguments
      (list #:linux linux-lts
@@ -472,10 +471,12 @@ driver.")
 
 (define-public nvidia-module-beta
   (package
-    (inherit nvidia-module)
+    (inherit nvidia-module-580)
     (name "nvidia-module-beta")
     (version (package-version nvidia-driver-beta))
     (source (package-source nvidia-driver-beta))))
+
+(define-public nvidia-module nvidia-module-580)
 
 (define-public nvidia-module-open
   (let ((base nvidia-module))
