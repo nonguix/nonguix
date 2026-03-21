@@ -478,31 +478,32 @@ driver.")
 
 (define-public nvidia-module nvidia-module-580)
 
-(define-public nvidia-module-open
-  (let ((base nvidia-module))
-    (package
-      (inherit base)
-      (name "nvidia-module-open")
-      (arguments
-       (substitute-keyword-arguments arguments
-         ;; NOTE: Kernels compiled with CONFIG_LTO_CLANG_THIN would cause an
-         ;; error here.  See also:
-         ;; <https://github.com/NVIDIA/open-gpu-kernel-modules/issues/214>
-         ;; <https://github.com/llvm/llvm-project/issues/55820>
-         ((#:source-directory _) "kernel-open")))
-      (home-page "https://github.com/NVIDIA/open-gpu-kernel-modules")
-      (synopsis "Proprietary NVIDIA driver (open source kernel modules)")
-      (description
-       "This package provides open source kernel modules of the proprietary
+(define-public nvidia-module-open-580
+  (package
+    (inherit nvidia-module-580)
+    (name "nvidia-module-open")
+    (arguments
+     (substitute-keyword-arguments arguments
+       ;; NOTE: Kernels compiled with CONFIG_LTO_CLANG_THIN would cause an
+       ;; error here.  See also:
+       ;; <https://github.com/NVIDIA/open-gpu-kernel-modules/issues/214>
+       ;; <https://github.com/llvm/llvm-project/issues/55820>
+       ((#:source-directory _) "kernel-open")))
+    (home-page "https://github.com/NVIDIA/open-gpu-kernel-modules")
+    (synopsis "Proprietary NVIDIA driver (open source kernel modules)")
+    (description
+     "This package provides open source kernel modules of the proprietary
 NVIDIA driver.")
-      (license license-gnu:gpl2))))
+    (license license-gnu:gpl2)))
 
 (define-public nvidia-module-open-beta
   (package
-    (inherit nvidia-module-open)
+    (inherit nvidia-module-open-580)
     (name "nvidia-module-open-beta")
     (version (package-version nvidia-driver-beta))
     (source (package-source nvidia-driver-beta))))
+
+(define-public nvidia-module-open nvidia-module-open-580)
 
 
 ;;;
