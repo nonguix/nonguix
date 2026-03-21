@@ -969,7 +969,7 @@ window resizing.")
 (define-public egl-x11
   (package
     (name "egl-x11")
-    (version "1.0.3")
+    (version "1.0.5")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -978,8 +978,21 @@ window resizing.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1hh1wkdijjhsmym5ab5nw8wyi0w9x7aznnmyg8sczhwdfb5rdnrj"))))
+                "07d72z4dm2w9ys01li2v770j51zciahn0m5yn4bxrns7gxrylpsa"))))
     (build-system meson-build-system)
+    (arguments
+     (list
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-after 'install 'patch-library-reference
+            (lambda* (#:key outputs #:allow-other-keys)
+              (let ((dir "share/egl/egl_external_platform.d"))
+                (with-directory-excursion (in-vicinity #$output dir)
+                  (substitute* '("20_nvidia_xcb.json"
+                                 "20_nvidia_xlib.json")
+                    (("libnvidia-egl-.*\\.so\\.." lib)
+                     (search-input-file
+                      outputs (in-vicinity "lib" lib)))))))))))
     (native-inputs (list pkg-config))
     (inputs (list eglexternalplatform mesa-for-nvda))
     (synopsis "X11 and XCB EGL external platform library")
