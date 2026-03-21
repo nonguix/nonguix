@@ -418,6 +418,12 @@ the proprietary NVIDIA driver.
 For free driver (@code{nouveau}) support, use @code{linux-firmware}
 instead.")))
 
+(define-public nvidia-firmware-590
+  (package
+    (inherit nvidia-firmware-580)
+    (version (package-version nvidia-driver-590))
+    (source (package-source nvidia-driver-590))))
+
 (define-public nvidia-firmware-beta
   (package
     (inherit nvidia-firmware-580)
