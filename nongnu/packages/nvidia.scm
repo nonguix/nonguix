@@ -678,6 +678,15 @@ configuration, application profiles, GPU monitoring and more.")
     (home-page "https://github.com/NVIDIA/nvidia-settings")
     (license license-gnu:gpl2)))
 
+(define-public nvidia-settings-590
+  (package
+    (inherit nvidia-settings-580)
+    (name "nvidia-settings")
+    (version "590.48.01")
+    (source (nvidia-settings-source
+             name version
+             "0h9059gkibyiidg5s9cakbg369y9nwfd17vycpsqfswgr18jlsrm"))))
+
 (define-public nvidia-settings-beta
   (package
     (inherit nvidia-settings-580)
