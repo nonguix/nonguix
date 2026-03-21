@@ -510,7 +510,7 @@ NVIDIA driver.")
 ;;; nvidia-modprobe
 ;;;
 
-(define-public nvidia-modprobe
+(define-public nvidia-modprobe-580
   (package
     (name "nvidia-modprobe")
     (version "580.142")
@@ -547,7 +547,7 @@ device files are present and configure certain runtime settings in the kernel.")
 
 (define-public nvidia-modprobe-beta
   (package
-    (inherit nvidia-modprobe)
+    (inherit nvidia-modprobe-580)
     (name "nvidia-modprobe-beta")
     (version "595.45.04")
     (source (origin
@@ -559,6 +559,8 @@ device files are present and configure certain runtime settings in the kernel.")
               (sha256
                (base32
                 "0s1p89js7f65pzss7fqglddz052lq357xjxyqwpca9kmljxr4dqc"))))))
+
+(define-public nvidia-modprobe nvidia-modprobe-580)
 
 
 ;;;
