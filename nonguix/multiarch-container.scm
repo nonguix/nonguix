@@ -451,27 +451,27 @@ the exact path for the fhs-internal package."
     (version (or (ngc-version container)
                  (package-version (ngc-wrap-package container))))
     (source #f)
-    (inputs `(("fhs-internal-script"
-               ,(make-internal-script container))
-              ;; For ‘wrap-program’.
-              ("bash-minimal" ,bash-minimal)))
+    ;; For ‘wrap-program’.
+    (inputs (list bash-minimal))
     (build-system trivial-build-system)
     (arguments
-     `(#:modules ((guix build utils))
-       #:builder
-       (begin
-         (use-modules (guix build utils))
-         (let* ((bin (string-append (assoc-ref %outputs "out") "/bin"))
-                (internal-target (assoc-ref %build-inputs "fhs-internal-script"))
-                (internal-dest (string-append bin "/" ,(ngc-internal-name container))))
-           (mkdir-p bin)
-           (symlink internal-target internal-dest)
+     (list
+      #:builder
+      (with-imported-modules '((guix build utils))
+        #~(begin
+            (use-modules (guix build utils))
+            (let* ((bin (string-append #$output "/bin"))
+                   (internal-target #$(make-internal-script container))
+                   (internal-dest
+                    (in-vicinity bin #$(ngc-internal-name container))))
+              (mkdir-p bin)
+              (symlink internal-target internal-dest)
 
-           ;; We want to install the locale manually after symlinking it.
-           ;; See <https://gitlab.com/nonguix/nonguix/-/issues/407>
-           (wrap-program internal-dest
-             #:sh (search-input-file %build-inputs "/bin/bash")
-             '("GUILE_INSTALL_LOCALE" = ("0")))))))
+              ;; We want to install the locale manually after symlinking it.
+              ;; See <https://gitlab.com/nonguix/nonguix/-/issues/407>
+              (wrap-program internal-dest
+                #:sh (search-input-file %build-inputs "/bin/bash")
+                '("GUILE_INSTALL_LOCALE" = ("0"))))))))
     (home-page #f)
     (synopsis "Script used to set up sandbox")
     (description "Script used inside the FHS Guix container to set up the
