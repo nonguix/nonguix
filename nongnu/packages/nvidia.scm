@@ -382,42 +382,42 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
 
 
 ;;;
-;;; NVIDIA firmwares
+;;; NVIDIA firmware
 ;;;
 
-
-(define-public nvidia-firmware
-  (let ((base nvidia-driver))
-    (package
-      (inherit base)
-      (name "nvidia-firmware")
-      (arguments
-       (list #:install-plan
-             #~'(("firmware" #$(string-append "lib/firmware/nvidia/"
-                                              (package-version this-package))))
-             #:phases
-             #~(modify-phases %standard-phases
-                 (delete 'strip)
-                 (replace 'unpack
-                   (lambda* (#:key source #:allow-other-keys)
-                     (invoke "tar" "xvf" source))))))
-      (propagated-inputs '())
-      (inputs '())
-      (native-inputs '())
-      (synopsis "Proprietary NVIDIA driver (GPU System Processor firmwares)")
-      (description
-       "This package provides @acronym{GSP, GPU System Processor} firmwares of
+(define-public nvidia-firmware-580
+  (package
+    (inherit nvidia-driver)
+    (name "nvidia-firmware")
+    (arguments
+     (list #:install-plan
+           #~'(("firmware" #$(string-append "lib/firmware/nvidia/"
+                                            (package-version this-package))))
+           #:phases
+           #~(modify-phases %standard-phases
+               (delete 'strip)
+               (replace 'unpack
+                 (lambda* (#:key source #:allow-other-keys)
+                   (invoke "tar" "xvf" source))))))
+    (propagated-inputs '())
+    (inputs '())
+    (native-inputs '())
+    (synopsis "Proprietary NVIDIA driver (GPU System Processor firmware)")
+    (description
+     "This package provides @acronym{GSP, GPU System Processor} firmware of
 the proprietary NVIDIA driver.
 
 For free driver (@code{nouveau}) support, use @code{linux-firmware}
-instead."))))
+instead.")))
 
 (define-public nvidia-firmware-beta
   (package
-    (inherit nvidia-firmware)
+    (inherit nvidia-firmware-580)
     (name "nvidia-firmware-beta")
     (version (package-version nvidia-driver-beta))
     (source (package-source nvidia-driver-beta))))
+
+(define-public nvidia-firmware nvidia-firmware-580)
 
 
 ;;;
