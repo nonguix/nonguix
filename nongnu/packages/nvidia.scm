@@ -137,8 +137,7 @@ its unpacked checkout."
 ;;; NVIDIA drivers
 ;;;
 
-
-(define-public nvidia-driver
+(define-public nvidia-driver-580
   (package
     (name "nvidia-driver")
     (version "580.142")
@@ -370,11 +369,13 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
 
 (define-public nvidia-driver-beta
   (package
-    (inherit nvidia-driver)
+    (inherit nvidia-driver-580)
     (name "nvidia-driver-beta")
     (version "595.45.04")
     (source (nvidia-source
              version "0plg9vsim8252c7k3slxblvrspy4xqa6q719flxjmfkc4i4najfd"))))
+
+(define-public nvidia-driver nvidia-driver-580)
 
 (define-public nvidia-libs
   (deprecated-package "nvidia-libs" nvidia-driver))
