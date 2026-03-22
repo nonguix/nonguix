@@ -1003,6 +1003,39 @@ support XWayland via xlib (using @code{EGL_KHR_platform_x11}) or xcb (using
     (home-page "https://github.com/NVIDIA/egl-x11")
     (license license-gnu:expat)))
 
+(define-public nvidia-prime
+  (package
+    (name "nvidia-prime")
+    (version "1.0-5")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://gitlab.archlinux.org/archlinux/packaging/packages/nvidia-prime.git")
+              (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "017xjk4lp25ib6jn3lpf80x7bfybj6lfam7xd1byyjj5rd60jp7f"))))
+    (build-system gnu-build-system)
+    (arguments
+     (list #:phases
+           #~(modify-phases %standard-phases
+               (delete 'configure)
+               (delete 'build)
+               (delete 'check)
+               (replace 'install
+                 (lambda _
+                   (chmod "prime-run" #o555)
+                   (install-file "prime-run" (in-vicinity #$output "bin")))))))
+    (inputs (list bash-minimal))
+    (home-page "https://www.archlinux.org/packages/extra/any/nvidia-prime/")
+    (synopsis "NVIDIA PRIME render offload configuration and utilities")
+    (description
+     "This package provides @command{prime-run} to run a program on the NVIDIA
+GPU in switchable graphics setup.")
+    (license license-gnu:gpl3+)))
+
 (define-public gpustat
   (package
     (name "gpustat")
