@@ -720,10 +720,18 @@ instead."))))
     (source (package-source nvidia-driver-470))))
 
 (define-public nvidia-firmware-590
-  (package
-    (inherit nvidia-firmware-580)
-    (version (package-version nvidia-driver-590))
-    (source (package-source nvidia-driver-590))))
+  (binary-package-from-sources
+   `(("x86_64-linux"  . ,nvidia-source-590-x86_64-linux)
+     ("i686-linux"    . ,nvidia-source-590-x86_64-linux)
+     ("aarch64-linux" . ,nvidia-source-590-aarch64-linux))
+   (package
+     (inherit nvidia-firmware-580)
+     (arguments
+      (substitute-keyword-arguments arguments
+        ((#:phases phases)
+         #~(modify-phases #$phases
+             (replace 'unpack
+               (assoc-ref %standard-phases 'unpack)))))))))
 
 (define-public nvidia-firmware-beta
   (package
