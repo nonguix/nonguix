@@ -107,65 +107,71 @@ and INITRD (default: microcode-initrd)."
                                         (configure-xorg? #f)
                                         ;; Deprecated.
                                         (s0ix-power-management? #f))
-  "Return a procedure that transforms an operating system, setting up
-DRIVER (default: nvda) for NVIDIA graphics card.
+  "Return a procedure that transforms an operating system, setting up DRIVER
+(default: nvda) for NVIDIA GPU.
 
-OPEN-SOURCE-KERNEL-MODULE? (default: #f) only supports Turing and later
-architectures and is expected to work with 'linux-lts'.
+OPEN-SOURCE-KERNEL-MODULE? (default: #f) is supported since Turing and required
+since Blackwell.
 
 KERNEL-MODE-SETTING? (default: #t) is required for Wayland and rootless Xorg
 support.
 
-CONFIGURE-XORG? (default: #f) is required for Xorg display managers.  When
-setting to #t, it configures the one specified by '%desktop-services'.  If you
-set up the display manager on your own, use its service type instead,
-'sddm-service-type', for example.
+CONFIGURE-XORG? (default: #f) is required for Xorg display managers.  It accepts
+a display manager service type, or #t when using '%desktop-services'."
 
-Use 'replace-mesa', for application setup out of the operating system
-declaration."
-  (define %presets
-    `((,nvda . ,(service nvidia-service-type
-                  (nvidia-configuration
-                   (driver nvda)
-                   (firmware nvidia-firmware)
-                   (module
-                    (if open-source-kernel-module?
-                        nvidia-module-open
-                        nvidia-module))
-                   (modprobe nvidia-modprobe))))
-      (,nvdb . ,(service nvidia-service-type
-                  (nvidia-configuration
-                   (driver nvdb)
-                   (firmware nvidia-firmware-beta)
-                   (module
-                    (if open-source-kernel-module?
-                        nvidia-module-open-beta
-                        nvidia-module-beta))
-                   (modprobe nvidia-modprobe-beta))))
-      (,nvda-590 . ,(service nvidia-service-type
-                      (nvidia-configuration
-                        (driver nvda-590)
-                        (firmware nvidia-firmware-590)
-                        (module
-                         (if open-source-kernel-module?
-                             nvidia-module-open-590
-                             nvidia-module-590))
-                        (modprobe nvidia-modprobe-590))))
-      (,nvda-470 . ,(service nvidia-service-type
-                      (nvidia-configuration
-                        (driver nvda-470)
-                        (firmware
-                         (if (target-x86?)
-                             nvidia-firmware-470
-                             #f))
-                        (module nvidia-module-470)
-                        (modprobe nvidia-modprobe-470))))
-      (,nvda-390 . ,(service nvidia-service-type
-                      (nvidia-configuration
-                        (driver nvda-390)
-                        (firmware #f)
-                        (module nvidia-module-390)
-                        (modprobe nvidia-modprobe-390))))))
+  (define %driver
+    (if (member driver
+                (list nvda-beta
+                      nvda-590
+                      nvda-580
+                      nvda-470
+                      nvda-390))
+        driver
+        (leave (G_ "'~a': no driver configuration available for '~a'~%")
+               "nonguix-transformation-nvidia"
+               driver)))
+
+  (define %firmware
+    (assoc-ref
+     `((,nvda-beta . ,nvidia-firmware-beta)
+       (,nvda-590  . ,nvidia-firmware-590)
+       (,nvda-580  . ,nvidia-firmware-580)
+       (,nvda-470  . ,nvidia-firmware-470))
+     driver))
+
+  (define %module
+    (assoc-ref
+     `((,nvda-beta . ,(if open-source-kernel-module?
+                          nvidia-module-open-beta
+                          nvidia-module-beta))
+       (,nvda-590  . ,(if open-source-kernel-module?
+                          nvidia-module-open-590
+                          nvidia-module-590))
+       (,nvda-580  . ,(if open-source-kernel-module?
+                          nvidia-module-open-580
+                          nvidia-module-580))
+       (,nvda-470  . ,nvidia-module-470)
+       (,nvda-390  . ,nvidia-module-390))
+     driver))
+
+  (define %modprobe
+    (assoc-ref
+     `((,nvda-beta . ,nvidia-modprobe-beta)
+       (,nvda-590  . ,nvidia-modprobe-590)
+       (,nvda-580  . ,nvidia-modprobe-580)
+       (,nvda-470  . ,nvidia-modprobe-470)
+       (,nvda-390  . ,nvidia-modprobe-390))
+     driver))
+
+  (define %settings
+    (and configure-xorg?
+         (assoc-ref
+          `((,nvda-beta . ,nvidia-settings-beta)
+            (,nvda-590  . ,nvidia-settings-590)
+            (,nvda-580  . ,nvidia-settings-580)
+            (,nvda-470  . ,nvidia-settings-470)
+            (,nvda-390  . ,nvidia-settings-390))
+          driver)))
 
   (define %xorg-extension
     (and=> configure-xorg?
@@ -173,11 +179,11 @@ declaration."
              (#t
               (set-xorg-configuration
                (xorg-configuration
-                 (modules (list driver)))))
+                 (modules (list %driver)))))
              (display-manager
               (set-xorg-configuration
                (xorg-configuration
-                 (modules (list driver)))
+                 (modules (list %driver)))
                display-manager)))))
 
   (lambda (os)
@@ -202,15 +208,18 @@ won't add kernel arguments other than the minimum necessary in the future.~%")
               "nvidia_drm.modeset=0")
          ,@(operating-system-user-kernel-arguments os)))
       (packages
-       (replace-mesa (operating-system-packages os) #:driver driver))
+       (replace-mesa (operating-system-packages os) #:driver %driver))
       (services
        (replace-mesa
-        `(,(or (assoc-ref %presets driver)
-               (leave
-                (G_ "no NVIDIA service configuration available for '~a'~%")
-                (package-name driver)))
+        `(,(service nvidia-service-type
+             (nvidia-configuration
+               (driver %driver)
+               (firmware %firmware)
+               (module %module)
+               (modprobe %modprobe)
+               (settings %settings)))
           ,@(if configure-xorg?
                 (list %xorg-extension)
                 '())
           ,@(operating-system-user-services os))
-        #:driver driver)))))
+        #:driver %driver)))))

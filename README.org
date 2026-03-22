@@ -223,130 +223,277 @@ firmware, and blacklisting of conflicting modules:
 #+END_SRC
 
 ** NVIDIA graphics card
-NVIDIA support in Nonguix is implemented with a few interfaces and packages:
-=nonguix-transformation-nvidia= for system setup, =replace-mesa= and =nvda= for
-application setup.
+Most NVIDIA GPUs are supported by the free [[https://nouveau.freedesktop.org/index.html][Nouveau driver]], as listed in
+<https://nouveau.freedesktop.org/CodeNames.html>.  No extra setup is required
+besides configuring =linux-firmware=.
 
-*** System setup
-Procedure =nonguix-transformation-nvidia= is defined in the
-=(nonguix transformations)= module.
+Below are for the [[https://www.nvidia.com/en-us/drivers/][proprietary driver released by NVIDIA]].  Nonguix implements
+support via the following interfaces:
+
+- User-facing driver packages: =nvda=, defined in =(nongnu packages nvidia)=
+- Application setup: the [[https://guix.gnu.org/manual/devel/en/html_node/Security-Updates.html][grafting]] mechanism and =replace-mesa=, defined in
+  =(nongnu packages nvidia)=
+- System setup: =nonguix-transformation-nvidia=, defined in
+  =(nonguix transformations)=
+
+We'll cover them later.  First of all, let's choose the driver and kernel
+version to use.
+
+Here're GPUs supported by our packaged proprietary drivers.
+
+| Code name    | Series                             | nvda-beta | nvda-590 | nvda-580 | nvda-470 | nvda-390 | Nouveau |
+|--------------+------------------------------------+-----------+----------+----------+----------+----------+---------|
+| [[https://en.wikipedia.org/wiki/Blackwell_(microarchitecture)][Blackwell]]    | GeForce 50 series                  | ✅       | ✅      | ✅      | ❌      | ❌      | ✅     |
+| [[https://en.wikipedia.org/wiki/Ada_Lovelace_(microarchitecture)][Ada Lovelace]] | GeForce 40 series                  | ✅       | ✅      | ✅      | ❌      | ❌      | ✅     |
+| [[https://en.wikipedia.org/wiki/Ampere_(microarchitecture)][Ampere]]       | GeForce 30 series                  | ✅       | ✅      | ✅      | ✅      | ❌      | ✅     |
+| [[https://en.wikipedia.org/wiki/Turing_(microarchitecture)][Turing]]       | GeForce 16/20 series               | ✅       | ✅      | ✅      | ✅      | ❌      | ✅     |
+| [[https://en.wikipedia.org/wiki/Volta_(microarchitecture)][Volta]]        | Titan V                            | ❌       | ❌      | ✅      | ✅      | ✅      | ✅     |
+| [[https://en.wikipedia.org/wiki/Pascal_(microarchitecture)][Pascal]]       | GeForce 10 series                  | ❌       | ❌      | ✅      | ✅      | ✅      | ✅     |
+| [[https://en.wikipedia.org/wiki/Pascal_(microarchitecture)][Maxwell]]      | GeForce 750/900                    | ❌       | ❌      | ✅      | ✅      | ✅      | ✅     |
+| [[https://en.wikipedia.org/wiki/Kepler_(microarchitecture)][Kepler]]       | GeForce 600/700, GeForce GTX Titan | ❌       | ❌      | ❌      | ✅      | ✅      | ✅     |
+| [[https://en.wikipedia.org/wiki/Fermi_(microarchitecture)][Fermi]]        | GeForce 400/500                    | ❌       | ❌      | ❌      | ❌      | ✅      | ✅     |
+
+*NOTE*: Open source kernel modules are supported since Turing and required since
+Blackwell.  Wayland support for =nvda-470= and =nvda-390= is only available on
+GNOME desktop environment.
+
+Per-driver supported kernel versions, let us know if you have hardware to test!
+The sign ⚠️ means open source kernel modules don't work but close source ones do.
+
+| Driver    | linux-6.19 | linux-6.18 | linux-6.12 | linux-6.6 | linux-6.1 |
+|-----------+------------+------------+------------+-----------+-----------|
+| nvda-beta | ⚠️        | ⚠️        | ✅        | ✅       | ✅       |
+| nvda-590  | ⚠️        | ✅        | ✅        | ✅       | ✅       |
+| nvda-580  | ✅        | ⚠️        | ✅        | ✅       | ✅       |
+| nvda-470  | ✅        | ✅        | ✅        | ✅       | ✅       |
+| nvda-390  |            |            |            |           |           |
+
+Driver package specifications, for command-line interface usage.
+
+| Driver    | Specification |
+|-----------+---------------|
+| nvda-beta | nvda-beta     |
+| nvda-590  | nvda@590      |
+| nvda-580  | nvda@580      |
+| nvda-470  | nvda@470      |
+| nvda-390  | nvda@390      |
+
+*** Configure operating system for NVIDIA proprietary driver
+System setup is implemented via =nonguix-transformation-nvidia=:
 
 #+begin_example
-  nonguix-transformation-nvidia [#:driver nvda]
-                                [#:open-source-kernel-module? #f]
-                                [#:kernel-mode-setting? #t]
-                                [#:configure-xorg? #f]
+  nonguix-transformation-nvidia [#:driver nvda-580]
+                                [#:open-source-kernel-module? #false]
+                                [#:kernel-mode-setting? #true]
+                                [#:configure-xorg? #false]
 
-  Return a procedure that transforms an operating system, setting up
-  DRIVER (default: nvda) for NVIDIA graphics card.
+  Return a procedure that transforms an operating system, setting up DRIVER
+  (default: nvda-580) for NVIDIA GPU.
 
-  OPEN-SOURCE-KERNEL-MODULE? (default: #f) only supports Turing and later
-  architectures and is expected to work with 'linux-lts'.
+  OPEN-SOURCE-KERNEL-MODULE? (default: #f) is supported since Turing and required
+  since Blackwell.
 
   KERNEL-MODE-SETTING? (default: #t) is required for Wayland and rootless Xorg
   support.
 
-  CONFIGURE-XORG? (default: #f) is required for Xorg display managers.  When
-  setting to #t, it configures the one specified by '%desktop-services'.  If you
-  set up the display manager on your own, use its service type instead,
-  'sddm-service-type', for example.
-
-  Use 'replace-mesa', for application setup out of the operating system
-  declaration.
+  CONFIGURE-XORG? (default: #f) is required for Xorg display managers.  It accepts
+  a display manager service type, or #t when using '%desktop-services'.
 #+end_example
 
-For example, assuming the follow operating system declaration, defined as
+For example, assuming the following operating system declaration, defined as
 variable =%my-os=:
 
 #+BEGIN_SRC scheme
-  (use-modules (nonguix transformations))
-
   (define %my-os
-    (operating-system ...))
+    (operating-system <...>))
 #+END_SRC
 
-- Headless environmnet: disable =#:kernel-mode-setting?=:
+- Headless environment
+
+    Disable =#:kernel-mode-setting?=.
 
     #+begin_src scheme
-      ((nonguix-transformation-nvidia #:kernel-mode-setting? #f)
+      ((nonguix-transformation-nvidia
+        #:driver nvda-580
+        #:kernel-mode-setting? #f)
        %my-os)
     #+end_src
 
-- Pure-Wayland environmnet: no argument required:
+- Xorg environment
+
+    When using =%desktop-services=, enable =#:configure-xorg?=.
 
     #+begin_src scheme
-      ((nonguix-transformation-nvidia)
+      ((nonguix-transformation-nvidia
+        #:driver nvda-580
+        #:configure-xorg? #t)
        %my-os)
     #+end_src
 
-- Xorg environmnet: =#:configure-xorg?=:
-
-    Set to =#t= when you're using =%desktop-services=.
+    When using a custom display manager, set =#:configure-xorg?= to its service
+  type, SDDM for example.
 
     #+begin_src scheme
-      ((nonguix-transformation-nvidia #:configure-xorg? #t)
+      ((nonguix-transformation-nvidia
+        #:driver nvda-580
+        #:configure-xorg? sddm-service-type)
        %my-os)
     #+end_src
 
-    Specify service type of your display manager otherwine.
+- Pure-Wayland environment and not using an X display manager: no extra argument
+  required.
 
     #+begin_src scheme
-      ((nonguix-transformation-nvidia #:configure-xorg? sddm-service-type)
+      ((nonguix-transformation-nvidia #:driver nvda-580)
        %my-os)
     #+end_src
 
-Full example below, using =compose= so that other system transformations can be
-mixed in:
+Full example below:
 
 #+begin_src scheme
-  (use-modules (nonguix transformations) ...)
+  (use-modules (nonguix transformations)
+               (nongnu packages linux)
+               (nongnu packages nvidia)
+               <...>)
 
   (define %my-os
-    (operating-system ...))
+    (operating-system
+      (kernel linux-6.12)
+      (firmware (cons* linux-firmware %base-firmware))
+      <...>))
 
-  ((compose (nonguix-transformation-nvidia))
+  ((nonguix-transformation-nvidia
+    #:driver nvda-580
+    #:configure-xorg? #t)
    %my-os)
 #+end_src
 
-*** Application setup
+*NOTE*: [[https://guix.gnu.org/manual/devel/en/html_node/Desktop-Services.html][%desktop-services]] includes GNOME Display Manager (GDM) on 64-bit
+systems, which has known issues when working with the NVIDIA proprietary driver:
+
+- Unable to launch Wayland sessions.
+- Blank screen on switchable graphics setup.
+
+As a result, it's recommended to use another display manager instead.
+
+Here's example to [[https://guix.gnu.org/manual/devel/en/html_node/Service-Reference.html#index-modify_002dservices-1][modify]] =%desktop-services= and replace GDM with [[https://guix.gnu.org/manual/devel/en/html_node/X-Window.html#index-sddm_002dservice_002dtype][SDDM display
+manager]] (=sddm-service-type=, defined in =(gnu services sddm)=).
+
+#+begin_src scheme
+  (use-modules (nonguix transformations)
+               (gnu services sddm)
+               (gnu services xorg)
+               (nongnu packages linux)
+               (nongnu packages nvidia)
+               <...>)
+
+  (define %my-os
+    (operating-system
+      (kernel linux-6.12)
+      (firmware (cons* linux-firmware %base-firmware))
+      (services
+       (cons* <...>
+              (service sddm-service-type)
+              (modify-services %desktop-services
+                (delete gdm-service-type))))
+      <...>))
+
+  ((nonguix-transformation-nvidia
+    #:driver nvda-580
+    #:configure-xorg? sddm-service-type)
+   %my-os)
+#+end_src
+
+When using [[https://guix.gnu.org/manual/devel/en/html_node/X-Window.html#index-set_002dxorg_002dconfiguration-1][set-xorg-configuration]], also replace the following
+
+#+begin_src scheme
+  (set-xorg-configuration
+   (xorg-configuration
+     (keyboard-layout <...>)))
+#+end_src
+
+to
+
+#+begin_src scheme
+  (set-xorg-configuration
+   (xorg-configuration
+     (keyboard-layout <...>))
+   sddm-service-type)
+#+end_src
+
+*** Configure applications for NVIDIA proprietary driver
 Application setup involves replacing the underlying graphics library from =mesa=
 to =nvda=.  Within an operating system declaration, it's handled by
-=nonguix-transformation-nvidia=.  In other cases we'll use the [[https://guix.gnu.org/manual/devel/en/html_node/Security-Updates.html][grafts]] mechanism
-explictly.
+=nonguix-transformation-nvidia=, and we'll use the [[https://guix.gnu.org/manual/devel/en/html_node/Security-Updates.html][grafting]] mechanism explictly
+otherwise.
 
-In Guix command-line interface, we can use the =--with-graft== [[https://guix.gnu.org/manual/devel/en/guix.html#Package-Transformation-Options][package
+On the Guix command-line interface, we can use the =--with-graft== [[https://guix.gnu.org/manual/devel/en/guix.html#Package-Transformation-Options][package
 transformation option]].
 
-For example, spawning a one-off software environmnet with =guix shell=:
+For example, spawning one-off software environment with ~guix shell~:
 
 #+BEGIN_SRC shell
-  guix shell mesa-utils nvda --with-graft=mesa=nvda -- glxinfo
+  $ guix shell mesa-utils nvda@580 --with-graft=mesa=nvda@580 -- glxinfo
 #+END_SRC
 
-Note that =nvda= is added into the shell, it's for [[https://guix.gnu.org/manual/devel/en/html_node/Search-Paths.html][search paths]].
+*NOTE*: =nvda= is added into the shell for [[https://guix.gnu.org/manual/devel/en/html_node/Search-Paths.html][search paths]].
 
-A programmatical approach is provided by procedure =(replace-mesa)= defined in
-=(nongnu packages nvidia)= module.  It can be applied onto any object:
+=replace-mesa= provides a programmatical approach.  It applies on any object
+recursively and is used by =nonguix-transformation-nvidia= internally.
 
 #+BEGIN_SRC scheme
   (use-modules (nongnu packages nvidia))
 
-  (replace-mesa <any-object>)
+  (replace-mesa <...> #:driver nvda-580)
 #+END_SRC
 
-Additional note for PRIME render offload on switchable graphics setup: launch
-graphical applications with environment variables
-=__NV_PRIME_RENDER_OFFLOAD=1= and =__GLX_VENDOR_LIBRARY_NAME=nvidia=.
+On switchable graphics setup, =nvidia-prime= package provides a ~prime-run~
+script to run application on the NVIDIA GPU via PRIME render offload.
 
-*** Package variants
-A few packages require extra effort to support and they're implemented as
+#+begin_src shell
+  $ prime-run steam
+#+end_src
+
+*** Package variants for NVIDIA proprietary driver
+Some packages require extra support to use the driver and they're implemented as
 package variants.  When you need one of them, install the variant below instead
-of the normal one.  Application setup is still necessary.
+of the normal one.  Aforementioned application setup is still necessary.
 
-- heroic-nvidia
 - mpv-nvidia
 - obs-nvidia
-- steam-nvidia
+
+Container packages must be built for the specific driver version, so they have
+more variants:
+
+| Variable           | Specification      |
+|--------------------+--------------------|
+| heroic-nvidia-beta | heroic-nvidia-beta |
+| heroic-nvidia-590  | heroic-nvidia@590  |
+| heroic-nvidia-580  | heroic-nvidia@580  |
+| heroic-nvidia-470  | heroic-nvidia@470  |
+| heroic-nvidia-390  | heroic-nvidia@390  |
+
+| Variable          | Specification     |
+|-------------------+-------------------|
+| steam-nvidia-beta | steam-nvidia-beta |
+| steam-nvidia-590  | steam-nvidia@590  |
+| steam-nvidia-580  | steam-nvidia@580  |
+| steam-nvidia-470  | steam-nvidia@470  |
+| steam-nvidia-390  | steam-nvidia@390  |
+
+Since ffmpeg has multiple versions itself already, its variants are only
+available to the programming interface:
+
+- ffmpeg/nvidia-390
+- ffmpeg/nvidia-470
+- ffmpeg/nvidia-580
+- ffmpeg/nvidia-590
+- ffmpeg/nvidia-beta
+- ffmpeg-6/nvidia-390
+- ffmpeg-6/nvidia-470
+- ffmpeg-6/nvidia-580
+- ffmpeg-6/nvidia-590
+- ffmpeg-6/nvidia-beta
 
 ** Substitutes for nonguix
 
