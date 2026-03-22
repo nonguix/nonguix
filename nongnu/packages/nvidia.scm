@@ -393,6 +393,22 @@
         (sha256
          (base32 "107xpshd3rn6sdcrprd32a7n5crdzarr3y7yv66d3m2nm9zzpv0l")))))))
 
+(define nvidia-source-beta-x86_64-linux
+  (package
+    (inherit %binary-source)
+    (name "nvidia-driver-beta")
+    (version "595.45.04")
+    (source
+     (make-nvidia-source
+      version
+      (origin
+        (method url-fetch)
+        (uri (string-append
+              "https://download.nvidia.com/XFree86/Linux-x86_64/"
+              version "/NVIDIA-Linux-x86_64-" version ".run"))
+        (sha256
+         (base32 "0plg9vsim8252c7k3slxblvrspy4xqa6q719flxjmfkc4i4najfd")))))))
+
 
 ;;;
 ;;; NVIDIA drivers
