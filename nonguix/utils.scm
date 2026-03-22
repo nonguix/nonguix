@@ -11,9 +11,12 @@
   #:use-module (guix utils)
   #:use-module (guix packages)
   #:use-module (gnu services)
+  #:use-module (gnu packages base)
   #:export (package-input-grafting
             package-with-alias
-            with-transformation))
+            with-transformation
+
+            %binary-source))
 
 (define-public (to32 package64)
   "Build package for i686-linux.
@@ -115,3 +118,16 @@ matches PRED."
   (package
     (inherit pkg)
     (name alias)))
+
+;; Using a package here to support ‘guix refresh’.
+(define %binary-source
+  (hidden-package
+   (package
+     (inherit hello)
+     (name "binary-source")
+     (version "0.0.0")
+     (supported-systems '())
+     (home-page "")
+     (synopsis "Binary package source (internal use)")
+     (description "")
+     (license #f))))
