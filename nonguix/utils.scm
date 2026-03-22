@@ -133,10 +133,13 @@ matches PRED."
     (_ obj)))
 
 (define (package-with-alias alias pkg)
-  "Return a copy of package PKG called ALIAS."
+  "Return a copy of package PKG with name ALIAS."
   (package
     (inherit pkg)
-    (name alias)))
+    (name alias)
+    (properties
+     `((superseded . ,pkg)
+       (supress-supersession-info? . #t)))))
 
 ;; Using a package here to support ‘guix refresh’.
 (define %binary-source
