@@ -8,15 +8,18 @@
   #:use-module (ice-9 match)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 popen)
+  #:use-module (guix gexp)
   #:use-module (guix utils)
   #:use-module (guix packages)
+  #:use-module (guix platform)
   #:use-module (gnu services)
   #:use-module (gnu packages base)
   #:export (package-input-grafting
             package-with-alias
             with-transformation
 
-            %binary-source))
+            %binary-source
+            binary-package-from-sources))
 
 (define-public (to32 package64)
   "Build package for i686-linux.
@@ -131,3 +134,37 @@ matches PRED."
      (synopsis "Binary package source (internal use)")
      (description "")
      (license #f))))
+
+(define* (binary-package-from-sources
+          source-mapping p #:optional (default-system "x86_64-linux"))
+  "Create package with system-dependent sources.  SOURCE-MAPPING should at least
+contain source for DEFAULT-SYSTEM.  Taking the following package as example:
+
+(binary-package-from-sources
+ `((\"x86_64-linux\"  . ,source-aaa)
+   (\"aarch64-linux\" . ,source-bbb))
+ (package
+   ...))
+
+It unpacks source from source-bbb when building for aarch64-linux targets, and
+source-aaa for all others."
+  (package
+    (inherit p)
+    (version (package-version (assoc-ref source-mapping default-system)))
+    (source #f)
+    (arguments
+     (substitute-keyword-arguments arguments
+       ((#:phases phases #~%standard-phases)
+        #~(modify-phases #$phases
+            (replace 'unpack
+              (lambda _
+                ((assoc-ref #$phases 'unpack)
+                 #:source
+                 #+(package-source
+                    (let ((system
+                           (or (and=> (%current-target-system)
+                                      platform-target->system)
+                               (%current-system))))
+                      (or (assoc-ref source-mapping system)
+                          (assoc-ref source-mapping default-system)))))))))))
+    (location (package-location p))))
