@@ -674,46 +674,47 @@ instead."))))
 ;;;
 
 (define-public nvidia-module-580
-  (package
-    (name "nvidia-module")
-    (version (package-version nvidia-driver-580))
-    (source (package-source nvidia-driver-580))
-    (build-system linux-module-build-system)
-    (arguments
-     (list #:linux linux-lts
-           #:source-directory "kernel"
-           #:tests? #f
-           #:make-flags
-           #~(list (string-append "CC=" #$(cc-for-target)))
-           #:phases
-           #~(modify-phases %standard-phases
-               (delete 'strip)
-               (add-before 'configure 'fixpath
-                 (lambda* (#:key (source-directory ".") #:allow-other-keys)
-                   (substitute* (string-append source-directory "/Kbuild")
-                     (("/bin/sh") (which "sh")))))
-               (replace 'build
-                 (lambda* (#:key (make-flags '()) (parallel-build? #t)
-                           (source-directory ".")
-                           inputs
-                           #:allow-other-keys)
-                   (apply invoke "make" "-C" (canonicalize-path source-directory)
-                          (string-append "SYSSRC=" (search-input-directory
-                                                    inputs "/lib/modules/build"))
-                          `(,@(if parallel-build?
-                                  `("-j" ,(number->string
-                                           (parallel-job-count)))
-                                  '())
-                            ,@make-flags)))))))
-    (supported-systems '("x86_64-linux"))
-    (home-page "https://www.nvidia.com")
-    (synopsis "Proprietary NVIDIA driver (proprietary kernel modules)")
-    (description
-     "This package provides proprietary kernel modules of the proprietary NVIDIA
-driver.")
-    (license
-     (license:nonfree
-      (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
+  (binary-package-from-sources
+   `(("x86_64-linux"  . ,nvidia-source-580-x86_64-linux)
+     ("i686-linux"    . ,nvidia-source-580-x86_64-linux)
+     ("aarch64-linux" . ,nvidia-source-580-aarch64-linux))
+   (package
+     (inherit nvidia-driver-580)
+     (name "nvidia-module")
+     (build-system linux-module-build-system)
+     (arguments
+      (list #:source-directory "kernel"
+            #:tests? #f
+            #:make-flags
+            #~(list (string-append "CC=" #$(cc-for-target)))
+            #:phases
+            #~(modify-phases %standard-phases
+                (delete 'strip)
+                (add-before 'configure 'fixpath
+                  (lambda* (#:key (source-directory ".") #:allow-other-keys)
+                    (substitute* (string-append source-directory "/Kbuild")
+                      (("/bin/sh") (which "sh")))))
+                (replace 'build
+                  (lambda* (#:key (make-flags '()) (parallel-build? #t)
+                            (source-directory ".")
+                            inputs
+                            #:allow-other-keys)
+                    (apply invoke "make" "-C" (canonicalize-path source-directory)
+                           (string-append "SYSSRC=" (search-input-directory
+                                                     inputs "/lib/modules/build"))
+                           `(,@(if parallel-build?
+                                   `("-j" ,(number->string
+                                            (parallel-job-count)))
+                                   '())
+                             ,@make-flags)))))))
+     (propagated-inputs '())
+     (inputs '())
+     (native-inputs '())
+     (supported-systems '("x86_64-linux" "aarch64-linux"))
+     (synopsis "Proprietary NVIDIA driver (proprietary kernel modules)")
+     (description
+      "This package provides proprietary kernel modules of the proprietary NVIDIA
+driver."))))
 
 (define-public nvidia-module-390
   (package
