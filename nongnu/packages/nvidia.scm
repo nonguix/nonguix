@@ -621,27 +621,31 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
 ;;;
 
 (define-public nvidia-firmware-580
-  (package
-    (inherit nvidia-driver)
-    (name "nvidia-firmware")
-    (build-system copy-build-system)
-    (arguments
-     (list #:install-plan
-           #~'(("firmware" #$(string-append "lib/firmware/nvidia/"
-                                            (package-version this-package))))
-           #:phases
-           #~(modify-phases %standard-phases
-               (delete 'strip))))
-    (propagated-inputs '())
-    (inputs '())
-    (native-inputs '())
-    (synopsis "Proprietary NVIDIA driver (GPU System Processor firmware)")
-    (description
-     "This package provides @acronym{GSP, GPU System Processor} firmware of
+  (binary-package-from-sources
+   `(("x86_64-linux"  . ,nvidia-source-580-x86_64-linux)
+     ("i686-linux"    . ,nvidia-source-580-x86_64-linux)
+     ("aarch64-linux" . ,nvidia-source-580-aarch64-linux))
+   (package
+     (inherit nvidia-driver-580)
+     (name "nvidia-firmware")
+     (build-system copy-build-system)
+     (arguments
+      (list #:install-plan
+            #~'(("firmware" #$(string-append "lib/firmware/nvidia/"
+                                             (package-version this-package))))
+            #:phases
+            #~(modify-phases %standard-phases
+                (delete 'strip))))
+     (propagated-inputs '())
+     (inputs '())
+     (native-inputs '())
+     (synopsis "Proprietary NVIDIA driver (GPU System Processor firmware)")
+     (description
+      "This package provides @acronym{GSP, GPU System Processor} firmware of
 the proprietary NVIDIA driver.
 
 For free driver (@code{nouveau}) support, use @code{linux-firmware}
-instead.")))
+instead."))))
 
 (define-public nvidia-firmware-470
   (package
