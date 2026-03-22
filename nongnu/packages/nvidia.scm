@@ -240,6 +240,22 @@
           (("^\\+\\+\\+ b/" all)
            (string-append all "kernel/")))))))
 
+(define nvidia-source-580-x86_64-linux
+  (package
+    (inherit %binary-source)
+    (name "nvidia-driver")
+    (version "580.142")
+    (source
+     (make-nvidia-source
+      version
+      (origin
+        (method url-fetch)
+        (uri (string-append
+              "https://download.nvidia.com/XFree86/Linux-x86_64/"
+              version "/NVIDIA-Linux-x86_64-" version ".run"))
+        (sha256
+         (base32 "0qvm8hh3d90i3674dqlj1lam6m189ah60fzr1iaw72gy7z7mz490")))))))
+
 
 ;;;
 ;;; NVIDIA drivers
