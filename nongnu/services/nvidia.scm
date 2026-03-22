@@ -36,7 +36,8 @@
     (driver settings)
     (filter identity
             (list driver
-                  settings))))
+                  settings
+                  nvidia-prime))))
 
 (define (nvidia-privileged-program config)
   (match-record config <nvidia-configuration>
