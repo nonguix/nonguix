@@ -685,28 +685,23 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
                            #$%nvidia-icd-configurations-590))))))))))
 
 (define-public nvidia-driver-beta
-  (package
-    (inherit nvidia-driver-590)
-    (name "nvidia-driver-beta")
-    (version "595.45.04")
-    (source
-     (make-nvidia-source
-      version
-      (origin
-       (method url-fetch)
-       (uri (string-append
-             "https://download.nvidia.com/XFree86/Linux-x86_64/"
-             version "/NVIDIA-Linux-x86_64-" version ".run"))
-       (sha256
-        (base32 "0plg9vsim8252c7k3slxblvrspy4xqa6q719flxjmfkc4i4najfd")))))
-    (arguments
-     (substitute-keyword-arguments arguments
-       ((#:phases phases)
-        #~(modify-phases #$phases
-            (replace 'add-architecture-to-filename
-              (lambda _
-                (for-each #$(add-architecture-to-filename)
-                          #$%nvidia-icd-configurations-beta)))))))))
+  (binary-package-from-sources
+   `(("x86_64-linux"  . ,nvidia-source-beta-x86_64-linux)
+     ("i686-linux"    . ,nvidia-source-beta-x86_64-linux)
+     ("aarch64-linux" . ,nvidia-source-beta-aarch64-linux))
+   (package
+     (inherit nvidia-driver-580)
+     (name "nvidia-driver-beta")
+     (arguments
+      (substitute-keyword-arguments arguments
+        ((#:phases phases)
+         #~(modify-phases #$phases
+             (replace 'unpack
+               (assoc-ref %standard-phases 'unpack))
+             (replace 'add-architecture-to-filename
+               (lambda _
+                 (for-each #$(add-architecture-to-filename)
+                           #$%nvidia-icd-configurations-beta))))))))))
 
 (define-public nvidia-driver nvidia-driver-580)
 
