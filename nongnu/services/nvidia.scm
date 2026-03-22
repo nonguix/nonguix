@@ -27,7 +27,16 @@
   (module   nvidia-configuration-module
             (default nvidia-module))    ; file-like
   (modprobe nvidia-configuration-modprobe
-            (default nvidia-modprobe))) ; file-like
+            (default nvidia-modprobe))  ; file-like
+  (settings nvidia-configuration-settings
+            (default #f)))              ; file-like or #f
+
+(define (nvidia-profile config)
+  (match-record config <nvidia-configuration>
+    (driver settings)
+    (filter identity
+            (list driver
+                  settings))))
 
 (define (nvidia-privileged-program config)
   (match-record config <nvidia-configuration>
@@ -77,7 +86,7 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
    (name 'nvidia)
    (extensions
     (list (service-extension profile-service-type
-                             (compose list nvidia-configuration-driver))
+                             nvidia-profile)
           (service-extension privileged-program-service-type
                              nvidia-privileged-program)
           (service-extension special-files-service-type
