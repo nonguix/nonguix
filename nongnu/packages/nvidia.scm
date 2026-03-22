@@ -74,51 +74,50 @@
     ;; GSYNC control for Vulkan direct-to-display applications.
     "^VKDirectGSYNC(Compatible)?Allowed$"))
 
+(define %nvidia-unbundle-libraries-580
+  '(;; egl-gbm
+    "libnvidia-egl-gbm\\.so\\."
+    ;; egl-wayland
+    "libnvidia-egl-wayland\\.so\\."
+    ;; egl-x11
+    "libnvidia-egl-xcb\\.so\\."
+    "libnvidia-egl-xlib\\.so\\."
+    ;; libglvnd
+    "libEGL\\.so\\."
+    "libGL\\.so\\."
+    "libGLESv1_CM\\.so\\."
+    "libGLESv2\\.so\\."
+    "libGLX\\.so\\."
+    "libGLdispatch\\.so\\."
+    "libOpenGL\\.so\\."
+    ;; nvidia-settings
+    "libnvidia-gtk[23]\\.so\\."
+    ;; opencl-icd-loader
+    "libOpenCL\\.so\\."))
+
 
 ;;;
 ;;; NVIDIA driver checkouts
 ;;;
 
-(define nvidia-driver-snippet
-  ;; Note: delay to cope with cyclic module imports at the top level.
-  (delay
-    #~(begin
-        (use-modules (guix build utils) (ice-9 ftw) (srfi srfi-1))
-        (set-path-environment-variable
-         "PATH" '("bin")
-         '#+(list bash-minimal coreutils-minimal grep tar zstd))
-        (let* ((this-file (last (scandir (getcwd)))))
-          (invoke "sh" this-file "--extract-only" "--target" "extractdir")
-          (for-each delete-file
-                    (find-files "extractdir"
-                                (string-join
-                                 '(;; egl-gbm
-                                   "libnvidia-egl-gbm\\.so\\."
-                                   ;; egl-wayland
-                                   "libnvidia-egl-wayland\\.so\\."
-                                   ;; egl-x11
-                                   "libnvidia-egl-xcb\\.so\\."
-                                   "libnvidia-egl-xlib\\.so\\."
-                                   ;; libglvnd
-                                   "libEGL\\.so\\."
-                                   "libGL\\.so\\."
-                                   "libGLESv1_CM\\.so\\."
-                                   "libGLESv2\\.so\\."
-                                   "libGLX\\.so\\."
-                                   "libGLdispatch\\.so\\."
-                                   "libOpenGL\\.so\\."
-                                   ;; nvidia-settings
-                                   "libnvidia-gtk[23]\\.so\\."
-                                   ;; opencl-icd-loader
-                                   "libOpenCL\\.so\\.")
-                                 "|")))
-          (with-directory-excursion "extractdir"
-            (invoke "tar" "cvfa" (string-append this-file ".tar")
-                    "--mtime=1" "--owner=root:0" "--group=root:0" ;determinism
-                    "--sort=name" ".")
-            (invoke "zstd" (string-append this-file ".tar")))
-          (rename-file
-           (string-append "extractdir/" this-file ".tar.zst") this-file)))))
+(define (make-nvidia-driver-snippet unbundle-libraries)
+  #~(begin
+      (use-modules (guix build utils) (ice-9 ftw) (srfi srfi-1))
+      (set-path-environment-variable
+       "PATH" '("bin")
+       '#+(list bash-minimal coreutils-minimal grep tar zstd))
+      (let* ((this-file (last (scandir (getcwd)))))
+        (invoke "sh" this-file "--extract-only" "--target" "extractdir")
+        (for-each delete-file
+                  (find-files "extractdir"
+                              (string-join '#$unbundle-libraries "|")))
+        (with-directory-excursion "extractdir"
+          (invoke "tar" "cvfa" (string-append this-file ".tar")
+                  "--mtime=1" "--owner=root:0" "--group=root:0" ;determinism
+                  "--sort=name" ".")
+          (invoke "zstd" (string-append this-file ".tar")))
+        (rename-file
+         (string-append "extractdir/" this-file ".tar.zst") this-file))))
 
 (define (nvidia-source version hash)
   "Given VERSION of an NVIDIA driver installer, return an <origin> for
@@ -131,7 +130,7 @@ its unpacked checkout."
     (file-name (string-append "NVIDIA-Linux-x86_64-" version))
     (sha256 (base32 hash))
     (modules '((guix build utils)))
-    (snippet (force nvidia-driver-snippet))))
+    (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))
 
 
 ;;;
