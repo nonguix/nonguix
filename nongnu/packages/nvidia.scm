@@ -377,6 +377,22 @@
         (sha256
          (base32 "12fnddljvgxksil6n3d5a35wwg8kkq82kkglhz63253qjc3giqmr")))))))
 
+(define nvidia-source-590-aarch64-linux
+  (package
+    (inherit %binary-source)
+    (name "nvidia-driver")
+    (version "590.48.01")
+    (source
+     (make-nvidia-source
+      version
+      (origin
+        (method url-fetch)
+        (uri (string-append
+              "https://us.download.nvidia.com/XFree86/aarch64/"
+              version "/NVIDIA-Linux-aarch64-" version ".run"))
+        (sha256
+         (base32 "107xpshd3rn6sdcrprd32a7n5crdzarr3y7yv66d3m2nm9zzpv0l")))))))
+
 
 ;;;
 ;;; NVIDIA drivers
