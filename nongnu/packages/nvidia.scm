@@ -761,11 +761,19 @@ instead."))))
                (assoc-ref %standard-phases 'unpack)))))))))
 
 (define-public nvidia-firmware-beta
-  (package
-    (inherit nvidia-firmware-580)
-    (name "nvidia-firmware-beta")
-    (version (package-version nvidia-driver-beta))
-    (source (package-source nvidia-driver-beta))))
+  (binary-package-from-sources
+   `(("x86_64-linux"  . ,nvidia-source-beta-x86_64-linux)
+     ("i686-linux"    . ,nvidia-source-beta-x86_64-linux)
+     ("aarch64-linux" . ,nvidia-source-beta-aarch64-linux))
+   (package
+     (inherit nvidia-firmware-580)
+     (name "nvidia-firmware-beta")
+     (arguments
+      (substitute-keyword-arguments arguments
+        ((#:phases phases)
+         #~(modify-phases #$phases
+             (replace 'unpack
+               (assoc-ref %standard-phases 'unpack)))))))))
 
 (define-public nvidia-firmware nvidia-firmware-580)
 
