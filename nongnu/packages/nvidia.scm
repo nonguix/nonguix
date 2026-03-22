@@ -819,6 +819,15 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
     (license (package-license nvidia-driver))
     (home-page (package-home-page nvidia-driver))))
 
+(define-public nvda-590
+  ((package-input-rewriting `((,nvidia-driver . ,nvidia-driver-590)))
+   (package
+     (inherit nvda)
+     (version (string-pad-right
+               (package-version nvidia-driver-590)
+               (string-length (package-version mesa-for-nvda))
+               #\0)))))
+
 (define-public nvdb
   ((package-input-rewriting `((,nvidia-driver . ,nvidia-driver-beta)))
    (package

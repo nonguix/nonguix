@@ -139,7 +139,17 @@ declaration."
                     (if open-source-kernel-module?
                         nvidia-module-open-beta
                         nvidia-module-beta))
-                   (modprobe nvidia-modprobe-beta))))))
+                   (modprobe nvidia-modprobe-beta))))
+      (,nvda-590 . ,(service nvidia-service-type
+                      (nvidia-configuration
+                        (driver nvda-590)
+                        (firmware nvidia-firmware-590)
+                        (module
+                         (if open-source-kernel-module?
+                             nvidia-module-open-590
+                             nvidia-module-590))
+                        (modprobe nvidia-modprobe-590))))))
+
   (lambda (os)
     (operating-system
       (inherit os)
