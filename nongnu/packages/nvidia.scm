@@ -1213,10 +1213,10 @@ configuration, application profiles, GPU monitoring and more.")
 
 ;; nvda is used as a name because it has the same length as mesa which is
 ;; required for grafting
-(define* (make-nvda driver #:optional (name "nvda"))
+(define (make-nvda driver)
   ((package-input-rewriting `((,nvidia-driver . ,driver)))
    (package
-     (name name)
+     (name "nvda")
      (version (string-pad-right
                (package-version driver)
                (string-length (package-version mesa-for-nvda))
@@ -1291,13 +1291,15 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 (define-nvda-package nvda-470 nvidia-driver-470)
 (define-nvda-package nvda-580 nvidia-driver-580)
 (define-nvda-package nvda-590 nvidia-driver-590)
+(define-nvda-package nvda-beta nvidia-driver-beta)
 (define-nvda-package nvda-user-alias-390 nvidia-driver-390 "nvda")
 (define-nvda-package nvda-user-alias-470 nvidia-driver-470 "nvda")
 (define-nvda-package nvda-user-alias-580 nvidia-driver-580 "nvda")
 (define-nvda-package nvda-user-alias-590 nvidia-driver-590 "nvda")
-
-(define-public nvdb (make-nvda nvidia-driver-beta "nvdb"))
+(define-nvda-package nvda-user-alias-beta nvidia-driver-beta "nvda-beta")
 (define-public nvda nvda-580)
+;; 2026-03
+(define-deprecated-package nvdb nvda-beta)
 
 (define* (replace-mesa obj #:key (driver nvda))
   (with-transformation
