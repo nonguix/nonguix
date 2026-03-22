@@ -119,19 +119,6 @@
         (rename-file
          (string-append "extractdir/" this-file ".tar.zst") this-file))))
 
-(define (nvidia-source version hash)
-  "Given VERSION of an NVIDIA driver installer, return an <origin> for
-its unpacked checkout."
-  (origin
-    (method url-fetch)
-    (uri (string-append
-          "https://download.nvidia.com/XFree86/Linux-x86_64/"
-          version "/NVIDIA-Linux-x86_64-" version ".run"))
-    (file-name (string-append "NVIDIA-Linux-x86_64-" version))
-    (sha256 (base32 hash))
-    (modules '((guix build utils)))
-    (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))
-
 
 ;;;
 ;;; NVIDIA drivers
@@ -141,8 +128,16 @@ its unpacked checkout."
   (package
     (name "nvidia-driver")
     (version "580.142")
-    (source (nvidia-source
-             version "0qvm8hh3d90i3674dqlj1lam6m189ah60fzr1iaw72gy7z7mz490"))
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://download.nvidia.com/XFree86/Linux-x86_64/"
+             version "/NVIDIA-Linux-x86_64-" version ".run"))
+       (file-name (string-append "NVIDIA-Linux-x86_64-" version))
+       (sha256 (base32 "0qvm8hh3d90i3674dqlj1lam6m189ah60fzr1iaw72gy7z7mz490"))
+       (modules '((guix build utils)))
+       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))
     (build-system copy-build-system)
     (arguments
      (list #:modules '((guix build copy-build-system)
@@ -372,16 +367,32 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
     (inherit nvidia-driver-580)
     (name "nvidia-driver")
     (version "590.48.01")
-    (source (nvidia-source
-             version "12fnddljvgxksil6n3d5a35wwg8kkq82kkglhz63253qjc3giqmr"))))
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://download.nvidia.com/XFree86/Linux-x86_64/"
+             version "/NVIDIA-Linux-x86_64-" version ".run"))
+       (file-name (string-append "NVIDIA-Linux-x86_64-" version))
+       (sha256 (base32 "12fnddljvgxksil6n3d5a35wwg8kkq82kkglhz63253qjc3giqmr"))
+       (modules '((guix build utils)))
+       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))))
 
 (define-public nvidia-driver-beta
   (package
     (inherit nvidia-driver-580)
     (name "nvidia-driver-beta")
     (version "595.45.04")
-    (source (nvidia-source
-             version "0plg9vsim8252c7k3slxblvrspy4xqa6q719flxjmfkc4i4najfd"))))
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://download.nvidia.com/XFree86/Linux-x86_64/"
+             version "/NVIDIA-Linux-x86_64-" version ".run"))
+       (file-name (string-append "NVIDIA-Linux-x86_64-" version))
+       (sha256 (base32 "0plg9vsim8252c7k3slxblvrspy4xqa6q719flxjmfkc4i4najfd"))
+       (modules '((guix build utils)))
+       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))))
 
 (define-public nvidia-driver nvidia-driver-580)
 
