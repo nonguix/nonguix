@@ -95,6 +95,11 @@
     ;; opencl-icd-loader
     "libOpenCL\\.so\\."))
 
+(define %nvidia-unbundle-libraries-590
+  `(;; egl-wayland2
+    "libnvidia-egl-wayland2\\.so\\."
+    ,@%nvidia-unbundle-libraries-580))
+
 
 ;;;
 ;;; NVIDIA driver checkouts
@@ -376,11 +381,28 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
        (file-name (string-append "NVIDIA-Linux-x86_64-" version))
        (sha256 (base32 "12fnddljvgxksil6n3d5a35wwg8kkq82kkglhz63253qjc3giqmr"))
        (modules '((guix build utils)))
-       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))))
+       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-590))))
+    (arguments
+     (substitute-keyword-arguments arguments
+       ((#:phases phases)
+        #~(modify-phases #$phases
+            (add-after 'create-misc-files 'create-misc-files-590
+              (lambda* (#:key inputs #:allow-other-keys)
+                ;; EGL external platform configuraiton
+                (let ((dir "share/egl/egl_external_platform.d"))
+                  (for-each
+                   (lambda (file)
+                     (install-file
+                      (search-input-file inputs (in-vicinity dir file))
+                      (in-vicinity #$output dir)))
+                   '("09_nvidia_wayland2.json")))))))))
+    (inputs
+     (modify-inputs inputs
+       (prepend egl-wayland2)))))
 
 (define-public nvidia-driver-beta
   (package
-    (inherit nvidia-driver-580)
+    (inherit nvidia-driver-590)
     (name "nvidia-driver-beta")
     (version "595.45.04")
     (source
@@ -392,7 +414,7 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
        (file-name (string-append "NVIDIA-Linux-x86_64-" version))
        (sha256 (base32 "0plg9vsim8252c7k3slxblvrspy4xqa6q719flxjmfkc4i4najfd"))
        (modules '((guix build utils)))
-       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))))
+       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-590))))))
 
 (define-public nvidia-driver nvidia-driver-580)
 
