@@ -619,23 +619,20 @@ device files are present and configure certain runtime settings in the kernel.")
 ;;; ‘nvidia-settings’ packages
 ;;;
 
-(define (nvidia-settings-source name version hash)
-  (origin
-    (method git-fetch)
-    (uri (git-reference
-          (url "https://github.com/NVIDIA/nvidia-settings")
-          (commit version)))
-    (file-name (git-file-name name version))
-    (modules '((guix build utils)))
-    (snippet '(delete-file-recursively "src/jansson"))
-    (sha256 (base32 hash))))
-
 (define-public nvidia-settings-580
   (package
     (name "nvidia-settings")
     (version "580.142")
-    (source (nvidia-settings-source
-             name version "00sdrka3mslqgyhpnxyr6165nbrrfqdp1shgmbgp9ga07sbchyh6"))
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/NVIDIA/nvidia-settings")
+              (commit version)))
+       (file-name (git-file-name name version))
+       (sha256 (base32 "00sdrka3mslqgyhpnxyr6165nbrrfqdp1shgmbgp9ga07sbchyh6"))
+       (modules '((guix build utils)))
+       (snippet '(delete-file-recursively "src/jansson"))))
     (build-system gnu-build-system)
     (arguments
      (list #:tests? #f ;no test suite
@@ -694,18 +691,32 @@ configuration, application profiles, GPU monitoring and more.")
     (inherit nvidia-settings-580)
     (name "nvidia-settings")
     (version "590.48.01")
-    (source (nvidia-settings-source
-             name version
-             "0h9059gkibyiidg5s9cakbg369y9nwfd17vycpsqfswgr18jlsrm"))))
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/NVIDIA/nvidia-settings")
+              (commit version)))
+       (file-name (git-file-name name version))
+       (sha256 (base32 "0h9059gkibyiidg5s9cakbg369y9nwfd17vycpsqfswgr18jlsrm"))
+       (modules '((guix build utils)))
+       (snippet '(delete-file-recursively "src/jansson"))))))
 
 (define-public nvidia-settings-beta
   (package
     (inherit nvidia-settings-580)
     (name "nvidia-settings-beta")
     (version "595.45.04")
-    (source (nvidia-settings-source
-             name version
-             "0w7ndc2p2131h1wh3rj1dhhs59ihrdfl8ni44x9sdywc5jpnk3k3"))))
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/NVIDIA/nvidia-settings")
+              (commit version)))
+       (file-name (git-file-name name version))
+       (sha256 (base32 "0w7ndc2p2131h1wh3rj1dhhs59ihrdfl8ni44x9sdywc5jpnk3k3"))
+       (modules '((guix build utils)))
+       (snippet '(delete-file-recursively "src/jansson"))))))
 
 (define-public nvidia-settings nvidia-settings-580)
 
