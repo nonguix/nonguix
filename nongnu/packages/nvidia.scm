@@ -861,11 +861,19 @@ driver."))))
                (assoc-ref %standard-phases 'unpack)))))))))
 
 (define-public nvidia-module-beta
-  (package
-    (inherit nvidia-module-580)
-    (name "nvidia-module-beta")
-    (version (package-version nvidia-driver-beta))
-    (source (package-source nvidia-driver-beta))))
+  (binary-package-from-sources
+   `(("x86_64-linux"  . ,nvidia-source-beta-x86_64-linux)
+     ("i686-linux"    . ,nvidia-source-beta-x86_64-linux)
+     ("aarch64-linux" . ,nvidia-source-beta-aarch64-linux))
+   (package
+     (inherit nvidia-module-580)
+     (name "nvidia-module-beta")
+     (arguments
+      (substitute-keyword-arguments arguments
+        ((#:phases phases)
+         #~(modify-phases #$phases
+             (replace 'unpack
+               (assoc-ref %standard-phases 'unpack)))))))))
 
 (define-public nvidia-module nvidia-module-580)
 
