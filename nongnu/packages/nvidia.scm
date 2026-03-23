@@ -240,6 +240,44 @@
           (("^\\+\\+\\+ b/" all)
            (string-append all "kernel/")))))))
 
+(define nvidia-source-390-x86_64-linux
+  (package
+    (inherit %binary-source)
+    (name "nvidia-driver")
+    (version "390.157")
+    (source
+     (make-nvidia-source
+      version
+      (origin
+        (method url-fetch)
+        (uri (string-append
+              "https://download.nvidia.com/XFree86/Linux-x86_64/"
+              version "/NVIDIA-Linux-x86_64-" version ".run"))
+        (sha256
+         (base32 "12ijkc5zvs3ivk5m69cm6k2ys60z6nggnw0hv2wxdmgyx2kbrssv")))
+      #:patches
+      (map (lambda (name)
+             (file-append %nvidia-patches-390 "/" name))
+           '("kernel-4.16+-memory-encryption.patch"
+             "kernel-6.2.patch"
+             "kernel-6.3.patch"
+             "kernel-6.4.patch"
+             "kernel-6.5.patch"
+             "kernel-6.6.patch"
+             "kernel-6.8.patch"
+             "gcc-14.patch"
+             "kernel-6.10.patch"
+             "kernel-6.12.patch"
+             "kernel-6.13.patch"
+             "kernel-6.14.patch"
+             "gcc-15.patch"
+             "kernel-6.15.patch"
+             "kernel-6.17.patch"
+             "kernel-6.19.patch"
+             "kernel-6.18-nv_workqueue_flush.patch"))
+      #:snippet
+      #~(rename-file "nvidia_icd.json.template" "nvidia_icd.json")))))
+
 (define nvidia-source-580-x86_64-linux
   (package
     (inherit %binary-source)
@@ -471,42 +509,13 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
     (inherit nvidia-driver-580)
     (name "nvidia-driver")
     (version "390.157")
-    (source
-     (make-nvidia-source
-      version
-      (origin
-        (method url-fetch)
-        (uri (string-append
-              "https://download.nvidia.com/XFree86/Linux-x86_64/"
-              version "/NVIDIA-Linux-x86_64-" version ".run"))
-        (sha256
-         (base32 "12ijkc5zvs3ivk5m69cm6k2ys60z6nggnw0hv2wxdmgyx2kbrssv")))
-      #:patches
-      (map (lambda (name)
-             (file-append %nvidia-patches-390 "/" name))
-           '("kernel-4.16+-memory-encryption.patch"
-             "kernel-6.2.patch"
-             "kernel-6.3.patch"
-             "kernel-6.4.patch"
-             "kernel-6.5.patch"
-             "kernel-6.6.patch"
-             "kernel-6.8.patch"
-             "gcc-14.patch"
-             "kernel-6.10.patch"
-             "kernel-6.12.patch"
-             "kernel-6.13.patch"
-             "kernel-6.14.patch"
-             "gcc-15.patch"
-             "kernel-6.15.patch"
-             "kernel-6.17.patch"
-             "kernel-6.19.patch"
-             "kernel-6.18-nv_workqueue_flush.patch"))
-      #:snippet
-      #~(rename-file "nvidia_icd.json.template" "nvidia_icd.json")))
+    (source (package-source nvidia-source-390-x86_64-linux))
     (arguments
      (substitute-keyword-arguments arguments
        ((#:phases phases)
         #~(modify-phases #$phases
+            (replace 'unpack
+              (assoc-ref %standard-phases 'unpack))
             (replace 'install
               (lambda args
                 (apply (assoc-ref copy:%standard-phases 'install)
