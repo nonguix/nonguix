@@ -74,6 +74,22 @@
     ;; GSYNC control for Vulkan direct-to-display applications.
     "^VKDirectGSYNC(Compatible)?Allowed$"))
 
+(define (add-architecture-to-filename)
+  #~(lambda (path)
+      (let* ((out #$output)
+             (system #$(or (%current-target-system)
+                           (%current-system)))
+             (dash (string-index system #\-))
+             (arch (string-take system dash))
+
+             (dot  (string-index-right path #\.))
+             (base (string-take path dot))
+             (ext  (string-drop path (+ 1 dot))))
+        ;; <...>/50_mesa.json -> <...>/50_mesa.x86_64.json
+        (rename-file
+         (string-append out path)
+         (string-append out base "." arch "." ext)))))
+
 (define %nvidia-unbundle-libraries-580
   '(;; egl-gbm
     "libnvidia-egl-gbm\\.so\\."
@@ -126,6 +142,24 @@
       ("nvidia_icd.json" "share/vulkan/icd.d/")
       ("nvidia_layers.json" "share/vulkan/implicit_layer.d/")
       ("sandboxutils-filelist.json" "share/nvidia/files.d/")))
+
+(define %nvidia-icd-configurations-580
+  #~'("/etc/OpenCL/vendors/nvidia.icd"
+      "/share/egl/egl_external_platform.d/10_nvidia_wayland.json"
+      "/share/egl/egl_external_platform.d/15_nvidia_gbm.json"
+      "/share/egl/egl_external_platform.d/20_nvidia_xcb.json"
+      "/share/egl/egl_external_platform.d/20_nvidia_xlib.json"
+      "/share/glvnd/egl_vendor.d/10_nvidia.json"
+      "/share/vulkan/icd.d/nvidia_icd.json"
+      "/share/vulkan/implicit_layer.d/nvidia_layers.json"))
+
+(define %nvidia-icd-configurations-590
+  #~`("/share/egl/egl_external_platform.d/99_nvidia_wayland2.json"
+      ,@#$%nvidia-icd-configurations-580))
+
+(define %nvidia-icd-configurations-beta
+  #~`("/share/egl/egl_external_platform.d/09_nvidia_wayland2.json"
+      ,@#$%nvidia-icd-configurations-580))
 
 
 ;;;
@@ -230,30 +264,8 @@
                  (string-append #$output "/lib/" all)))))
           (add-after 'install 'add-architecture-to-filename
             (lambda _
-              (for-each
-               (lambda (path)
-                 (let* ((out #$output)
-                        (system #$(or (%current-target-system)
-                                      (%current-system)))
-                        (dash (string-index system #\-))
-                        (arch (string-take system dash))
-
-                        (dot  (string-index-right path #\.))
-                        (base (string-take path dot))
-                        (ext  (string-drop path (+ 1 dot))))
-                   ;; <...>/nvidia.icd -> <...>/nvidia.x86_64.icd
-                   ;; <...>/nvidia_icd.json -> <...>/nvidia_icd.x86_64.json
-                   (rename-file
-                    (string-append out path)
-                    (string-append out base "." arch "." ext))))
-               '("/etc/OpenCL/vendors/nvidia.icd"
-                 "/share/egl/egl_external_platform.d/10_nvidia_wayland.json"
-                 "/share/egl/egl_external_platform.d/15_nvidia_gbm.json"
-                 "/share/egl/egl_external_platform.d/20_nvidia_xcb.json"
-                 "/share/egl/egl_external_platform.d/20_nvidia_xlib.json"
-                 "/share/glvnd/egl_vendor.d/10_nvidia.json"
-                 "/share/vulkan/icd.d/nvidia_icd.json"
-                 "/share/vulkan/implicit_layer.d/nvidia_layers.json"))))
+              (for-each #$(add-architecture-to-filename)
+                        #$%nvidia-icd-configurations-580)))
           (add-after 'install 'patch-elf
             (lambda* (#:key inputs #:allow-other-keys)
               (let* ((ld.so (search-input-file
@@ -387,7 +399,15 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
        (file-name (string-append "NVIDIA-Linux-x86_64-" version))
        (sha256 (base32 "12fnddljvgxksil6n3d5a35wwg8kkq82kkglhz63253qjc3giqmr"))
        (modules '((guix build utils)))
-       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))))
+       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))
+    (arguments
+     (substitute-keyword-arguments arguments
+       ((#:phases phases)
+        #~(modify-phases #$phases
+            (replace 'add-architecture-to-filename
+              (lambda _
+                (for-each #$(add-architecture-to-filename)
+                          #$%nvidia-icd-configurations-590)))))))))
 
 (define-public nvidia-driver-beta
   (package
@@ -403,7 +423,15 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
        (file-name (string-append "NVIDIA-Linux-x86_64-" version))
        (sha256 (base32 "0plg9vsim8252c7k3slxblvrspy4xqa6q719flxjmfkc4i4najfd"))
        (modules '((guix build utils)))
-       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))))
+       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))
+    (arguments
+     (substitute-keyword-arguments arguments
+       ((#:phases phases)
+        #~(modify-phases #$phases
+            (replace 'add-architecture-to-filename
+              (lambda _
+                (for-each #$(add-architecture-to-filename)
+                          #$%nvidia-icd-configurations-beta)))))))))
 
 (define-public nvidia-driver nvidia-driver-580)
 
@@ -824,20 +852,7 @@ configuration, application profiles, GPU monitoring and more.")
              (add-after 'set-layer-path-in-manifests 'add-architecture-to-filename
                (lambda _
                  (for-each
-                  (lambda (path)
-                    (let* ((out #$output)
-                           (system #$(or (%current-target-system)
-                                         (%current-system)))
-                           (dash (string-index system #\-))
-                           (arch (string-take system dash))
-
-                           (dot  (string-index-right path #\.))
-                           (base (string-take path dot))
-                           (ext  (string-drop path (+ 1 dot))))
-                      ;; <...>/50_mesa.json -> <...>/50_mesa.x86_64.json
-                      (rename-file
-                       (string-append out path)
-                       (string-append out base "." arch "." ext))))
+                  #$(add-architecture-to-filename)
                   '("/share/glvnd/egl_vendor.d/50_mesa.json"
                     "/share/vulkan/explicit_layer.d/VkLayer_MESA_overlay.json"
                     "/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json")))))))))))
