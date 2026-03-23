@@ -10,6 +10,7 @@
   #:use-module (guix gexp)
   #:use-module (guix i18n)
   #:use-module (guix packages)
+  #:use-module (guix utils)
   #:use-module (gnu system)
   #:use-module (nongnu system linux-initrd)
   #:use-module (gnu services)
@@ -151,7 +152,16 @@ declaration."
                          (if open-source-kernel-module?
                              nvidia-module-open-590
                              nvidia-module-590))
-                        (modprobe nvidia-modprobe-590))))))
+                        (modprobe nvidia-modprobe-590))))
+      (,nvda-470 . ,(service nvidia-service-type
+                      (nvidia-configuration
+                        (driver nvda-470)
+                        (firmware
+                         (if (target-x86?)
+                             nvidia-firmware-470
+                             #f))
+                        (module nvidia-module-470)
+                        (modprobe nvidia-modprobe-470))))))
 
   (define %xorg-extension
     (and=> configure-xorg?
