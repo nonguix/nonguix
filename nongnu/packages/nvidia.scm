@@ -91,14 +91,11 @@
          (string-append out base "." arch "." ext)))))
 
 
-(define (%nvidia-install-plan-580)
+(define (%nvidia-install-plan-390)
   #~'((#$(cond
           ((target-x86-32?) "32")
           (else "."))
        "lib/" #:include-regexp ("^./[^/]+\\.so"))
-      #$@(if (target-x86-64?)
-             '(("nvidia-pcc" "bin/"))
-             '())
       #$@(if (target-64bit?)
              '(("." "bin/"
                 #:include ("nvidia-cuda-mps-control"
@@ -107,29 +104,44 @@
                ("." "share/man/man1/"
                 #:include ("nvidia-cuda-mps-control.1.gz"
                            "nvidia-smi.1.gz"))))
-      #$@(if (target-x86?)
-             '(("nvidia_icd_vksc.json" "etc/vulkansc/icd.d/"))
-             '())
       ("." "lib/nvidia/wine/" #:include-regexp ("_?nvngx.*?\\.dll$"))
       ("." "share/nvidia/" #:include-regexp ("nvidia-application-profiles|nvoptix.bin"))
       ("." "share/egl/egl_external_platform.d/" #:include-regexp ("(gbm|wayland2?|xcb|xlib)\\.json"))
       ("10_nvidia.json" "share/glvnd/egl_vendor.d/")
       ("nvidia-drm-outputclass.conf" "share/X11/xorg.conf.d/")
-      ("nvidia-dbus.conf" "share/dbus-1/system.d/")
       ("nvidia.icd" "etc/OpenCL/vendors/")
-      ("nvidia_icd.json" "share/vulkan/icd.d/")
-      ("nvidia_layers.json" "share/vulkan/implicit_layer.d/")
-      ("sandboxutils-filelist.json" "share/nvidia/files.d/")))
+      ("nvidia_icd.json" "share/vulkan/icd.d/")))
 
-(define %nvidia-icd-configurations-580
+(define (%nvidia-install-plan-470)
+  #~`(("nvidia_layers.json" "share/vulkan/implicit_layer.d/")
+      ,@#$(%nvidia-install-plan-390)))
+
+(define (%nvidia-install-plan-580)
+  #~`(("nvidia-dbus.conf" "share/dbus-1/system.d/")
+      ("sandboxutils-filelist.json" "share/nvidia/files.d/")
+      #$@(if (target-x86-64?)
+             '(("nvidia-pcc" "bin/"))
+             '())
+      #$@(if (target-x86?)
+             '(("nvidia_icd_vksc.json" "etc/vulkansc/icd.d/"))
+             '())
+      ,@#$(%nvidia-install-plan-470)))
+
+(define %nvidia-icd-configurations-390
   #~'("/etc/OpenCL/vendors/nvidia.icd"
       "/share/egl/egl_external_platform.d/10_nvidia_wayland.json"
-      "/share/egl/egl_external_platform.d/15_nvidia_gbm.json"
+      "/share/glvnd/egl_vendor.d/10_nvidia.json"
+      "/share/vulkan/icd.d/nvidia_icd.json"))
+
+(define %nvidia-icd-configurations-470
+  #~`("/share/vulkan/implicit_layer.d/nvidia_layers.json"
+      ,@#$%nvidia-icd-configurations-390))
+
+(define %nvidia-icd-configurations-580
+  #~`("/share/egl/egl_external_platform.d/15_nvidia_gbm.json"
       "/share/egl/egl_external_platform.d/20_nvidia_xcb.json"
       "/share/egl/egl_external_platform.d/20_nvidia_xlib.json"
-      "/share/glvnd/egl_vendor.d/10_nvidia.json"
-      "/share/vulkan/icd.d/nvidia_icd.json"
-      "/share/vulkan/implicit_layer.d/nvidia_layers.json"))
+      ,@#$%nvidia-icd-configurations-470))
 
 (define %nvidia-icd-configurations-590
   #~`("/share/egl/egl_external_platform.d/99_nvidia_wayland2.json"
@@ -163,8 +175,11 @@
               "PATH" '("bin")
               '#+(list bash-minimal
                        coreutils-minimal
+                       gawk
                        grep
                        tar
+                       which
+                       xz
                        zstd))
              (invoke "sh" #+installer "--extract-only" "--target" "extractdir")
              (when (file-exists? "extractdir/kernel-open")
@@ -195,6 +210,35 @@
                                       "libOpenCL\\.so\\.")
                                     "|")))
              (copy-recursively "extractdir" #$output)))))))
+
+(define %nvidia-patches-390
+  (let ((commit "caed47174d2c835921d9f23ea08c630ef5cdea06"))
+    (origin
+      (method git-fetch)
+      (uri (git-reference
+             (url "https://aur.archlinux.org/nvidia-390xx-utils.git/")
+             (commit commit)))
+      (file-name (string-append "nvidia-patches." (string-take commit 7)))
+      (sha256
+       (base32 "0bsdb8lhycpiqf32lnxm7nnivh4hyfikwd2lii357pv12ix6z6v7")))))
+
+(define %nvidia-patches-470
+  (let ((commit "23ccd6e8d9b27256d4f491666b2779c663ab9f39"))
+    (origin
+      (method git-fetch)
+      (uri (git-reference
+             (url "https://github.com/joanbm/nvidia-470xx-linux-mainline")
+             (commit commit)))
+      (file-name (string-append "nvidia-patches." (string-take commit 7)))
+      (sha256
+       (base32 "09l7qmlgi27ydjzb6w6pksc36qs2c6g8aai5kf8y97bw5m83viww"))
+      (modules '((guix build utils)))
+      (snippet
+       '(substitute* (find-files "." "\\.patch$")
+          (("^--- a/" all)
+           (string-append all "kernel/"))
+          (("^\\+\\+\\+ b/" all)
+           (string-append all "kernel/")))))))
 
 
 ;;;
@@ -257,10 +301,12 @@
                  (string-append #$output "/lib/" all)))
 
               ;; Vulkan ICD & layer configuraiton
-              (substitute* '("nvidia_icd.json"
-                             "nvidia_layers.json")
-                (("libGLX_nvidia\\.so\\.." all)
-                 (string-append #$output "/lib/" all))
+              (substitute* (find-files "." "nvidia_(icd|layers)\\.json")
+                ;; 390 driver
+                (("__NV_VK_ICD__") "libGLX_nvidia.so.0")
+                ;; Others
+                (("libGLX(_nvidia\\.so\\..)" _ suffix)
+                 (string-append #$output "/lib/libEGL" suffix))
                 (("libnvidia-present\\.so\\.[0-9.]*" all)
                  (string-append #$output "/lib/" all)))
 
@@ -284,13 +330,15 @@
                                             (search-input-file
                                              inputs
                                              (string-append "lib/" name))))
-                                         '("libX11.so.6"
+                                         '("libGL.so.1"
+                                           "libX11.so.6"
                                            "libXext.so.6"
                                            "libcrypto.so.1.1"
                                            "libcrypto.so.3"
                                            "libdrm.so.2"
                                            "libgbm.so.1"
                                            "libgcc_s.so.1"
+                                           "libnvidia-egl-wayland.so.1"
                                            "libwayland-client.so.0"
                                            "libxcb.so.1")))
                              ":")))
@@ -390,6 +438,102 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
     (license
      (license:nonfree
       (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
+
+(define-public nvidia-driver-390
+  (package
+    (inherit nvidia-driver-580)
+    (name "nvidia-driver")
+    (version "390.157")
+    (source
+     (make-nvidia-source
+      version
+      (origin
+        (method url-fetch)
+        (uri (string-append
+              "https://download.nvidia.com/XFree86/Linux-x86_64/"
+              version "/NVIDIA-Linux-x86_64-" version ".run"))
+        (sha256
+         (base32 "12ijkc5zvs3ivk5m69cm6k2ys60z6nggnw0hv2wxdmgyx2kbrssv")))
+      #:patches
+      (map (lambda (name)
+             (file-append %nvidia-patches-390 "/" name))
+           '("kernel-4.16+-memory-encryption.patch"
+             "kernel-6.2.patch"
+             "kernel-6.3.patch"
+             "kernel-6.4.patch"
+             "kernel-6.5.patch"
+             "kernel-6.6.patch"
+             "kernel-6.8.patch"
+             "gcc-14.patch"
+             "kernel-6.10.patch"
+             "kernel-6.12.patch"
+             "kernel-6.13.patch"
+             "kernel-6.14.patch"
+             "gcc-15.patch"
+             "kernel-6.15.patch"
+             "kernel-6.17.patch"
+             "kernel-6.19.patch"
+             "kernel-6.18-nv_workqueue_flush.patch"))
+      #:snippet
+      #~(rename-file "nvidia_icd.json.template" "nvidia_icd.json")))
+    (arguments
+     (substitute-keyword-arguments arguments
+       ((#:phases phases)
+        #~(modify-phases #$phases
+            (replace 'install
+              (lambda args
+                (apply (assoc-ref copy:%standard-phases 'install)
+                       #:install-plan #$(%nvidia-install-plan-390)
+                       args)))
+            (replace 'add-architecture-to-filename
+              (lambda _
+                (for-each #$(add-architecture-to-filename)
+                          #$%nvidia-icd-configurations-390)))))))
+    (supported-systems '("x86_64-linux" "i686-linux"))))
+
+(define-public nvidia-driver-470
+  (package
+    (inherit nvidia-driver-580)
+    (name "nvidia-driver")
+    (version "470.256.02")
+    (source
+     (make-nvidia-source
+      version
+      (origin
+        (method url-fetch)
+        (uri (string-append
+              "https://download.nvidia.com/XFree86/Linux-x86_64/"
+              version "/NVIDIA-Linux-x86_64-" version ".run"))
+        (sha256
+         (base32 "1pmi949s0gzzjw2w3qhhihb82gppd1icvdzk8w2bp5dnvri1hifn")))
+      #:patches
+      (map (lambda (name)
+             (file-append %nvidia-patches-470 "/" name))
+           '("0001-Fix-conftest-to-ignore-implicit-function-declaration.patch"
+             "0002-Fix-conftest-to-use-a-short-wchar_t.patch"
+             "0003-Fix-conftest-to-use-nv_drm_gem_vmap-which-has-the-se.patch"
+             "nvidia-470xx-fix-gcc-15.patch"
+             "kernel-6.10.patch"
+             "kernel-6.12.patch"
+             "nvidia-470xx-fix-linux-6.13.patch"
+             "nvidia-470xx-fix-linux-6.14.patch"
+             "nvidia-470xx-fix-linux-6.15.patch"
+             "nvidia-470xx-fix-linux-6.17.patch"
+             "nvidia-470xx-fix-linux-6.19-part1.patch"
+             "nvidia-470xx-fix-linux-6.19-part2.patch"))))
+    (arguments
+     (substitute-keyword-arguments arguments
+       ((#:phases phases)
+        #~(modify-phases #$phases
+            (replace 'install
+              (lambda args
+                (apply (assoc-ref copy:%standard-phases 'install)
+                       #:install-plan #$(%nvidia-install-plan-470)
+                       args)))
+            (replace 'add-architecture-to-filename
+              (lambda _
+                (for-each #$(add-architecture-to-filename)
+                          #$%nvidia-icd-configurations-470)))))))))
 
 (define-public nvidia-driver-590
   (package
