@@ -294,6 +294,22 @@
         (sha256
          (base32 "1pmi949s0gzzjw2w3qhhihb82gppd1icvdzk8w2bp5dnvri1hifn")))))))
 
+(define nvidia-source-470-aarch64-linux
+  (package
+    (inherit %binary-source)
+    (name "nvidia-driver")
+    (version "470.256.02")
+    (source
+     (make-nvidia-source
+      version
+      (origin
+        (method url-fetch)
+        (uri (string-append
+              "https://us.download.nvidia.com/XFree86/aarch64/"
+              version "/NVIDIA-Linux-aarch64-" version ".run"))
+        (sha256
+         (base32 "138dg91zq1a8syrp8rax0braw82aacn6ggd08v4zs5mpwh9jzr3v")))))))
+
 (define nvidia-source-580-x86_64-linux
   (package
     (inherit %binary-source)
