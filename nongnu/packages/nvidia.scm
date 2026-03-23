@@ -691,6 +691,12 @@ driver.")
     (source (package-source nvidia-driver-390))
     (supported-systems '("x86_64-linux"))))
 
+(define-public nvidia-module-470
+  (package
+    (inherit nvidia-module-580)
+    (version (package-version nvidia-driver-470))
+    (source (package-source nvidia-driver-470))))
+
 (define-public nvidia-module-590
   (package
     (inherit nvidia-module-580)
