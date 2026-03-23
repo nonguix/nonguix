@@ -161,7 +161,13 @@ declaration."
                              nvidia-firmware-470
                              #f))
                         (module nvidia-module-470)
-                        (modprobe nvidia-modprobe-470))))))
+                        (modprobe nvidia-modprobe-470))))
+      (,nvda-390 . ,(service nvidia-service-type
+                      (nvidia-configuration
+                        (driver nvda-390)
+                        (firmware #f)
+                        (module nvidia-module-390)
+                        (modprobe nvidia-modprobe-390))))))
 
   (define %xorg-extension
     (and=> configure-xorg?
