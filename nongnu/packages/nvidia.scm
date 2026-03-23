@@ -1003,6 +1003,22 @@ configuration, application profiles, GPU monitoring and more.")
        (modules '((guix build utils)))
        (snippet '(delete-file-recursively "src/jansson"))))))
 
+(define-public nvidia-settings-470
+  (package
+    (inherit nvidia-settings-580)
+    (name "nvidia-settings")
+    (version "470.256.02")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/NVIDIA/nvidia-settings")
+              (commit version)))
+       (file-name (git-file-name name version))
+       (sha256 (base32 "1sc2h3gglqvhc5m0nz97gp70nz1jjkzppndzy922k2blj3h51ywi"))
+       (modules '((guix build utils)))
+       (snippet '(delete-file-recursively "src/jansson"))))))
+
 (define-public nvidia-settings-590
   (package
     (inherit nvidia-settings-580)
