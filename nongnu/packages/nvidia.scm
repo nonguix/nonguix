@@ -1100,76 +1100,8 @@ device files are present and configure certain runtime settings in the kernel.")
       (sha256
        (base32 "0y8zalpymrzxlmh25bqh4x29a4qix3a50qvvykg4hv07mmn0gckx")))))
 
-(define-public nvidia-settings-580
-  (package
-    (name "nvidia-settings")
-    (version "580.142")
-    (source
-     (origin
-       (method git-fetch)
-       (uri (git-reference
-              (url "https://github.com/NVIDIA/nvidia-settings")
-              (commit version)))
-       (file-name (git-file-name name version))
-       (sha256 (base32 "00sdrka3mslqgyhpnxyr6165nbrrfqdp1shgmbgp9ga07sbchyh6"))
-       (modules '((guix build utils)))
-       (snippet '(delete-file-recursively "src/jansson"))))
-    (build-system gnu-build-system)
-    (arguments
-     (list #:tests? #f ;no test suite
-           #:make-flags
-           #~(list "NV_USE_BUNDLED_LIBJANSSON=0"
-                   (string-append "PREFIX=" #$output)
-                   (string-append "CC=" #$(cc-for-target)))
-           #:phases
-           #~(modify-phases %standard-phases
-               (delete 'configure)
-               (add-after 'unpack 'fix-application-profile-path
-                 (lambda* (#:key inputs #:allow-other-keys)
-                   (substitute* "src/gtk+-2.x/ctkappprofile.c"
-                     (("/usr") "/run/booted-system/profile"))))
-               (add-after 'install 'install-desktop-file
-                 (lambda _
-                   (substitute* "doc/nvidia-settings.desktop"
-                     (("^Exec=.*") "Exec=nvidia-settings\n")
-                     (("__NVIDIA_SETTINGS_DESKTOP_CATEGORIES__") "Settings"))
-                   (install-file "doc/nvidia-settings.desktop"
-                                 (string-append
-                                  #$output "/share/applications"))
-                   (install-file "doc/nvidia-settings.png"
-                                 (string-append
-                                  #$output "/share/icons/hicolor/128x128/apps"))))
-               (add-after 'install 'wrap-program
-                 (lambda* (#:key outputs #:allow-other-keys)
-                   (let ((out (assoc-ref outputs "out")))
-                     (wrap-program (string-append out "/bin/nvidia-settings")
-                       `("LD_LIBRARY_PATH" ":" prefix
-                         (,(string-append out "/lib/"))))))))))
-    (native-inputs (list m4
-                         pkg-config))
-    (inputs (list bash-minimal
-                  dbus
-                  glu
-                  gtk+
-                  gtk+-2
-                  jansson
-                  libvdpau
-                  libx11
-                  libxext
-                  libxrandr
-                  libxv
-                  libxxf86vm
-                  vulkan-headers))
-    (synopsis "NVIDIA driver control panel")
-    (description
-     "This package provides NVIDIA driver control panel for monitor
-configuration, application profiles, GPU monitoring and more.")
-    (home-page "https://github.com/NVIDIA/nvidia-settings")
-    (license license-gnu:gpl2)))
-
 (define-public nvidia-settings-390
   (package
-    (inherit nvidia-settings-580)
     (name "nvidia-settings")
     (version "390.157")
     (source
@@ -1185,11 +1117,66 @@ configuration, application profiles, GPU monitoring and more.")
                (file-append %nvidia-settings-patches-390 "/" name))
              '("0001-nvidia-settings-Make-VDPAUDeviceFunctions-static-to-.patch")))
        (modules '((guix build utils)))
-       (snippet '(delete-file-recursively "src/jansson"))))))
+       (snippet '(delete-file-recursively "src/jansson"))))
+    (build-system gnu-build-system)
+    (arguments
+     (list
+      #:tests? #f ;no test suite
+      #:make-flags
+      #~(list "NV_USE_BUNDLED_LIBJANSSON=0"
+              (string-append "PREFIX=" #$output)
+              (string-append "CC=" #$(cc-for-target)))
+      #:phases
+      #~(modify-phases %standard-phases
+          (delete 'configure)
+          (add-after 'unpack 'fix-application-profile-path
+            (lambda* (#:key inputs #:allow-other-keys)
+              (substitute* "src/gtk+-2.x/ctkappprofile.c"
+                (("/usr") "/run/booted-system/profile"))))
+          (add-after 'install 'install-desktop-file
+            (lambda _
+              (substitute* "doc/nvidia-settings.desktop"
+                (("^Exec=.*") "Exec=nvidia-settings\n")
+                (("__NVIDIA_SETTINGS_DESKTOP_CATEGORIES__") "Settings")
+                (("__PIXMAP_PATH__")
+                 (in-vicinity #$output "share/icons/hicolor/128x128/apps")))
+              (install-file
+               "doc/nvidia-settings.desktop"
+               (in-vicinity #$output "share/applications"))
+              (install-file
+               "doc/nvidia-settings.png"
+               (in-vicinity #$output "share/icons/hicolor/128x128/apps"))))
+          (add-after 'install 'wrap-program
+            (lambda* (#:key outputs #:allow-other-keys)
+              (let ((out (assoc-ref outputs "out")))
+                (wrap-program (string-append out "/bin/nvidia-settings")
+                  `("LD_LIBRARY_PATH" ":" prefix
+                    (,(string-append out "/lib/"))))))))))
+    (native-inputs (list m4
+                         pkg-config))
+    (inputs (list bash-minimal
+                  dbus
+                  glu
+                  gtk+
+                  gtk+-2
+                  jansson
+                  libvdpau
+                  libx11
+                  libxext
+                  libxrandr
+                  libxv
+                  libxxf86vm
+                  vulkan-headers))
+    (synopsis "NVIDIA proprietary driver control panel, legacy 390.xx series")
+    (description
+     "This package provides NVIDIA driver control panel for monitor
+configuration, application profiles, GPU monitoring and more.")
+    (home-page "https://github.com/NVIDIA/nvidia-settings")
+    (license license-gnu:gpl2)))
 
 (define-public nvidia-settings-470
   (package
-    (inherit nvidia-settings-580)
+    (inherit nvidia-settings-390)
     (name "nvidia-settings")
     (version "470.256.02")
     (source
@@ -1201,7 +1188,25 @@ configuration, application profiles, GPU monitoring and more.")
        (file-name (git-file-name name version))
        (sha256 (base32 "1sc2h3gglqvhc5m0nz97gp70nz1jjkzppndzy922k2blj3h51ywi"))
        (modules '((guix build utils)))
-       (snippet '(delete-file-recursively "src/jansson"))))))
+       (snippet '(delete-file-recursively "src/jansson"))))
+    (synopsis "NVIDIA proprietary driver control panel, legacy 470.xx series")))
+
+(define-public nvidia-settings-580
+  (package
+    (inherit nvidia-settings-470)
+    (name "nvidia-settings")
+    (version "580.142")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/NVIDIA/nvidia-settings")
+              (commit version)))
+       (file-name (git-file-name name version))
+       (sha256 (base32 "00sdrka3mslqgyhpnxyr6165nbrrfqdp1shgmbgp9ga07sbchyh6"))
+       (modules '((guix build utils)))
+       (snippet '(delete-file-recursively "src/jansson"))))
+    (synopsis "NVIDIA proprietary driver control panel, production branch")))
 
 (define-public nvidia-settings-590
   (package
@@ -1217,7 +1222,8 @@ configuration, application profiles, GPU monitoring and more.")
        (file-name (git-file-name name version))
        (sha256 (base32 "0h9059gkibyiidg5s9cakbg369y9nwfd17vycpsqfswgr18jlsrm"))
        (modules '((guix build utils)))
-       (snippet '(delete-file-recursively "src/jansson"))))))
+       (snippet '(delete-file-recursively "src/jansson"))))
+    (synopsis "NVIDIA proprietary driver control panel, new feature branch")))
 
 (define-public nvidia-settings-beta
   (package
@@ -1233,7 +1239,8 @@ configuration, application profiles, GPU monitoring and more.")
        (file-name (git-file-name name version))
        (sha256 (base32 "0w7ndc2p2131h1wh3rj1dhhs59ihrdfl8ni44x9sdywc5jpnk3k3"))
        (modules '((guix build utils)))
-       (snippet '(delete-file-recursively "src/jansson"))))))
+       (snippet '(delete-file-recursively "src/jansson"))))
+    (synopsis "NVIDIA proprietary driver control panel, beta")))
 
 (define-public nvidia-settings nvidia-settings-580)
 
