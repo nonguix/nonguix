@@ -278,6 +278,22 @@
       #:snippet
       #~(rename-file "nvidia_icd.json.template" "nvidia_icd.json")))))
 
+(define nvidia-source-470-x86_64-linux
+  (package
+    (inherit %binary-source)
+    (name "nvidia-driver")
+    (version "470.256.02")
+    (source
+     (make-nvidia-source
+      version
+      (origin
+        (method url-fetch)
+        (uri (string-append
+              "https://download.nvidia.com/XFree86/Linux-x86_64/"
+              version "/NVIDIA-Linux-x86_64-" version ".run"))
+        (sha256
+         (base32 "1pmi949s0gzzjw2w3qhhihb82gppd1icvdzk8w2bp5dnvri1hifn")))))))
+
 (define nvidia-source-580-x86_64-linux
   (package
     (inherit %binary-source)
