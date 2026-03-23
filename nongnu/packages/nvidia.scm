@@ -1170,6 +1170,15 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
                (string-length (package-version mesa-for-nvda))
                #\0)))))
 
+(define-public nvda-470
+  ((package-input-rewriting `((,nvidia-driver . ,nvidia-driver-470)))
+   (package
+     (inherit nvda)
+     (version (string-pad-right
+               (package-version nvidia-driver-470)
+               (string-length (package-version mesa-for-nvda))
+               #\0)))))
+
 (define-public nvda-590
   ((package-input-rewriting `((,nvidia-driver . ,nvidia-driver-590)))
    (package
