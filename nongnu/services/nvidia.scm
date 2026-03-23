@@ -23,13 +23,18 @@
   (driver   nvidia-configuration-driver
             (default nvda))             ; file-like
   (firmware nvidia-configuration-firmware
-            (default nvidia-firmware))  ; file-like
+            (default nvidia-firmware))  ; file-like or #f
   (module   nvidia-configuration-module
             (default nvidia-module))    ; file-like
   (modprobe nvidia-configuration-modprobe
             (default nvidia-modprobe))  ; file-like
   (settings nvidia-configuration-settings
             (default #f)))              ; file-like or #f
+
+(define (%nvidia-firmware config)
+  (match-record config <nvidia-configuration>
+    (firmware)
+    (filter identity (list firmware))))
 
 (define (nvidia-profile config)
   (match-record config <nvidia-configuration>
@@ -95,7 +100,7 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
           (service-extension udev-service-type
                              nvidia-udev-rule)
           (service-extension firmware-service-type
-                             (compose list nvidia-configuration-firmware))
+                             %nvidia-firmware)
           (service-extension linux-loadable-module-service-type
                              (compose list nvidia-configuration-module))))
    (default-value (nvidia-configuration))
