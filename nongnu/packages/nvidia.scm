@@ -983,10 +983,10 @@ NVIDIA driver.")
 ;;; nvidia-modprobe
 ;;;
 
-(define-public nvidia-modprobe-580
+(define-public nvidia-modprobe-390
   (package
     (name "nvidia-modprobe")
-    (version "580.142")
+    (version "390.157")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -995,7 +995,7 @@ NVIDIA driver.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1rbl52d40q86y9dbj5qlm5k3rindg5fqh121wxfzrc68fl3gjila"))))
+                "0mny1vv81f00w71cp8ffnyx0sv20p339dravrs3gxwawac5m64a7"))))
     (build-system gnu-build-system)
     (arguments
      (list #:tests? #f                  ;No test suite
@@ -1010,32 +1010,16 @@ NVIDIA driver.")
                (delete 'configure))))
     (native-inputs (list m4 pkg-config))
     (home-page "https://github.com/NVIDIA/nvidia-modprobe")
-    (synopsis
-     "Load the NVIDIA kernel module and create NVIDIA character device files")
+    (synopsis "Create NVIDIA character device files, legacy 390.xx series")
     (description
      "The @command{nvidia-modprobe} utility is used by user-space NVIDIA driver
 components to make sure the NVIDIA kernel module is loaded, the NVIDIA character
 device files are present and configure certain runtime settings in the kernel.")
     (license license-gnu:gpl2)))
 
-(define-public nvidia-modprobe-390
-  (package
-    (inherit nvidia-modprobe-580)
-    (name "nvidia-modprobe")
-    (version "390.157")
-    (source (origin
-              (method git-fetch)
-              (uri (git-reference
-                     (url "https://github.com/NVIDIA/nvidia-modprobe")
-                     (commit version)))
-              (file-name (git-file-name name version))
-              (sha256
-               (base32
-                "0mny1vv81f00w71cp8ffnyx0sv20p339dravrs3gxwawac5m64a7"))))))
-
 (define-public nvidia-modprobe-470
   (package
-    (inherit nvidia-modprobe-580)
+    (inherit nvidia-modprobe-390)
     (name "nvidia-modprobe")
     (version "470.256.02")
     (source (origin
@@ -1046,7 +1030,24 @@ device files are present and configure certain runtime settings in the kernel.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "0lybamqj6c9c79vv8gz1j3ppr95wqph8r8fs06qwcvz386gwqrn7"))))))
+                "0lybamqj6c9c79vv8gz1j3ppr95wqph8r8fs06qwcvz386gwqrn7"))))
+    (synopsis "Create NVIDIA character device files, legacy 470.xx series")))
+
+(define-public nvidia-modprobe-580
+  (package
+    (inherit nvidia-modprobe-470)
+    (name "nvidia-modprobe")
+    (version "580.142")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                     (url "https://github.com/NVIDIA/nvidia-modprobe")
+                     (commit version)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "1rbl52d40q86y9dbj5qlm5k3rindg5fqh121wxfzrc68fl3gjila"))))
+    (synopsis "Create NVIDIA character device files, production branch")))
 
 (define-public nvidia-modprobe-590
   (package
@@ -1061,7 +1062,8 @@ device files are present and configure certain runtime settings in the kernel.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1y6kqhvjfpq0zssjsbkwkav2khsb7x63nxgd1lnvrkg660a7knjn"))))))
+                "1y6kqhvjfpq0zssjsbkwkav2khsb7x63nxgd1lnvrkg660a7knjn"))))
+    (synopsis "Create NVIDIA character device files, new feature branch")))
 
 (define-public nvidia-modprobe-beta
   (package
@@ -1076,7 +1078,8 @@ device files are present and configure certain runtime settings in the kernel.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "0s1p89js7f65pzss7fqglddz052lq357xjxyqwpca9kmljxr4dqc"))))))
+                "0s1p89js7f65pzss7fqglddz052lq357xjxyqwpca9kmljxr4dqc"))))
+    (synopsis "Create NVIDIA character device files, beta")))
 
 (define-public nvidia-modprobe nvidia-modprobe-580)
 
