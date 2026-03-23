@@ -102,6 +102,20 @@
           ((target-x86-32?) "32")
           (else "."))
        "lib/" #:include-regexp ("^./[^/]+\\.so"))
+      #$@(if (target-x86-64?)
+             '(("nvidia-pcc" "bin/"))
+             '())
+      #$@(if (target-64bit?)
+             '(("." "bin/"
+                #:include ("nvidia-cuda-mps-control"
+                           "nvidia-cuda-mps-server"
+                           "nvidia-smi"))
+               ("." "share/man/man1/"
+                #:include ("nvidia-cuda-mps-control.1.gz"
+                           "nvidia-smi.1.gz"))))
+      #$@(if (target-x86?)
+             '(("nvidia_icd_vksc.json" "etc/vulkansc/icd.d/"))
+             '())
       ("." "lib/nvidia/wine/" #:include-regexp ("_?nvngx.*?\\.dll$"))
       ("." "share/nvidia/" #:include-regexp ("nvidia-application-profiles|nvoptix.bin"))
       ("." "share/egl/egl_external_platform.d/" #:include-regexp ("(gbm|wayland2?|xcb|xlib)\\.json"))
@@ -110,7 +124,6 @@
       ("nvidia-dbus.conf" "share/dbus-1/system.d/")
       ("nvidia.icd" "etc/OpenCL/vendors/")
       ("nvidia_icd.json" "share/vulkan/icd.d/")
-      ("nvidia_icd_vksc.json" "etc/vulkansc/icd.d/")
       ("nvidia_layers.json" "share/vulkan/implicit_layer.d/")
       ("sandboxutils-filelist.json" "share/nvidia/files.d/")))
 
@@ -212,7 +225,7 @@
                  (string-append #$output "/lib/" all)))
 
               ;; VulkanSC ICD configuration
-              (substitute* "nvidia_icd_vksc.json"
+              (substitute* (find-files "." "nvidia_icd_vksc\\.json")
                 (("libnvidia-vksc-core\\.so\\.." all)
                  (string-append #$output "/lib/" all)))))
           (add-after 'install 'add-architecture-to-filename
@@ -274,21 +287,6 @@
                             (when (elf-file? file)
                               (patch-elf file)))
                           (find-files #$output)))))
-          (add-before 'patch-elf 'install-commands
-            (lambda _
-              (when #$(target-64bit?)
-                (for-each
-                 (lambda (binary)
-                   (let ((bindir (string-append #$output "/bin"))
-                         (manual (string-append binary ".1.gz"))
-                         (mandir (string-append #$output "/share/man/man1")))
-                     (install-file binary bindir)
-                     (when (file-exists? manual)
-                       (install-file manual mandir))))
-                 '("nvidia-cuda-mps-control"
-                   "nvidia-cuda-mps-server"
-                   "nvidia-pcc"
-                   "nvidia-smi")))))
           (add-before 'patch-elf 'relocate-libraries
             (lambda _
               (let* ((version #$(package-version this-package))
