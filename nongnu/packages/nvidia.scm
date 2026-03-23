@@ -852,6 +852,21 @@ device files are present and configure certain runtime settings in the kernel.")
                (base32
                 "0mny1vv81f00w71cp8ffnyx0sv20p339dravrs3gxwawac5m64a7"))))))
 
+(define-public nvidia-modprobe-470
+  (package
+    (inherit nvidia-modprobe-580)
+    (name "nvidia-modprobe")
+    (version "470.256.02")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                     (url "https://github.com/NVIDIA/nvidia-modprobe")
+                     (commit version)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "0lybamqj6c9c79vv8gz1j3ppr95wqph8r8fs06qwcvz386gwqrn7"))))))
+
 (define-public nvidia-modprobe-590
   (package
     (inherit nvidia-modprobe-580)
