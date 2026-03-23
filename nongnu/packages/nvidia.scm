@@ -90,67 +90,6 @@
          (string-append out path)
          (string-append out base "." arch "." ext)))))
 
-
-(define (%nvidia-install-plan-390)
-  #~'((#$(cond
-          ((target-x86-32?) "32")
-          (else "."))
-       "lib/" #:include-regexp ("^./[^/]+\\.so"))
-      #$@(if (target-64bit?)
-             '(("." "bin/"
-                #:include ("nvidia-cuda-mps-control"
-                           "nvidia-cuda-mps-server"
-                           "nvidia-smi"))
-               ("." "share/man/man1/"
-                #:include ("nvidia-cuda-mps-control.1.gz"
-                           "nvidia-smi.1.gz"))))
-      ("." "lib/nvidia/wine/" #:include-regexp ("_?nvngx.*?\\.dll$"))
-      ("." "share/nvidia/" #:include-regexp ("nvidia-application-profiles|nvoptix.bin"))
-      ("." "share/egl/egl_external_platform.d/" #:include-regexp ("(gbm|wayland2?|xcb|xlib)\\.json"))
-      ("10_nvidia.json" "share/glvnd/egl_vendor.d/")
-      ("nvidia-drm-outputclass.conf" "share/X11/xorg.conf.d/")
-      ("nvidia.icd" "etc/OpenCL/vendors/")
-      ("nvidia_icd.json" "share/vulkan/icd.d/")))
-
-(define (%nvidia-install-plan-470)
-  #~`(("nvidia_layers.json" "share/vulkan/implicit_layer.d/")
-      ,@#$(%nvidia-install-plan-390)))
-
-(define (%nvidia-install-plan-580)
-  #~`(("nvidia-dbus.conf" "share/dbus-1/system.d/")
-      ("sandboxutils-filelist.json" "share/nvidia/files.d/")
-      #$@(if (target-x86-64?)
-             '(("nvidia-pcc" "bin/"))
-             '())
-      #$@(if (target-x86?)
-             '(("nvidia_icd_vksc.json" "etc/vulkansc/icd.d/"))
-             '())
-      ,@#$(%nvidia-install-plan-470)))
-
-(define %nvidia-icd-configurations-390
-  #~'("/etc/OpenCL/vendors/nvidia.icd"
-      "/share/egl/egl_external_platform.d/10_nvidia_wayland.json"
-      "/share/glvnd/egl_vendor.d/10_nvidia.json"
-      "/share/vulkan/icd.d/nvidia_icd.json"))
-
-(define %nvidia-icd-configurations-470
-  #~`("/share/vulkan/implicit_layer.d/nvidia_layers.json"
-      ,@#$%nvidia-icd-configurations-390))
-
-(define %nvidia-icd-configurations-580
-  #~`("/share/egl/egl_external_platform.d/15_nvidia_gbm.json"
-      "/share/egl/egl_external_platform.d/20_nvidia_xcb.json"
-      "/share/egl/egl_external_platform.d/20_nvidia_xlib.json"
-      ,@#$%nvidia-icd-configurations-470))
-
-(define %nvidia-icd-configurations-590
-  #~`("/share/egl/egl_external_platform.d/99_nvidia_wayland2.json"
-      ,@#$%nvidia-icd-configurations-580))
-
-(define %nvidia-icd-configurations-beta
-  #~`("/share/egl/egl_external_platform.d/09_nvidia_wayland2.json"
-      ,@#$%nvidia-icd-configurations-580))
-
 
 ;;;
 ;;; NVIDIA driver checkouts
@@ -430,278 +369,374 @@
 ;;; NVIDIA drivers
 ;;;
 
-(define-public nvidia-driver-580
-  (binary-package-from-sources
-   `(("x86_64-linux"  . ,nvidia-source-580-x86_64-linux)
-     ("i686-linux"    . ,nvidia-source-580-x86_64-linux)
-     ("aarch64-linux" . ,nvidia-source-580-aarch64-linux))
-   (package
-     (name "nvidia-driver")
-     (version "")
-     (source #f)
-     (build-system gnu-build-system)
-     (arguments
-      (list
-       #:imported-modules
-       `((guix build copy-build-system)
-         ,@%default-gnu-imported-modules)
-       #:modules
-       `((ice-9 popen)
-         (ice-9 rdelim)
-         (ice-9 regex)
-         (srfi srfi-26)
-         ((guix build copy-build-system) #:prefix copy:)
-         ,@%default-gnu-modules)
-       #:phases
-       #~(modify-phases %standard-phases
-           (delete 'configure)
-           (delete 'build)
-           (delete 'check)
-           (delete 'strip)
-           (replace 'install
-             (lambda args
-               (apply (assoc-ref copy:%standard-phases 'install)
-                      #:install-plan #$(%nvidia-install-plan-580)
-                      args)))
-           (add-after 'unpack 'create-misc-files
-             (lambda* (#:key inputs #:allow-other-keys)
-               ;; EGL external platform configuraiton
-               (substitute* (find-files "." "(gbm|wayland2?|xcb|xlib)\\.json")
-                 (("libnvidia-egl-.*\\.so\\.." all)
-                  (search-input-file inputs (string-append "lib/" all))))
-
-               ;; EGL vendor ICD configuration
-               (substitute* "10_nvidia.json"
-                 (("libEGL_nvidia\\.so\\.." all)
-                  (string-append #$output "/lib/" all)))
-
-               ;; OpenCL vendor ICD configuration
-               (substitute* "nvidia.icd"
-                 (("libnvidia-opencl\\.so\\.." all)
-                  (string-append #$output "/lib/" all)))
-
-               ;; Vulkan ICD & layer configuraiton
-               (substitute* (find-files "." "nvidia_(icd|layers)\\.json")
-                 ;; 390 driver
-                 (("__NV_VK_ICD__") "libGLX_nvidia.so.0")
-                 ;; Others
-                 (("libGLX(_nvidia\\.so\\..)" _ suffix)
-                  (string-append #$output "/lib/libEGL" suffix))
-                 (("libnvidia-present\\.so\\.[0-9.]*" all)
-                  (string-append #$output "/lib/" all)))
-
-               ;; VulkanSC ICD configuration
-               (substitute* (find-files "." "nvidia_icd_vksc\\.json")
-                 (("libnvidia-vksc-core\\.so\\.." all)
-                  (string-append #$output "/lib/" all)))))
-           (add-after 'install 'add-architecture-to-filename
-             (lambda _
-               (for-each #$(add-architecture-to-filename)
-                         #$%nvidia-icd-configurations-580)))
-           (add-after 'install 'patch-elf
-             (lambda* (#:key inputs #:allow-other-keys)
-               (let* ((ld.so (search-input-file
-                              inputs #$(glibc-dynamic-linker)))
-                      (rpath (string-join
-                              (cons* (dirname ld.so)
-                                     (string-append #$output "/lib")
-                                     (map (lambda (name)
-                                            (dirname
-                                             (search-input-file
-                                              inputs
-                                              (string-append "lib/" name))))
-                                          '("libGL.so.1"
-                                            "libX11.so.6"
-                                            "libXext.so.6"
-                                            "libcrypto.so.1.1"
-                                            "libcrypto.so.3"
-                                            "libdrm.so.2"
-                                            "libgbm.so.1"
-                                            "libgcc_s.so.1"
-                                            "libnvidia-egl-wayland.so.1"
-                                            "libwayland-client.so.0"
-                                            "libxcb.so.1")))
-                              ":")))
-                 (define (patch-elf file)
-                   (format #t "Patching ~a ..." file)
-                   (unless (string-contains file ".so")
-                     (invoke "patchelf" "--set-interpreter" ld.so file))
-                   (invoke "patchelf" "--set-rpath" rpath file)
-                   (display " done\n"))
-
-                 (for-each (lambda (file)
-                             (when (elf-file? file)
-                               (patch-elf file)))
-                           (find-files #$output)))))
-           (add-before 'patch-elf 'relocate-libraries
-             (lambda _
-               (let* ((version #$(package-version this-package))
-                      (libdir (string-append #$output "/lib"))
-                      (gbmdir (string-append libdir "/gbm"))
-                      (vdpaudir (string-append libdir "/vdpau"))
-                      (xorgmoddir (string-append libdir "/xorg/modules"))
-                      (xorgdrvdir (string-append xorgmoddir "/drivers"))
-                      (xorgextdir (string-append xorgmoddir "/extensions"))
-                      (move-to-dir (lambda (file dir)
-                                     (install-file file dir)
-                                     (delete-file file))))
-                 (for-each
-                  (lambda (file)
-                    (mkdir-p gbmdir)
-                    (with-directory-excursion gbmdir
-                      (symlink file "nvidia-drm_gbm.so")))
-                  (find-files libdir "libnvidia-allocator\\.so\\."))
-
-                 (for-each
-                  (cut move-to-dir <> vdpaudir)
-                  (find-files libdir "libvdpau_nvidia\\.so\\."))
-
-                 (for-each
-                  (cut move-to-dir <> xorgdrvdir)
-                  (find-files libdir "nvidia_drv\\.so$"))
-
-                 (for-each
-                  (lambda (file)
-                    (move-to-dir file xorgextdir)
-                    (with-directory-excursion xorgextdir
-                      (symlink (basename file)
-                               "libglxserver_nvidia.so")))
-                  (find-files libdir "libglxserver_nvidia\\.so\\.")))))
-           (add-after 'patch-elf 'create-short-name-symlinks
-             (lambda _
-               (define (get-soname file)
-                 (when (elf-file? file)
-                   (let* ((cmd (string-append "patchelf --print-soname " file))
-                          (port (open-input-pipe cmd))
-                          (soname (read-line port)))
-                     (close-pipe port)
-                     soname)))
-               (for-each
-                (lambda (lib)
-                  (let ((lib-soname (get-soname lib)))
-                    (when (string? lib-soname)
-                      (let* ((soname (string-append
-                                      (dirname lib) "/" lib-soname))
-                             (base (string-append
-                                    (regexp-substitute
-                                     #f (string-match "(.*)\\.so.*" soname) 1)
-                                    ".so"))
-                             (source (basename lib)))
-                        (for-each
-                         (lambda (target)
-                           (unless (file-exists? target)
-                             (format #t "Symlinking ~a -> ~a..."
-                                     target source)
-                             (symlink source target)
-                             (display " done\n")))
-                         (list soname base))))))
-                (find-files #$output "\\.so\\.")))))))
-     (supported-systems '("x86_64-linux" "i686-linux" "aarch64-linux"))
-     (native-inputs (list patchelf-0.16))
-     (inputs
-      (list egl-gbm
-            egl-wayland
-            egl-wayland2
-            egl-x11
-            `(,gcc "lib")
-            glibc
-            mesa-for-nvda
-            openssl
-            openssl-1.1
-            wayland))
-     (home-page "https://www.nvidia.com")
-     (synopsis "Proprietary NVIDIA driver (libraries)")
-     (description
-      "This package provides libraries of the proprietary NVIDIA driver.  It's
-mainly used as a dependency of other packages.  For user-facing purpose, use
-@code{nvda} instead.")
-     (license
-      (license:nonfree
-       (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version))))))
+;; Avoid inheriting unpacking phases from binary-package-from-sources.
+(define (%nvidia-driver-arguments-390)
+  (list
+   #:imported-modules
+   `((guix build copy-build-system)
+     ,@%default-gnu-imported-modules)
+   #:modules
+   `((ice-9 popen)
+     (ice-9 rdelim)
+     (ice-9 regex)
+     (srfi srfi-26)
+     ((guix build copy-build-system) #:prefix copy:)
+     ,@%default-gnu-modules)
+   #:phases
+   #~(modify-phases %standard-phases
+       (delete 'configure)
+       (delete 'build)
+       (delete 'check)
+       (delete 'strip)
+       (add-after 'unpack 'create-files
+         (lambda* (#:key inputs #:allow-other-keys)
+           ;; EGL external platform configuraiton
+           (substitute* "10_nvidia_wayland.json"
+             (("libnvidia-egl-.*\\.so\\.." all)
+              (search-input-file inputs (in-vicinity "lib" all))))
+           ;; EGL vendor ICD configuration
+           (substitute* "10_nvidia.json"
+             (("libEGL_nvidia\\.so\\." all)
+              (string-append #$output "/lib/" all)))
+           ;; OpenCL vendor ICD configuration
+           (substitute* "nvidia.icd"
+             (("libnvidia-opencl\\.so\\." all)
+              (string-append #$output "/lib/" all)))
+           ;; Vulkan ICD configuraiton
+           (substitute* "nvidia_icd.json"
+             (("__NV_VK_ICD__")
+              (in-vicinity #$output "lib/libGLX_nvidia.so.0")))))
+       (replace 'install
+         (lambda args
+           (apply (assoc-ref copy:%standard-phases 'install)
+                  #:install-plan
+                  `((#$(if (target-x86-32?) "32" ".") "lib/" #:include-regexp ("^./[^/]+\\.so"))
+                    ("." "share/nvidia/" #:include-regexp ("nvidia-application-profiles-.*"))
+                    ("." "bin/"
+                     #:include
+                     ,(if #$(target-64bit?)
+                          '("nvidia-cuda-mps-control"
+                            "nvidia-cuda-mps-server"
+                            "nvidia-smi")
+                          '()))
+                    ("." "share/man/man1/"
+                     #:include
+                     ,(if #$(target-64bit?)
+                          '("nvidia-cuda-mps-control.1.gz"
+                            "nvidia-smi.1.gz")
+                          '()))
+                    ("10_nvidia_wayland.json" "share/egl/egl_external_platform.d/")
+                    ("10_nvidia.json" "share/glvnd/egl_vendor.d/")
+                    ("nvidia-drm-outputclass.conf" "share/X11/xorg.conf.d/")
+                    ("nvidia.icd" "etc/OpenCL/vendors/")
+                    ("nvidia_icd.json" "share/vulkan/icd.d/"))
+                  args)))
+       (add-after 'install 'add-architecture
+         (lambda _
+           (for-each
+            #$(add-architecture-to-filename)
+            '("/etc/OpenCL/vendors/nvidia.icd"
+              "/share/egl/egl_external_platform.d/10_nvidia_wayland.json"
+              "/share/glvnd/egl_vendor.d/10_nvidia.json"
+              "/share/vulkan/icd.d/nvidia_icd.json"))))
+       (add-after 'install 'patch-elf
+         (lambda* (#:key inputs #:allow-other-keys)
+           (let* ((ld.so (search-input-file
+                          inputs #$(glibc-dynamic-linker)))
+                  (rpath (string-join
+                          (cons* (dirname ld.so)
+                                 (string-append #$output "/lib")
+                                 (map (lambda (name)
+                                        (dirname
+                                         (search-input-file
+                                          inputs (in-vicinity "lib" name))))
+                                      '("libGL.so.1"
+                                        "libX11.so.6"
+                                        "libXext.so.6"
+                                        "libcrypto.so.1.1"
+                                        "libcrypto.so.3"
+                                        "libdrm.so.2"
+                                        "libgbm.so.1"
+                                        "libgcc_s.so.1"
+                                        "libnvidia-egl-wayland.so.1"
+                                        "libwayland-client.so.0"
+                                        "libxcb.so.1")))
+                          ":"))
+                  (patch-elf
+                   (lambda (file)
+                     (when (elf-file? file)
+                       (format #t "Patching ~a ..." file)
+                       (unless (string-contains file ".so")
+                         (invoke "patchelf" "--set-interpreter" ld.so file))
+                       (invoke "patchelf" "--set-rpath" rpath file)
+                       (display " done\n")))))
+             (for-each patch-elf (find-files #$output)))))
+       (add-before 'patch-elf 'relocate-libraries
+         (lambda _
+           (let* ((libdir     (in-vicinity #$output "lib"))
+                  (vdpaudir   (in-vicinity libdir "vdpau"))
+                  (xorgmoddir (in-vicinity libdir "xorg/modules"))
+                  (xorgdrvdir (in-vicinity xorgmoddir "drivers"))
+                  (xorgextdir (in-vicinity xorgmoddir "extensions"))
+                  (move-to-dir
+                   (lambda (file dir)
+                     (install-file file dir)
+                     (delete-file file))))
+             ;; Driver for X
+             (for-each
+              (cut move-to-dir <> xorgdrvdir)
+              (find-files libdir "nvidia_drv\\.so$"))
+             ;; GLX extension module for X
+             (for-each
+              (cut move-to-dir <> xorgextdir)
+              (find-files libdir "libglx\\.so\\."))
+             ;; X module for wrapped software rendering
+             (for-each
+              (cut move-to-dir <> xorgmoddir)
+              (find-files libdir "libnvidia-wfb\\.so\\."))
+             ;; VDPAU library
+             (for-each
+              (cut move-to-dir <> vdpaudir)
+              (find-files libdir "libvdpau_nvidia\\.so\\.")))))
+       (add-after 'patch-elf 'create-short-name-symlinks
+         (lambda _
+           (define (get-soname file)
+             (when (elf-file? file)
+               (let* ((cmd (string-append "patchelf --print-soname " file))
+                      (port (open-input-pipe cmd))
+                      (soname (read-line port)))
+                 (close-pipe port)
+                 soname)))
+           (for-each
+            (lambda (lib)
+              (let ((lib-soname (get-soname lib)))
+                (when (string? lib-soname)
+                  (let* ((soname (in-vicinity (dirname lib) lib-soname))
+                         (base (string-append
+                                (regexp-substitute
+                                 #f (string-match "(.*)\\.so.*" soname) 1)
+                                ".so"))
+                         (source (basename lib)))
+                    (for-each
+                     (lambda (target)
+                       (unless (file-exists? target)
+                         (format #t "Symlinking ~a -> ~a..." target source)
+                         (symlink source target)
+                         (display " done\n")))
+                     (list soname base))))))
+            (find-files #$output "\\.so\\.")))))))
 
 (define-public nvidia-driver-390
   (package
-    (inherit nvidia-driver-580)
     (name "nvidia-driver")
     (version "390.157")
     (source (package-source nvidia-source-390-x86_64-linux))
-    (arguments
-     (substitute-keyword-arguments arguments
-       ((#:phases phases)
-        #~(modify-phases #$phases
-            (replace 'unpack
-              (assoc-ref %standard-phases 'unpack))
-            (replace 'install
-              (lambda args
-                (apply (assoc-ref copy:%standard-phases 'install)
-                       #:install-plan #$(%nvidia-install-plan-390)
-                       args)))
-            (replace 'add-architecture-to-filename
-              (lambda _
-                (for-each #$(add-architecture-to-filename)
-                          #$%nvidia-icd-configurations-390)))))))
-    (supported-systems '("x86_64-linux" "i686-linux"))))
+    (build-system gnu-build-system)
+    (arguments (%nvidia-driver-arguments-390))
+    (supported-systems '("x86_64-linux" "i686-linux"))
+    (native-inputs (list patchelf-0.16))
+    (inputs
+     (list egl-wayland
+           `(,gcc "lib")
+           glibc
+           mesa-for-nvda
+           openssl
+           openssl-1.1
+           wayland))
+    (home-page "https://www.nvidia.com")
+    (synopsis "Proprietary NVIDIA driver (libraries), legacy 390.xx series")
+    (description
+     "This package provides libraries of the proprietary NVIDIA driver.  It's
+mainly used as a dependency of other packages.  For user-facing purpose, use
+@code{nvda} instead.")
+    (license
+     (license:nonfree
+      (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
+
+(define (%nvidia-driver-arguments-470)
+  (substitute-keyword-arguments (%nvidia-driver-arguments-390)
+    ((#:phases phases)
+     #~(modify-phases #$phases
+         (add-after 'create-files 'create-files-470
+           (lambda _
+             ;; Vulkan ICD configuraiton
+             (substitute* "nvidia_icd.json"
+               (("libGLX(_nvidia\\.so\\.)" _ suffix)
+                (string-append #$output "/lib/libEGL" suffix)))
+             ;; Vulkan layer configuraiton
+             (substitute* "nvidia_layers.json"
+               (("libGLX_nvidia\\.so\\." all)
+                (string-append #$output "/lib/" all)))))
+         (add-after 'install 'install-470
+           (lambda args
+             (apply (assoc-ref copy:%standard-phases 'install)
+                    #:install-plan
+                    '(("." "lib/nvidia/wine/" #:include-regexp ("_?nvngx.*?\\.dll$"))
+                      ("nvidia_layers.json" "share/vulkan/implicit_layer.d/"))
+                    args)))
+         (add-after 'add-architecture 'add-architecture-470
+           (lambda _
+             (for-each
+              #$(add-architecture-to-filename)
+              '("/share/vulkan/implicit_layer.d/nvidia_layers.json"))))
+         (add-after 'relocate-libraries 'relocate-libraries-470
+           (lambda _
+             (let* ((libdir     (in-vicinity #$output "lib"))
+                    (xorgextdir (in-vicinity libdir "xorg/modules/extensions"))
+                    (move-to-dir
+                     (lambda (file dir)
+                       (install-file file dir)
+                       (delete-file file))))
+               ;; GLX extension module for X
+               (for-each
+                (lambda (file)
+                  (move-to-dir file xorgextdir)
+                  (with-directory-excursion xorgextdir
+                    (symlink (basename file) "libglxserver_nvidia.so")))
+                (find-files libdir "libglxserver_nvidia\\.so\\.")))))))))
 
 (define-public nvidia-driver-470
   (binary-package-from-sources
    `(("x86_64-linux"  . ,nvidia-source-470-x86_64-linux)
-     ("i686-linux"    . ,nvidia-source-470-x86_64-linux)
      ("aarch64-linux" . ,nvidia-source-470-aarch64-linux))
    (package
-     (inherit nvidia-driver-580)
-     (name "nvidia-driver")
-     (arguments
-      (substitute-keyword-arguments arguments
-        ((#:phases phases)
-         #~(modify-phases #$phases
-             (replace 'unpack
-               (assoc-ref %standard-phases 'unpack))
-             (replace 'install
-               (lambda args
-                 (apply (assoc-ref copy:%standard-phases 'install)
-                        #:install-plan #$(%nvidia-install-plan-470)
-                        args)))
-             (replace 'add-architecture-to-filename
-               (lambda _
-                 (for-each #$(add-architecture-to-filename)
-                           #$%nvidia-icd-configurations-470))))))))))
+     (inherit nvidia-driver-390)
+     (arguments (%nvidia-driver-arguments-470))
+     (supported-systems '("x86_64-linux" "i686-linux" "aarch64-linux"))
+     (synopsis "Proprietary NVIDIA driver (libraries), legacy 470.xx series"))))
+
+(define (%nvidia-driver-arguments-580)
+  (substitute-keyword-arguments (%nvidia-driver-arguments-470)
+    ((#:phases phases)
+     #~(modify-phases #$phases
+         (add-after 'create-files 'create-files-580
+           (lambda* (#:key inputs #:allow-other-keys)
+             ;; EGL external platform configuraiton
+             (substitute* '("15_nvidia_gbm.json"
+                            "20_nvidia_xcb.json"
+                            "20_nvidia_xlib.json")
+               (("libnvidia-egl-.*\\.so\\.." all)
+                (search-input-file inputs (in-vicinity "lib" all))))
+             ;; Vulkan layer configuraiton
+             (substitute* "nvidia_layers.json"
+               (("libnvidia-present\\.so\\." all)
+                (string-append #$output "/lib/" all)))
+             ;; VulkanSC ICD configuration
+             (substitute* (find-files "." "nvidia_icd_vksc\\.json$")
+               (("libnvidia-vksc-core\\.so\\." all)
+                (string-append #$output "/lib/" all)))))
+         (add-after 'install 'install-580
+           (lambda args
+             (apply (assoc-ref copy:%standard-phases 'install)
+                    #:install-plan
+                    `(("." "bin/" #:include ,(if #$(target-x86-64?) '("nvidia-pcc") '()))
+                      ("." "etc/vulkansc/icd.d/" #:include-regexp ("nvidia_icd_vksc\\.json$"))
+                      ("." "share/egl/egl_external_platform.d/"
+                       #:include ("15_nvidia_gbm.json"
+                                  "20_nvidia_xcb.json"
+                                  "20_nvidia_xlib.json"))
+                      ("nvoptix.bin" "share/nvidia/")
+                      ("sandboxutils-filelist.json" "share/nvidia/files.d/"))
+                    args)))
+         (add-after 'add-architecture 'add-architecture-580
+           (lambda _
+             (for-each
+              #$(add-architecture-to-filename)
+              '("/share/egl/egl_external_platform.d/15_nvidia_gbm.json"
+                "/share/egl/egl_external_platform.d/20_nvidia_xcb.json"
+                "/share/egl/egl_external_platform.d/20_nvidia_xlib.json"))))
+         (add-after 'relocate-libraries 'relocate-libraries-580
+           (lambda _
+             (let* ((libdir (in-vicinity #$output "lib"))
+                    (gbmdir (in-vicinity libdir "gbm")))
+               (for-each
+                (lambda (file)
+                  (mkdir-p gbmdir)
+                  (with-directory-excursion gbmdir
+                    (symlink (in-vicinity ".." (basename file))
+                             "nvidia-drm_gbm.so")))
+                (find-files libdir "libnvidia-allocator\\.so\\.")))))))))
+
+(define-public nvidia-driver-580
+  (binary-package-from-sources
+   `(("x86_64-linux"  . ,nvidia-source-580-x86_64-linux)
+     ("aarch64-linux" . ,nvidia-source-580-aarch64-linux))
+   (package
+     (inherit nvidia-driver-470)
+     (arguments (%nvidia-driver-arguments-580))
+     (inputs
+      (modify-inputs inputs
+        (prepend egl-gbm egl-x11)))
+     (synopsis "Proprietary NVIDIA driver (libraries), production branch"))))
+
+(define (%nvidia-driver-arguments-590)
+  (substitute-keyword-arguments (%nvidia-driver-arguments-580)
+    ((#:phases phases)
+     #~(modify-phases #$phases
+         (add-after 'create-files 'create-files-590
+           (lambda* (#:key inputs #:allow-other-keys)
+             ;; EGL external platform configuraiton
+             (substitute* "99_nvidia_wayland2.json"
+               (("libnvidia-egl-.*\\.so\\.." all)
+                (search-input-file inputs (in-vicinity "lib" all))))))
+         (add-after 'install 'install-590
+           (lambda args
+             (apply (assoc-ref copy:%standard-phases 'install)
+                    #:install-plan
+                    '(("99_nvidia_wayland2.json" "share/egl/egl_external_platform.d/"))
+                    args)))
+         (add-after 'add-architecture 'add-architecture-590
+           (lambda _
+             (for-each
+              #$(add-architecture-to-filename)
+              '("/share/egl/egl_external_platform.d/99_nvidia_wayland2.json"))))))))
 
 (define-public nvidia-driver-590
   (binary-package-from-sources
    `(("x86_64-linux"  . ,nvidia-source-590-x86_64-linux)
-     ("i686-linux"    . ,nvidia-source-590-x86_64-linux)
      ("aarch64-linux" . ,nvidia-source-590-aarch64-linux))
    (package
      (inherit nvidia-driver-580)
-     (arguments
-      (substitute-keyword-arguments arguments
-        ((#:phases phases)
-         #~(modify-phases #$phases
-             (replace 'unpack
-               (assoc-ref %standard-phases 'unpack))
-             (replace 'add-architecture-to-filename
-               (lambda _
-                 (for-each #$(add-architecture-to-filename)
-                           #$%nvidia-icd-configurations-590))))))))))
+     (arguments (%nvidia-driver-arguments-590))
+     (inputs
+      (modify-inputs inputs
+        (prepend egl-wayland2)))
+     (synopsis "Proprietary NVIDIA driver (libraries), new feature branch"))))
+
+(define (%nvidia-driver-arguments-beta)
+  (substitute-keyword-arguments (%nvidia-driver-arguments-580)
+    ((#:phases phases)
+     #~(modify-phases #$phases
+         (add-after 'create-files 'create-files-beta
+           (lambda* (#:key inputs #:allow-other-keys)
+             ;; EGL external platform configuraiton
+             (substitute* "09_nvidia_wayland2.json"
+               (("libnvidia-egl-.*\\.so\\.." all)
+                (search-input-file inputs (in-vicinity "lib" all))))))
+         (add-after 'install 'install-beta
+           (lambda args
+             (apply (assoc-ref copy:%standard-phases 'install)
+                    #:install-plan
+                    '(("09_nvidia_wayland2.json" "share/egl/egl_external_platform.d/"))
+                    args)))
+         (add-after 'add-architecture 'add-architecture-beta
+           (lambda _
+             (for-each
+              #$(add-architecture-to-filename)
+              '("/share/egl/egl_external_platform.d/09_nvidia_wayland2.json"))))))))
 
 (define-public nvidia-driver-beta
   (binary-package-from-sources
    `(("x86_64-linux"  . ,nvidia-source-beta-x86_64-linux)
-     ("i686-linux"    . ,nvidia-source-beta-x86_64-linux)
      ("aarch64-linux" . ,nvidia-source-beta-aarch64-linux))
    (package
      (inherit nvidia-driver-580)
      (name "nvidia-driver-beta")
-     (arguments
-      (substitute-keyword-arguments arguments
-        ((#:phases phases)
-         #~(modify-phases #$phases
-             (replace 'unpack
-               (assoc-ref %standard-phases 'unpack))
-             (replace 'add-architecture-to-filename
-               (lambda _
-                 (for-each #$(add-architecture-to-filename)
-                           #$%nvidia-icd-configurations-beta))))))))))
+     (arguments (%nvidia-driver-arguments-beta))
+     (inputs
+      (modify-inputs inputs
+        (prepend egl-wayland2)))
+     (synopsis "Proprietary NVIDIA driver (libraries), beta"))))
 
 (define-public nvidia-driver nvidia-driver-580)
 
