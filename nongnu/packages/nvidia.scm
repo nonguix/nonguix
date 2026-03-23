@@ -90,28 +90,6 @@
          (string-append out path)
          (string-append out base "." arch "." ext)))))
 
-(define %nvidia-unbundle-libraries-580
-  '(;; egl-gbm
-    "libnvidia-egl-gbm\\.so\\."
-    ;; egl-wayland
-    "libnvidia-egl-wayland\\.so\\."
-    ;; egl-wayland2
-    "libnvidia-egl-wayland2\\.so\\."
-    ;; egl-x11
-    "libnvidia-egl-xcb\\.so\\."
-    "libnvidia-egl-xlib\\.so\\."
-    ;; libglvnd
-    "libEGL\\.so\\."
-    "libGL\\.so\\."
-    "libGLESv1_CM\\.so\\."
-    "libGLESv2\\.so\\."
-    "libGLX\\.so\\."
-    "libGLdispatch\\.so\\."
-    "libOpenGL\\.so\\."
-    ;; nvidia-settings
-    "libnvidia-gtk[23]\\.so\\."
-    ;; opencl-icd-loader
-    "libOpenCL\\.so\\."))
 
 (define (%nvidia-install-plan-580)
   #~'((#$(cond
@@ -166,26 +144,57 @@
 ;;; NVIDIA driver checkouts
 ;;;
 
-(define (make-nvidia-driver-snippet unbundle-libraries)
-  #~(begin
-      (use-modules (guix build utils) (ice-9 ftw) (srfi srfi-1))
-      (set-path-environment-variable
-       "PATH" '("bin")
-       '#+(list bash-minimal coreutils-minimal grep tar zstd))
-      (let* ((this-file (last (scandir (getcwd)))))
-        (invoke "sh" this-file "--extract-only" "--target" "extractdir")
-        (when (file-exists? "extractdir/kernel-open")
-          (delete-file-recursively "extractdir/kernel-open"))
-        (for-each delete-file
-                  (find-files "extractdir"
-                              (string-join '#$unbundle-libraries "|")))
-        (with-directory-excursion "extractdir"
-          (invoke "tar" "cvfa" (string-append this-file ".tar")
-                  "--mtime=1" "--owner=root:0" "--group=root:0" ;determinism
-                  "--sort=name" ".")
-          (invoke "zstd" (string-append this-file ".tar")))
-        (rename-file
-         (string-append "extractdir/" this-file ".tar.zst") this-file))))
+(define* (make-nvidia-source version installer #:key (patches '()) snippet)
+  (origin
+    (method (@@ (guix packages) computed-origin-method))
+    (file-name (string-append "nvidia-driver-source-" version "-checkout"))
+    (sha256 #f)
+    (patches patches)
+    (modules '((guix build utils)))
+    (snippet snippet)
+    (uri
+     (delay
+       (with-imported-modules '((guix build utils))
+         #~(begin
+             (use-modules (ice-9 ftw)
+                          (srfi srfi-1)
+                          (guix build utils))
+             (set-path-environment-variable
+              "PATH" '("bin")
+              '#+(list bash-minimal
+                       coreutils-minimal
+                       grep
+                       tar
+                       zstd))
+             (invoke "sh" #+installer "--extract-only" "--target" "extractdir")
+             (when (file-exists? "extractdir/kernel-open")
+               (delete-file-recursively "extractdir/kernel-open"))
+             (for-each delete-file
+                       (find-files "extractdir"
+                                   (string-join
+                                    '(;; egl-gbm
+                                      "libnvidia-egl-gbm\\.so\\."
+                                      ;; egl-wayland
+                                      "libnvidia-egl-wayland\\.so\\."
+                                      ;; egl-wayland2
+                                      "libnvidia-egl-wayland2\\.so\\."
+                                      ;; egl-x11
+                                      "libnvidia-egl-xcb\\.so\\."
+                                      "libnvidia-egl-xlib\\.so\\."
+                                      ;; libglvnd
+                                      "libEGL\\.so\\."
+                                      "libGL\\.so\\."
+                                      "libGLESv1_CM\\.so\\."
+                                      "libGLESv2\\.so\\."
+                                      "libGLX\\.so\\."
+                                      "libGLdispatch\\.so\\."
+                                      "libOpenGL\\.so\\."
+                                      ;; nvidia-settings
+                                      "libnvidia-gtk[23]\\.so\\."
+                                      ;; opencl-icd-loader
+                                      "libOpenCL\\.so\\.")
+                                    "|")))
+             (copy-recursively "extractdir" #$output)))))))
 
 
 ;;;
@@ -197,15 +206,15 @@
     (name "nvidia-driver")
     (version "580.142")
     (source
-     (origin
-       (method url-fetch)
-       (uri (string-append
-             "https://download.nvidia.com/XFree86/Linux-x86_64/"
-             version "/NVIDIA-Linux-x86_64-" version ".run"))
-       (file-name (string-append "NVIDIA-Linux-x86_64-" version))
-       (sha256 (base32 "0qvm8hh3d90i3674dqlj1lam6m189ah60fzr1iaw72gy7z7mz490"))
-       (modules '((guix build utils)))
-       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))
+     (make-nvidia-source
+      version
+      (origin
+        (method url-fetch)
+        (uri (string-append
+              "https://download.nvidia.com/XFree86/Linux-x86_64/"
+              version "/NVIDIA-Linux-x86_64-" version ".run"))
+        (sha256
+         (base32 "0qvm8hh3d90i3674dqlj1lam6m189ah60fzr1iaw72gy7z7mz490")))))
     (build-system gnu-build-system)
     (arguments
      (list
@@ -225,9 +234,6 @@
           (delete 'build)
           (delete 'check)
           (delete 'strip)
-          (replace 'unpack
-            (lambda* (#:key source #:allow-other-keys)
-              (invoke "tar" "xvf" source)))
           (replace 'install
             (lambda args
               (apply (assoc-ref copy:%standard-phases 'install)
@@ -391,15 +397,15 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
     (name "nvidia-driver")
     (version "590.48.01")
     (source
-     (origin
-       (method url-fetch)
-       (uri (string-append
-             "https://download.nvidia.com/XFree86/Linux-x86_64/"
-             version "/NVIDIA-Linux-x86_64-" version ".run"))
-       (file-name (string-append "NVIDIA-Linux-x86_64-" version))
-       (sha256 (base32 "12fnddljvgxksil6n3d5a35wwg8kkq82kkglhz63253qjc3giqmr"))
-       (modules '((guix build utils)))
-       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))
+     (make-nvidia-source
+      version
+      (origin
+        (method url-fetch)
+        (uri (string-append
+              "https://download.nvidia.com/XFree86/Linux-x86_64/"
+              version "/NVIDIA-Linux-x86_64-" version ".run"))
+        (sha256
+         (base32 "12fnddljvgxksil6n3d5a35wwg8kkq82kkglhz63253qjc3giqmr")))))
     (arguments
      (substitute-keyword-arguments arguments
        ((#:phases phases)
@@ -415,15 +421,15 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
     (name "nvidia-driver-beta")
     (version "595.45.04")
     (source
-     (origin
+     (make-nvidia-source
+      version
+      (origin
        (method url-fetch)
        (uri (string-append
              "https://download.nvidia.com/XFree86/Linux-x86_64/"
              version "/NVIDIA-Linux-x86_64-" version ".run"))
-       (file-name (string-append "NVIDIA-Linux-x86_64-" version))
-       (sha256 (base32 "0plg9vsim8252c7k3slxblvrspy4xqa6q719flxjmfkc4i4najfd"))
-       (modules '((guix build utils)))
-       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))
+       (sha256
+        (base32 "0plg9vsim8252c7k3slxblvrspy4xqa6q719flxjmfkc4i4najfd")))))
     (arguments
      (substitute-keyword-arguments arguments
        ((#:phases phases)
@@ -454,10 +460,7 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
                                             (package-version this-package))))
            #:phases
            #~(modify-phases %standard-phases
-               (delete 'strip)
-               (replace 'unpack
-                 (lambda* (#:key source #:allow-other-keys)
-                   (invoke "tar" "xvf" source))))))
+               (delete 'strip))))
     (propagated-inputs '())
     (inputs '())
     (native-inputs '())
@@ -503,9 +506,6 @@ instead.")))
            #~(list (string-append "CC=" #$(cc-for-target)))
            #:phases
            #~(modify-phases %standard-phases
-               (replace 'unpack
-                 (lambda* (#:key source #:allow-other-keys)
-                   (invoke "tar" "xvf" source)))
                (delete 'strip)
                (add-before 'configure 'fixpath
                  (lambda* (#:key (source-directory ".") #:allow-other-keys)
