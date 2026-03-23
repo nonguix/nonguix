@@ -113,6 +113,8 @@
        '#+(list bash-minimal coreutils-minimal grep tar zstd))
       (let* ((this-file (last (scandir (getcwd)))))
         (invoke "sh" this-file "--extract-only" "--target" "extractdir")
+        (when (file-exists? "extractdir/kernel-open")
+          (delete-file-recursively "extractdir/kernel-open"))
         (for-each delete-file
                   (find-files "extractdir"
                               (string-join '#$unbundle-libraries "|")))
@@ -531,17 +533,50 @@ driver.")
 
 (define-public nvidia-module nvidia-module-580)
 
+
+;;;
+;;; NVIDIA open source kernel modules.
+;;;
+
 (define-public nvidia-module-open-580
   (package
-    (inherit nvidia-module-580)
     (name "nvidia-module-open")
+    (version "580.142")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/NVIDIA/open-gpu-kernel-modules")
+              (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "01nq1hmb0kcd7wx38z5a1ivc6r1z3vbwp1zcyz0wijvanhnvrpmz"))))
+    (build-system linux-module-build-system)
     (arguments
-     (substitute-keyword-arguments arguments
-       ;; NOTE: Kernels compiled with CONFIG_LTO_CLANG_THIN would cause an
-       ;; error here.  See also:
-       ;; <https://github.com/NVIDIA/open-gpu-kernel-modules/issues/214>
-       ;; <https://github.com/llvm/llvm-project/issues/55820>
-       ((#:source-directory _) "kernel-open")))
+     (list
+      #:source-directory "kernel-open"
+      #:tests? #f
+      #:make-flags
+      #~(list (string-append "CC=" #$(cc-for-target)))
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-before 'configure 'fix-reference
+            (lambda* (#:key source-directory #:allow-other-keys)
+              (substitute* (string-append source-directory "/Kbuild")
+                (("/bin/sh") (which "sh")))))
+          (replace 'build
+            (lambda* (#:key inputs make-flags (parallel-build? #t)
+                      #:allow-other-keys)
+              (apply invoke "make"
+                     (string-append
+                      "SYSSRC="
+                      (search-input-directory inputs "/lib/modules/build"))
+                     `(,@(if parallel-build?
+                             `("-j" ,(number->string (parallel-job-count)))
+                             '())
+                       ,@make-flags
+                       "modules")))))))
     (home-page "https://github.com/NVIDIA/open-gpu-kernel-modules")
     (synopsis "Proprietary NVIDIA driver (open source kernel modules)")
     (description
@@ -552,15 +587,34 @@ NVIDIA driver.")
 (define-public nvidia-module-open-590
   (package
     (inherit nvidia-module-open-580)
-    (version (package-version nvidia-driver-590))
-    (source (package-source nvidia-driver-590))))
+    (name "nvidia-module-open")
+    (version "590.48.01")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/NVIDIA/open-gpu-kernel-modules")
+              (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "13izbl0npxc6mxaq7123sj7cqksqwcha8fgsgj2dphdk1dz8fh44"))))))
 
 (define-public nvidia-module-open-beta
   (package
     (inherit nvidia-module-open-580)
     (name "nvidia-module-open-beta")
-    (version (package-version nvidia-driver-beta))
-    (source (package-source nvidia-driver-beta))))
+    (version "595.45.04")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/NVIDIA/open-gpu-kernel-modules")
+              (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "108faqi446ck42gc9q10dbl0779yagyp853phay14ahkdhi5z8xs"))))))
 
 (define-public nvidia-module-open nvidia-module-open-580)
 
