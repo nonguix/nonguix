@@ -79,6 +79,8 @@
     "libnvidia-egl-gbm\\.so\\."
     ;; egl-wayland
     "libnvidia-egl-wayland\\.so\\."
+    ;; egl-wayland2
+    "libnvidia-egl-wayland2\\.so\\."
     ;; egl-x11
     "libnvidia-egl-xcb\\.so\\."
     "libnvidia-egl-xlib\\.so\\."
@@ -95,11 +97,6 @@
     ;; opencl-icd-loader
     "libOpenCL\\.so\\."))
 
-(define %nvidia-unbundle-libraries-590
-  `(;; egl-wayland2
-    "libnvidia-egl-wayland2\\.so\\."
-    ,@%nvidia-unbundle-libraries-580))
-
 (define (%nvidia-install-plan-580)
   #~'((#$(cond
           ((target-x86-32?) "32")
@@ -107,7 +104,7 @@
        "lib/" #:include-regexp ("^./[^/]+\\.so"))
       ("." "lib/nvidia/wine/" #:include-regexp ("_?nvngx.*?\\.dll$"))
       ("." "share/nvidia/" #:include-regexp ("nvidia-application-profiles|nvoptix.bin"))
-      ("." "share/egl/egl_external_platform.d/" #:include-regexp ("(gbm|wayland|xcb|xlib)\\.json"))
+      ("." "share/egl/egl_external_platform.d/" #:include-regexp ("(gbm|wayland2?|xcb|xlib)\\.json"))
       ("10_nvidia.json" "share/glvnd/egl_vendor.d/")
       ("nvidia-drm-outputclass.conf" "share/X11/xorg.conf.d/")
       ("nvidia-dbus.conf" "share/dbus-1/system.d/")
@@ -192,11 +189,8 @@
           (add-after 'unpack 'create-misc-files
             (lambda* (#:key inputs #:allow-other-keys)
               ;; EGL external platform configuraiton
-              (substitute* '("10_nvidia_wayland.json"
-                             "15_nvidia_gbm.json"
-                             "20_nvidia_xcb.json"
-                             "20_nvidia_xlib.json")
-                (("libnvidia-egl-(wayland|gbm|xcb|xlib)\\.so\\.." all)
+              (substitute* (find-files "." "(gbm|wayland2?|xcb|xlib)\\.json")
+                (("libnvidia-egl-.*\\.so\\.." all)
                  (search-input-file inputs (string-append "lib/" all))))
 
               ;; EGL vendor ICD configuration
@@ -363,6 +357,7 @@
     (inputs
      (list egl-gbm
            egl-wayland
+           egl-wayland2
            egl-x11
            `(,gcc "lib")
            glibc
@@ -394,24 +389,7 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
        (file-name (string-append "NVIDIA-Linux-x86_64-" version))
        (sha256 (base32 "12fnddljvgxksil6n3d5a35wwg8kkq82kkglhz63253qjc3giqmr"))
        (modules '((guix build utils)))
-       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-590))))
-    (arguments
-     (substitute-keyword-arguments arguments
-       ((#:phases phases)
-        #~(modify-phases #$phases
-            (add-after 'create-misc-files 'create-misc-files-590
-              (lambda* (#:key inputs #:allow-other-keys)
-                ;; EGL external platform configuraiton
-                (let ((dir "share/egl/egl_external_platform.d"))
-                  (for-each
-                   (lambda (file)
-                     (install-file
-                      (search-input-file inputs (in-vicinity dir file))
-                      (in-vicinity #$output dir)))
-                   '("09_nvidia_wayland2.json")))))))))
-    (inputs
-     (modify-inputs inputs
-       (prepend egl-wayland2)))))
+       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))))
 
 (define-public nvidia-driver-beta
   (package
@@ -427,7 +405,7 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
        (file-name (string-append "NVIDIA-Linux-x86_64-" version))
        (sha256 (base32 "0plg9vsim8252c7k3slxblvrspy4xqa6q719flxjmfkc4i4najfd"))
        (modules '((guix build utils)))
-       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-590))))))
+       (snippet (make-nvidia-driver-snippet %nvidia-unbundle-libraries-580))))))
 
 (define-public nvidia-driver nvidia-driver-580)
 
