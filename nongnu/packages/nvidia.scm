@@ -292,8 +292,27 @@
               "https://download.nvidia.com/XFree86/Linux-x86_64/"
               version "/NVIDIA-Linux-x86_64-" version ".run"))
         (sha256
-         (base32 "1pmi949s0gzzjw2w3qhhihb82gppd1icvdzk8w2bp5dnvri1hifn")))))))
+         (base32 "1pmi949s0gzzjw2w3qhhihb82gppd1icvdzk8w2bp5dnvri1hifn")))
+      #:patches
+      (map (lambda (name)
+             (file-append %nvidia-patches-470 "/patches/" name))
+           '("0001-Fix-conftest-to-ignore-implicit-function-declaration.patch"
+             "0002-Fix-conftest-to-use-a-short-wchar_t.patch"
+             "0003-Fix-conftest-to-use-nv_drm_gem_vmap-which-has-the-se.patch"
+             "kernel-6.10.patch"
+             "kernel-6.12.patch"
+             "nvidia-470xx-fix-gcc-15.patch"
+             "nvidia-470xx-fix-linux-6.13.patch"
+             "nvidia-470xx-fix-linux-6.14.patch"
+             "nvidia-470xx-fix-linux-6.15.patch"
+             "nvidia-470xx-fix-linux-6.17.patch"
+             "nvidia-470xx-fix-linux-6.19-part1.patch"
+             "nvidia-470xx-fix-linux-6.19-part2.patch"
+             "nvidia-470xx-fix-linux-7.0.patch"
+             "disable-objtool-override.patch"
+             "enable-drm-modeset-by-default.patch"))))))
 
+;; FIXME: The kernel module doesn't build on aarch64-linux currently.
 (define nvidia-source-470-aarch64-linux
   (package
     (inherit %binary-source)
@@ -560,48 +579,28 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
     (supported-systems '("x86_64-linux" "i686-linux"))))
 
 (define-public nvidia-driver-470
-  (package
-    (inherit nvidia-driver-580)
-    (name "nvidia-driver")
-    (version "470.256.02")
-    (source
-     (make-nvidia-source
-      version
-      (origin
-        (method url-fetch)
-        (uri (string-append
-              "https://download.nvidia.com/XFree86/Linux-x86_64/"
-              version "/NVIDIA-Linux-x86_64-" version ".run"))
-        (sha256
-         (base32 "1pmi949s0gzzjw2w3qhhihb82gppd1icvdzk8w2bp5dnvri1hifn")))
-      #:patches
-      (map (lambda (name)
-             (file-append %nvidia-patches-470 "/" name))
-           '("0001-Fix-conftest-to-ignore-implicit-function-declaration.patch"
-             "0002-Fix-conftest-to-use-a-short-wchar_t.patch"
-             "0003-Fix-conftest-to-use-nv_drm_gem_vmap-which-has-the-se.patch"
-             "nvidia-470xx-fix-gcc-15.patch"
-             "kernel-6.10.patch"
-             "kernel-6.12.patch"
-             "nvidia-470xx-fix-linux-6.13.patch"
-             "nvidia-470xx-fix-linux-6.14.patch"
-             "nvidia-470xx-fix-linux-6.15.patch"
-             "nvidia-470xx-fix-linux-6.17.patch"
-             "nvidia-470xx-fix-linux-6.19-part1.patch"
-             "nvidia-470xx-fix-linux-6.19-part2.patch"))))
-    (arguments
-     (substitute-keyword-arguments arguments
-       ((#:phases phases)
-        #~(modify-phases #$phases
-            (replace 'install
-              (lambda args
-                (apply (assoc-ref copy:%standard-phases 'install)
-                       #:install-plan #$(%nvidia-install-plan-470)
-                       args)))
-            (replace 'add-architecture-to-filename
-              (lambda _
-                (for-each #$(add-architecture-to-filename)
-                          #$%nvidia-icd-configurations-470)))))))))
+  (binary-package-from-sources
+   `(("x86_64-linux"  . ,nvidia-source-470-x86_64-linux)
+     ("i686-linux"    . ,nvidia-source-470-x86_64-linux)
+     ("aarch64-linux" . ,nvidia-source-470-aarch64-linux))
+   (package
+     (inherit nvidia-driver-580)
+     (name "nvidia-driver")
+     (arguments
+      (substitute-keyword-arguments arguments
+        ((#:phases phases)
+         #~(modify-phases #$phases
+             (replace 'unpack
+               (assoc-ref %standard-phases 'unpack))
+             (replace 'install
+               (lambda args
+                 (apply (assoc-ref copy:%standard-phases 'install)
+                        #:install-plan #$(%nvidia-install-plan-470)
+                        args)))
+             (replace 'add-architecture-to-filename
+               (lambda _
+                 (for-each #$(add-architecture-to-filename)
+                           #$%nvidia-icd-configurations-470))))))))))
 
 (define-public nvidia-driver-590
   (package
