@@ -678,6 +678,13 @@ driver.")
      (license:nonfree
       (format #f "file:///share/doc/nvidia-driver-~a/LICENSE" version)))))
 
+(define-public nvidia-module-390
+  (package
+    (inherit nvidia-module-580)
+    (version (package-version nvidia-driver-390))
+    (source (package-source nvidia-driver-390))
+    (supported-systems '("x86_64-linux"))))
+
 (define-public nvidia-module-590
   (package
     (inherit nvidia-module-580)
