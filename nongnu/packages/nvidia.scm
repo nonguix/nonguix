@@ -748,67 +748,60 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
 ;;; NVIDIA firmware
 ;;;
 
-(define-public nvidia-firmware-580
-  (binary-package-from-sources
-   `(("x86_64-linux"  . ,nvidia-source-580-x86_64-linux)
-     ("i686-linux"    . ,nvidia-source-580-x86_64-linux)
-     ("aarch64-linux" . ,nvidia-source-580-aarch64-linux))
-   (package
-     (inherit nvidia-driver-580)
-     (name "nvidia-firmware")
-     (build-system copy-build-system)
-     (arguments
-      (list #:install-plan
-            #~'(("firmware" #$(string-append "lib/firmware/nvidia/"
-                                             (package-version this-package))))
-            #:phases
-            #~(modify-phases %standard-phases
-                (delete 'strip))))
-     (propagated-inputs '())
-     (inputs '())
-     (native-inputs '())
-     (synopsis "Proprietary NVIDIA driver (GPU System Processor firmware)")
-     (description
-      "This package provides @acronym{GSP, GPU System Processor} firmware of
-the proprietary NVIDIA driver.
-
-For free driver (@code{nouveau}) support, use @code{linux-firmware}
-instead."))))
+(define (%nvidia-firmware-arguments version)
+  (list #:install-plan
+        #~'(("firmware" #$(in-vicinity "lib/firmware/nvidia" version)))
+        #:phases
+        #~(modify-phases %standard-phases
+            (delete 'strip))))
 
 (define-public nvidia-firmware-470
   (package
-    (inherit nvidia-firmware-580)
-    (version (package-version nvidia-driver-470))
-    (source (package-source nvidia-driver-470))))
+    (inherit nvidia-driver-470)
+    (name "nvidia-firmware")
+    (source (package-source nvidia-source-470-x86_64-linux))
+    (build-system copy-build-system)
+    (arguments (%nvidia-firmware-arguments (package-version this-package)))
+    (propagated-inputs '())
+    (inputs '())
+    (native-inputs '())
+    (supported-systems '("x86_64-linux"))
+    (synopsis "Proprietary NVIDIA driver (GPU System Processor firmware), legacy 470.xx series")
+    (description
+     "This package provides @acronym{GSP, GPU System Processor} firmware of
+the proprietary NVIDIA driver.
+
+For free driver (@code{nouveau}) support, use @code{linux-firmware}
+instead.")))
+
+(define-public nvidia-firmware-580
+  (binary-package-from-sources
+   `(("x86_64-linux"  . ,nvidia-source-580-x86_64-linux)
+     ("aarch64-linux" . ,nvidia-source-580-aarch64-linux))
+   (package
+     (inherit nvidia-firmware-470)
+     (arguments (%nvidia-firmware-arguments (package-version this-package)))
+     (supported-systems '("x86_64-linux" "aarch64-linux"))
+     (synopsis "Proprietary NVIDIA driver (GPU System Processor firmware), production branch"))))
 
 (define-public nvidia-firmware-590
   (binary-package-from-sources
    `(("x86_64-linux"  . ,nvidia-source-590-x86_64-linux)
-     ("i686-linux"    . ,nvidia-source-590-x86_64-linux)
      ("aarch64-linux" . ,nvidia-source-590-aarch64-linux))
    (package
      (inherit nvidia-firmware-580)
-     (arguments
-      (substitute-keyword-arguments arguments
-        ((#:phases phases)
-         #~(modify-phases #$phases
-             (replace 'unpack
-               (assoc-ref %standard-phases 'unpack)))))))))
+     (arguments (%nvidia-firmware-arguments (package-version this-package)))
+     (synopsis "Proprietary NVIDIA driver (GPU System Processor firmware), new feature branch"))))
 
 (define-public nvidia-firmware-beta
   (binary-package-from-sources
    `(("x86_64-linux"  . ,nvidia-source-beta-x86_64-linux)
-     ("i686-linux"    . ,nvidia-source-beta-x86_64-linux)
      ("aarch64-linux" . ,nvidia-source-beta-aarch64-linux))
    (package
      (inherit nvidia-firmware-580)
      (name "nvidia-firmware-beta")
-     (arguments
-      (substitute-keyword-arguments arguments
-        ((#:phases phases)
-         #~(modify-phases #$phases
-             (replace 'unpack
-               (assoc-ref %standard-phases 'unpack)))))))))
+     (arguments (%nvidia-firmware-arguments (package-version this-package)))
+     (synopsis "Proprietary NVIDIA driver (GPU System Processor firmware), beta"))))
 
 (define-public nvidia-firmware nvidia-firmware-580)
 
