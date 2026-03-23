@@ -810,98 +810,84 @@ instead.")))
 ;;; NVIDIA kernel modules
 ;;;
 
-(define-public nvidia-module-580
-  (binary-package-from-sources
-   `(("x86_64-linux"  . ,nvidia-source-580-x86_64-linux)
-     ("i686-linux"    . ,nvidia-source-580-x86_64-linux)
-     ("aarch64-linux" . ,nvidia-source-580-aarch64-linux))
-   (package
-     (inherit nvidia-driver-580)
-     (name "nvidia-module")
-     (build-system linux-module-build-system)
-     (arguments
-      (list #:source-directory "kernel"
-            #:tests? #f
-            #:make-flags
-            #~(list (string-append "CC=" #$(cc-for-target)))
-            #:phases
-            #~(modify-phases %standard-phases
-                (delete 'strip)
-                (add-before 'configure 'fixpath
-                  (lambda* (#:key (source-directory ".") #:allow-other-keys)
-                    (substitute* (string-append source-directory "/Kbuild")
-                      (("/bin/sh") (which "sh")))))
-                (replace 'build
-                  (lambda* (#:key (make-flags '()) (parallel-build? #t)
-                            (source-directory ".")
-                            inputs
-                            #:allow-other-keys)
-                    (apply invoke "make" "-C" (canonicalize-path source-directory)
-                           (string-append "SYSSRC=" (search-input-directory
-                                                     inputs "/lib/modules/build"))
-                           `(,@(if parallel-build?
-                                   `("-j" ,(number->string
-                                            (parallel-job-count)))
-                                   '())
-                             ,@make-flags)))))))
-     (propagated-inputs '())
-     (inputs '())
-     (native-inputs '())
-     (supported-systems '("x86_64-linux" "aarch64-linux"))
-     (synopsis "Proprietary NVIDIA driver (proprietary kernel modules)")
-     (description
-      "This package provides proprietary kernel modules of the proprietary NVIDIA
-driver."))))
+(define (%nvidia-module-arguments)
+  (list #:source-directory "kernel"
+        #:tests? #f
+        #:make-flags
+        #~(list (string-append "CC=" #$(cc-for-target)))
+        #:phases
+        #~(modify-phases %standard-phases
+            (add-before 'configure 'fixpath
+              (lambda* (#:key (source-directory ".") #:allow-other-keys)
+                (substitute* (string-append source-directory "/Kbuild")
+                  (("/bin/sh") (which "sh")))))
+            (replace 'build
+              (lambda* (#:key (make-flags '()) (parallel-build? #t)
+                        (source-directory ".")
+                        inputs
+                        #:allow-other-keys)
+                (apply invoke "make" "-C" (canonicalize-path source-directory)
+                       (string-append "SYSSRC=" (search-input-directory
+                                                 inputs "/lib/modules/build"))
+                       `(,@(if parallel-build?
+                               `("-j" ,(number->string
+                                        (parallel-job-count)))
+                               '())
+                         ,@make-flags)))))))
 
 (define-public nvidia-module-390
   (package
-    (inherit nvidia-module-580)
-    (version (package-version nvidia-driver-390))
-    (source (package-source nvidia-driver-390))
-    (supported-systems '("x86_64-linux"))))
+    (inherit nvidia-driver-390)
+    (source (package-source nvidia-source-390-x86_64-linux))
+    (name "nvidia-module")
+    (build-system linux-module-build-system)
+    (arguments (%nvidia-module-arguments))
+    (propagated-inputs '())
+    (inputs '())
+    (native-inputs '())
+    (supported-systems '("x86_64-linux"))
+    (synopsis "Proprietary NVIDIA driver (kernel modules), legacy 390.xx series")
+    (description
+     "This package provides proprietary kernel modules of the proprietary NVIDIA
+driver.")))
 
 (define-public nvidia-module-470
   (binary-package-from-sources
    `(("x86_64-linux"  . ,nvidia-source-470-x86_64-linux)
-     ("i686-linux"    . ,nvidia-source-470-x86_64-linux)
      ("aarch64-linux" . ,nvidia-source-470-aarch64-linux))
    (package
-     (inherit nvidia-module-580)
-     (arguments
-      (substitute-keyword-arguments arguments
-        ((#:phases phases)
-         #~(modify-phases #$phases
-             (replace 'unpack
-               (assoc-ref %standard-phases 'unpack)))))))))
+     (inherit nvidia-module-390)
+     (arguments (%nvidia-module-arguments))
+     (supported-systems '("x86_64-linux" "aarch64-linux"))
+     (synopsis "Proprietary NVIDIA driver (kernel modules), legacy 470.xx series"))))
+
+(define-public nvidia-module-580
+  (binary-package-from-sources
+   `(("x86_64-linux"  . ,nvidia-source-580-x86_64-linux)
+     ("aarch64-linux" . ,nvidia-source-580-aarch64-linux))
+   (package
+     (inherit nvidia-module-470)
+     (arguments (%nvidia-module-arguments))
+     (synopsis "Proprietary NVIDIA driver (kernel modules), production branch"))))
 
 (define-public nvidia-module-590
   (binary-package-from-sources
    `(("x86_64-linux"  . ,nvidia-source-590-x86_64-linux)
-     ("i686-linux"    . ,nvidia-source-590-x86_64-linux)
      ("aarch64-linux" . ,nvidia-source-590-aarch64-linux))
    (package
      (inherit nvidia-module-580)
-     (arguments
-      (substitute-keyword-arguments arguments
-        ((#:phases phases)
-         #~(modify-phases #$phases
-             (replace 'unpack
-               (assoc-ref %standard-phases 'unpack)))))))))
+     (arguments (%nvidia-module-arguments))
+     (synopsis "Proprietary NVIDIA driver (kernel modules), new feature branch"))))
 
 (define-public nvidia-module-beta
   (binary-package-from-sources
    `(("x86_64-linux"  . ,nvidia-source-beta-x86_64-linux)
-     ("i686-linux"    . ,nvidia-source-beta-x86_64-linux)
      ("aarch64-linux" . ,nvidia-source-beta-aarch64-linux))
    (package
      (inherit nvidia-module-580)
      (name "nvidia-module-beta")
-     (arguments
-      (substitute-keyword-arguments arguments
-        ((#:phases phases)
-         #~(modify-phases #$phases
-             (replace 'unpack
-               (assoc-ref %standard-phases 'unpack)))))))))
+     (arguments (%nvidia-module-arguments))
+     (synopsis "Proprietary NVIDIA driver (kernel modules), beta"))))
 
 (define-public nvidia-module nvidia-module-580)
 
@@ -950,7 +936,7 @@ driver."))))
                        ,@make-flags
                        "modules")))))))
     (home-page "https://github.com/NVIDIA/open-gpu-kernel-modules")
-    (synopsis "Proprietary NVIDIA driver (open source kernel modules)")
+    (synopsis "Proprietary NVIDIA driver (open source kernel modules), production branch")
     (description
      "This package provides open source kernel modules of the proprietary
 NVIDIA driver.")
@@ -970,7 +956,8 @@ NVIDIA driver.")
        (file-name (git-file-name name version))
        (sha256
         (base32
-         "13izbl0npxc6mxaq7123sj7cqksqwcha8fgsgj2dphdk1dz8fh44"))))))
+         "13izbl0npxc6mxaq7123sj7cqksqwcha8fgsgj2dphdk1dz8fh44"))))
+    (synopsis "Proprietary NVIDIA driver (open source kernel modules), new feature branch")))
 
 (define-public nvidia-module-open-beta
   (package
@@ -986,7 +973,8 @@ NVIDIA driver.")
        (file-name (git-file-name name version))
        (sha256
         (base32
-         "108faqi446ck42gc9q10dbl0779yagyp853phay14ahkdhi5z8xs"))))))
+         "108faqi446ck42gc9q10dbl0779yagyp853phay14ahkdhi5z8xs"))))
+    (synopsis "Proprietary NVIDIA driver (open source kernel modules), beta")))
 
 (define-public nvidia-module-open nvidia-module-open-580)
 
