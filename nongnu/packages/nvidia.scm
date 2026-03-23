@@ -764,10 +764,18 @@ driver."))))
     (supported-systems '("x86_64-linux"))))
 
 (define-public nvidia-module-470
-  (package
-    (inherit nvidia-module-580)
-    (version (package-version nvidia-driver-470))
-    (source (package-source nvidia-driver-470))))
+  (binary-package-from-sources
+   `(("x86_64-linux"  . ,nvidia-source-470-x86_64-linux)
+     ("i686-linux"    . ,nvidia-source-470-x86_64-linux)
+     ("aarch64-linux" . ,nvidia-source-470-aarch64-linux))
+   (package
+     (inherit nvidia-module-580)
+     (arguments
+      (substitute-keyword-arguments arguments
+        ((#:phases phases)
+         #~(modify-phases #$phases
+             (replace 'unpack
+               (assoc-ref %standard-phases 'unpack)))))))))
 
 (define-public nvidia-module-590
   (package
