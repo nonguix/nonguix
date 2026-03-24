@@ -17,6 +17,7 @@
   #:use-module (guix utils)
   #:use-module ((guix licenses) #:prefix license-gnu:)
   #:use-module ((nonguix licenses) #:prefix license:)
+  #:use-module (nonguix multiarch-container)
   #:use-module (nonguix utils)
   #:use-module (guix build-system linux-module)
   #:use-module (guix build-system cmake)
@@ -1304,12 +1305,76 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 ;;; Package variants for NVIDIA proprietary driver
 ;;;
 
-(define-public steam-nvidia
-  (package-with-alias "steam-nvidia" (steam-for nvda)))
+(define-syntax define-nvidia-container
+  (syntax-rules ()
+    ((_ name container-builder driver)
+     (define-public name
+       (hidden-package
+        (nonguix-container->package
+         (nonguix-container
+           (inherit (container-builder driver))
+           (preserved-env %nvidia-environment-variable-regexps))))))
+    ((_ name alias container alias-version)
+     (define-public name
+       (package
+         (inherit (package-with-alias alias container))
+         (version alias-version))))))
 
-(define-public heroic-nvidia
-  (package-with-alias "heroic-nvidia" (heroic-for nvda)))
+(define-nvidia-container steam-nvidia-390
+  steam-container-for nvda-390)
+(define-nvidia-container steam-nvidia-470
+  steam-container-for nvda-470)
+(define-nvidia-container steam-nvidia-580
+  steam-container-for nvda-580)
+(define-nvidia-container steam-nvidia-590
+  steam-container-for nvda-590)
+(define-nvidia-container steam-nvidia-beta
+  steam-container-for nvda-beta)
+(define-public steam-nvidia steam-nvidia-580)
 
+(define-nvidia-container steam-nvidia-user-alias-390 "steam-nvidia"
+  steam-nvidia-390
+  (package-version nvidia-driver-390))
+(define-nvidia-container steam-nvidia-user-alias-470 "steam-nvidia"
+  steam-nvidia-470
+  (package-version nvidia-driver-470))
+(define-nvidia-container steam-nvidia-user-alias-580 "steam-nvidia"
+  steam-nvidia-580
+  (package-version nvidia-driver-580))
+(define-nvidia-container steam-nvidia-user-alias-590 "steam-nvidia"
+  steam-nvidia-590
+  (package-version nvidia-driver-590))
+(define-nvidia-container steam-nvidia-user-alias-beta "steam-nvidia-beta"
+  steam-nvidia-beta
+  (package-version nvidia-driver-beta))
+
+(define-nvidia-container heroic-nvidia-390
+  heroic-container-for nvda-390)
+(define-nvidia-container heroic-nvidia-470
+  heroic-container-for nvda-470)
+(define-nvidia-container heroic-nvidia-580
+  heroic-container-for nvda-580)
+(define-nvidia-container heroic-nvidia-590
+  heroic-container-for nvda-590)
+(define-nvidia-container heroic-nvidia-beta
+  heroic-container-for nvda-beta)
+(define-public heroic-nvidia heroic-nvidia-580)
+
+(define-nvidia-container heroic-nvidia-user-alias-390 "heroic-nvidia"
+  heroic-nvidia-390
+  (package-version nvidia-driver-390))
+(define-nvidia-container heroic-nvidia-user-alias-470 "heroic-nvidia"
+  heroic-nvidia-470
+  (package-version nvidia-driver-470))
+(define-nvidia-container heroic-nvidia-user-alias-580 "heroic-nvidia"
+  heroic-nvidia-580
+  (package-version nvidia-driver-580))
+(define-nvidia-container heroic-nvidia-user-alias-590 "heroic-nvidia"
+  heroic-nvidia-590
+  (package-version nvidia-driver-590))
+(define-nvidia-container heroic-nvidia-user-alias-beta "heroic-nvidia-beta"
+  heroic-nvidia-beta
+  (package-version nvidia-driver-beta))
 
 (define* (replace-mesa obj #:key (driver nvda))
   (with-transformation
