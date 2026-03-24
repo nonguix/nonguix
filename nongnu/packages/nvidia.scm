@@ -877,6 +877,18 @@ device files are present and configure certain runtime settings in the kernel.")
 ;;; ‘nvidia-settings’ packages
 ;;;
 
+(define %nvidia-settings-patches-390
+  (let ((commit "6104269b087751509b904d9282be28440e514c9e"))
+    (origin
+      (method git-fetch)
+      (uri (git-reference
+             (url "https://aur.archlinux.org/nvidia-390xx-settings.git")
+             (commit commit)))
+      (file-name
+       (string-append "nvidia-settings-patches." (string-take commit 7)))
+      (sha256
+       (base32 "0y8zalpymrzxlmh25bqh4x29a4qix3a50qvvykg4hv07mmn0gckx")))))
+
 (define-public nvidia-settings-580
   (package
     (name "nvidia-settings")
@@ -943,6 +955,26 @@ device files are present and configure certain runtime settings in the kernel.")
 configuration, application profiles, GPU monitoring and more.")
     (home-page "https://github.com/NVIDIA/nvidia-settings")
     (license license-gnu:gpl2)))
+
+(define-public nvidia-settings-390
+  (package
+    (inherit nvidia-settings-580)
+    (name "nvidia-settings")
+    (version "390.157")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/NVIDIA/nvidia-settings")
+              (commit version)))
+       (file-name (git-file-name name version))
+       (sha256 (base32 "170nx61spd6psly55ghyp46139c9a9r7al0g9nggrhrzm7hlx5mq"))
+       (patches
+        (map (lambda (name)
+               (file-append %nvidia-settings-patches-390 "/" name))
+             '("0001-nvidia-settings-Make-VDPAUDeviceFunctions-static-to-.patch")))
+       (modules '((guix build utils)))
+       (snippet '(delete-file-recursively "src/jansson"))))))
 
 (define-public nvidia-settings-590
   (package
