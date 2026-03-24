@@ -1171,6 +1171,9 @@ configuration, application profiles, GPU monitoring and more.")
 ;;; ‘nvda’ packages
 ;;;
 
+(define (replace-nvidia-driver driver)
+  (package-input-rewriting `((,nvidia-driver . ,driver))))
+
 (define-public libglvnd-for-nvda
   (hidden-package
    (package
@@ -1213,7 +1216,7 @@ configuration, application profiles, GPU monitoring and more.")
 ;; nvda is used as a name because it has the same length as mesa which is
 ;; required for grafting
 (define (make-nvda driver)
-  ((package-input-rewriting `((,nvidia-driver . ,driver)))
+  ((replace-nvidia-driver driver)
    (package
      (name "nvda")
      (version (string-pad-right
@@ -1421,14 +1424,37 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
                   #$flags))))
      (description (package-description ffmpeg/nvidia)))))
 
+(define-public ffmpeg/nvidia-390
+  ((replace-nvidia-driver nvda-390) ffmpeg/nvidia))
+(define-public ffmpeg/nvidia-470
+  ((replace-nvidia-driver nvda-470) ffmpeg/nvidia))
+(define-public ffmpeg/nvidia-580
+  ((replace-nvidia-driver nvda-580) ffmpeg/nvidia))
+(define-public ffmpeg/nvidia-590
+  ((replace-nvidia-driver nvda-590) ffmpeg/nvidia))
+(define-public ffmpeg/nvidia-beta
+  ((replace-nvidia-driver nvda-beta) ffmpeg/nvidia))
+(define-public ffmpeg-6/nvidia-390
+  ((replace-nvidia-driver nvda-390) ffmpeg/nvidia))
+(define-public ffmpeg-6/nvidia-470
+  ((replace-nvidia-driver nvda-470) ffmpeg/nvidia))
+(define-public ffmpeg-6/nvidia-580
+  ((replace-nvidia-driver nvda-580) ffmpeg/nvidia))
+(define-public ffmpeg-6/nvidia-590
+  ((replace-nvidia-driver nvda-590) ffmpeg/nvidia))
+(define-public ffmpeg-6/nvidia-beta
+  ((replace-nvidia-driver nvda-beta) ffmpeg/nvidia))
+
+
 (define* (replace-mesa obj #:key (driver nvda))
-  (with-transformation
-      (package-input-grafting
-       `((,mesa . ,driver)
-         (,nvidia-driver . ,driver)
-         (,ffmpeg . ,ffmpeg/nvidia)
-         (,ffmpeg-6 . ,ffmpeg-6/nvidia)))
-    obj))
+  (let ((rebuild (replace-nvidia-driver driver)))
+    (with-transformation
+        (package-input-grafting
+         `((,mesa . ,driver)
+           (,nvidia-driver . ,driver)
+           (,ffmpeg . ,(rebuild ffmpeg/nvidia))
+           (,ffmpeg-6 . ,(rebuild ffmpeg-6/nvidia))))
+      obj)))
 
 
 ;;;
