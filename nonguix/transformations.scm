@@ -103,17 +103,15 @@ and INITRD (default: microcode-initrd)."
 
 (define* (nonguix-transformation-nvidia #:key (driver nvda)
                                         (open-source-kernel-module? #f)
-                                        (s0ix-power-management? #f)
                                         (kernel-mode-setting? #t)
-                                        (configure-xorg? #f))
+                                        (configure-xorg? #f)
+                                        ;; Deprecated.
+                                        (s0ix-power-management? #f))
   "Return a procedure that transforms an operating system, setting up
 DRIVER (default: nvda) for NVIDIA graphics card.
 
 OPEN-SOURCE-KERNEL-MODULE? (default: #f) only supports Turing and later
 architectures and is expected to work with 'linux-lts'.
-
-S0IX-POWER-MANAGEMENT? (default: #f) improves suspend and hibernate on systems
-with supported graphics cards.
 
 KERNEL-MODE-SETTING? (default: #t) is required for Wayland and rootless Xorg
 support.
@@ -186,19 +184,23 @@ declaration."
     (operating-system
       (inherit os)
       (kernel-arguments
-       (delete-duplicates
-        `("modprobe.blacklist=nouveau"
-          "modprobe.blacklist=nova_core,nova_drm"
-          ,@(if s0ix-power-management?
-                '("mem_sleep_default=s2idle"
-                  "nvidia.NVreg_EnableS0ixPowerManagement=1")
-                '())
-          ,(if kernel-mode-setting?
-               "nvidia_drm.modeset=1"
-               "nvidia_drm.modeset=0")
-          ,@(remove
-             (cut string-prefix? "nvidia_drm.modeset=" <>)
-             (operating-system-user-kernel-arguments os)))))
+       `("modprobe.blacklist=nouveau"
+         "modprobe.blacklist=nova_core,nova_drm"
+         ,@(if s0ix-power-management?
+               (begin
+                 ;; 2026-03
+                 (warning
+                  (G_ "'~a': argument '~a' is deprecated, the transformation \
+won't add kernel arguments other than the minimum necessary in the future.~%")
+                  "nonguix-transformation-nvidia"
+                  "#:s0ix-power-management?")
+                 '("mem_sleep_default=s2idle"
+                   "nvidia.NVreg_EnableS0ixPowerManagement=1"))
+               '())
+         ,(if kernel-mode-setting?
+              "nvidia_drm.modeset=1"
+              "nvidia_drm.modeset=0")
+         ,@(operating-system-user-kernel-arguments os)))
       (packages
        (replace-mesa (operating-system-packages os) #:driver driver))
       (services
