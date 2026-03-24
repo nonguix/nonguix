@@ -11,12 +11,14 @@
   #:use-module (guix i18n)
   #:use-module (guix packages)
   #:use-module (guix utils)
+  #:use-module (guix build-system trivial)
   #:use-module (gnu system)
   #:use-module (nongnu system linux-initrd)
   #:use-module (gnu services)
   #:use-module (gnu services base)
   #:use-module (gnu services xorg)
   #:use-module (nongnu services nvidia)
+  #:use-module (gnu packages base)
   #:use-module (gnu packages package-management)
   #:use-module (nongnu packages linux)
   #:use-module (nongnu packages nvidia)
@@ -105,6 +107,7 @@ and INITRD (default: microcode-initrd)."
                                         (open-source-kernel-module? #f)
                                         (kernel-mode-setting? #t)
                                         (configure-xorg? #f)
+                                        (remove-nvenc-restriction? #f)
                                         ;; Deprecated.
                                         (s0ix-power-management? #f))
   "Return a procedure that transforms an operating system, setting up DRIVER
@@ -117,16 +120,82 @@ KERNEL-MODE-SETTING? (default: #t) is required for Wayland and rootless Xorg
 support.
 
 CONFIGURE-XORG? (default: #f) is required for Xorg display managers.  It accepts
-a display manager service type, or #t when using '%desktop-services'."
+a display manager service type, or #t when using '%desktop-services'.
+
+REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
+<https://github.com/keylase/nvidia-patch>."
+
+  (define* (remove-restriction #:key nvenc nvfbc)
+    (lambda (pkg)
+      (if (and (or nvenc nvfbc)
+               (target-x86-64?))
+          (package
+            (inherit pkg)
+            (build-system trivial-build-system)
+            (arguments
+             (list
+              #:builder
+              (with-imported-modules '((guix build utils))
+                #~(begin
+                    (use-modules (guix build utils))
+
+                    (define (patch-lib patch)
+                      (lambda (lib)
+                        (when patch
+                          (invoke #$(file-append sed "/bin/sed")
+                                  "--in-place" patch lib))))
+
+                    (copy-recursively #$pkg #$output)
+                    (with-directory-excursion (in-vicinity #$output "lib")
+                      (for-each
+                       (patch-lib #$nvenc)
+                       (find-files "." "libnvidia-encode\\.so"))
+                      (for-each
+                       (patch-lib #$nvfbc)
+                       (find-files "." "libnvidia-fbc\\.so")))))))
+            (native-inputs '())
+            (inputs '())
+            (propagated-inputs '()))
+          pkg)))
 
   (define %driver
-    (if (member driver
-                (list nvda-beta
-                      nvda-590
-                      nvda-580
-                      nvda-470
-                      nvda-390))
-        driver
+    (or (assoc-ref
+         `((,nvda-beta
+            . ,((if remove-nvenc-restriction?
+                   (remove-restriction
+                    #:nvenc "s/\\xe8\\x51\\x21\\xfe\\xff\\x41\\x89\\xc6\\x85\\xc0/\\xe8\\x51\\x21\\xfe\\xff\\x29\\xc0\\x41\\x89\\xc6/g"
+                    #:nvfbc "s/\\x85\\xc0\\x0f\\x85\\xd4\\x00\\x00\\x00\\x48/\\x85\\xc0\\x90\\x90\\x90\\x90\\x90\\x90\\x48/g")
+                   identity)
+                driver))
+           (,nvda-590
+            . ,((if remove-nvenc-restriction?
+                    (remove-restriction
+                     #:nvenc "s/\\xe8\\x41\\x2e\\xfe\\xff\\x41\\x89\\xc6\\x85\\xc0/\\xe8\\x41\\x2e\\xfe\\xff\\x29\\xc0\\x41\\x89\\xc6/g"
+                     #:nvfbc "s/\\x85\\xc0\\x0f\\x85\\xd4\\x00\\x00\\x00\\x48/\\x85\\xc0\\x90\\x90\\x90\\x90\\x90\\x90\\x48/g")
+                    identity)
+                driver))
+           (,nvda-580
+            . ,((if remove-nvenc-restriction?
+                    (remove-restriction
+                     #:nvenc "s/\\xe8\\x81\\x2e\\xfe\\xff\\x41\\x89\\xc6\\x85\\xc0/\\xe8\\x81\\x2e\\xfe\\xff\\x29\\xc0\\x41\\x89\\xc6/g"
+                     #:nvfbc "s/\\x85\\xc0\\x0f\\x85\\xd4\\x00\\x00\\x00\\x48/\\x85\\xc0\\x90\\x90\\x90\\x90\\x90\\x90\\x48/g")
+                    identity)
+                driver))
+           (,nvda-470
+            . ,((if remove-nvenc-restriction?
+                    (remove-restriction
+                     #:nvenc "s/\\xe8\\x55\\x1a\\xff\\xff\\x85\\xc0\\x41\\x89\\xc4/\\xe8\\x55\\x1a\\xff\\xff\\x29\\xc0\\x41\\x89\\xc4/g"
+                     #:nvfbc "s/\\x83\\xfe\\x01\\x73\\x08\\x48/\\x83\\xfe\\x00\\x72\\x08\\x48/g")
+                    identity)
+                driver))
+           (,nvda-390
+            . ,((if remove-nvenc-restriction?
+                    (remove-restriction
+                     #:nvenc "s/\\x85\\xC0\\x89\\xC5\\x75\\x18/\\x29\\xC0\\x89\\xC5\\x90\\x90/g"
+                     #:nvfbc #f)
+                    identity)
+                driver)))
+         driver)
         (leave (G_ "'~a': no driver configuration available for '~a'~%")
                "nonguix-transformation-nvidia"
                driver)))

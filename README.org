@@ -286,6 +286,7 @@ System setup is implemented via =nonguix-transformation-nvidia=:
                                 [#:open-source-kernel-module? #false]
                                 [#:kernel-mode-setting? #true]
                                 [#:configure-xorg? #false]
+                                [#:remove-nvenc-restriction? #false]
 
   Return a procedure that transforms an operating system, setting up DRIVER
   (default: nvda-580) for NVIDIA GPU.
@@ -298,6 +299,9 @@ System setup is implemented via =nonguix-transformation-nvidia=:
 
   CONFIGURE-XORG? (default: #f) is required for Xorg display managers.  It accepts
   a display manager service type, or #t when using '%desktop-services'.
+
+  REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
+  <https://github.com/keylase/nvidia-patch>.
 #+end_example
 
 For example, assuming the following operating system declaration, defined as
