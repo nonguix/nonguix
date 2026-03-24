@@ -663,9 +663,6 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
 
 (define-public nvidia-driver nvidia-driver-580)
 
-(define-public nvidia-libs
-  (deprecated-package "nvidia-libs" nvidia-driver))
-
 
 ;;;
 ;;; NVIDIA firmware

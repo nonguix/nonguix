@@ -89,9 +89,6 @@
      (description (package-description ffmpeg/nvidia))
      (properties '((upstream-name . "ffmpeg"))))))
 
-(define-deprecated-package ffmpeg-nvenc ffmpeg/nvidia)
-(define-deprecated-package ffmpeg-nvidia ffmpeg/nvidia)
-
 (define-public gmmlib
   (package
     (name "gmmlib")

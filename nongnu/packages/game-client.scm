@@ -249,8 +249,6 @@ implementation with gogdl and Amazon Games using Nile.")
 Valve.  This package provides a script for launching Steam in a Guix container
 which will use the directory @file{$HOME/.local/share/guix-sandbox-home} where
 all games will be installed.")))
-(define-deprecated/public-alias steam-container (steam-container-for mesa))
-(define-deprecated/public-alias steam-nvidia-container (steam-container-for nvda))
 
 (define-public steam-for
   (compose nonguix-container->package steam-container-for))
@@ -293,8 +291,6 @@ implementation with gogdl and Amazon Games using Nile.  This package provides
 a script for launching Heroic in a Guix container which will use the directory
 @file{$HOME/.local/share/guix-sandbox-home} where all games will be
 installed.")))
-(define-deprecated/public-alias heroic-container (heroic-container-for mesa))
-(define-deprecated/public-alias heroic-nvidia-container (heroic-container-for nvda))
 
 (define-public heroic-for
   (compose nonguix-container->package heroic-container-for))
