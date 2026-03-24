@@ -1376,6 +1376,51 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
   heroic-nvidia-beta
   (package-version nvidia-driver-beta))
 
+(define-public ffmpeg/nvidia
+  (hidden-package
+   (package
+     (inherit ffmpeg)
+     (name "ffmpeg-nvidia")
+     (inputs
+      (modify-inputs inputs
+        (prepend nv-codec-headers)))
+     (arguments
+      (substitute-keyword-arguments arguments
+        ((#:configure-flags flags)
+         ;; Currently only interested in NVENC.
+         ;; Might be better to make a ffmpeg-nonfree with all nonfree codecs
+         ;; in the future.
+         #~(cons* "--enable-cuvid"
+                  "--enable-ffnvcodec"
+                  "--enable-encoder=hevc_nvenc"
+                  "--enable-encoder=h264_nvenc"
+                  #$flags))))
+     (description
+      (string-append
+       (package-description ffmpeg)
+       "  This build of FFmpeg includes the nonfree NVIDIA encoder for
+@code{h264_nvenc} and @code{hevc_nvenc} hardware encoding on NVIDIA GPUs.")))))
+
+(define-public ffmpeg-6/nvidia
+  (hidden-package
+   (package
+     (inherit ffmpeg-6)
+     (inputs
+      (modify-inputs inputs
+        (prepend nv-codec-headers)))
+     (arguments
+      (substitute-keyword-arguments arguments
+        ((#:configure-flags flags)
+         ;; Currently only interested in NVENC.
+         ;; Might be better to make a ffmpeg-nonfree with all nonfree codecs
+         ;; in the future.
+         #~(cons* "--enable-cuvid"
+                  "--enable-ffnvcodec"
+                  "--enable-encoder=hevc_nvenc"
+                  "--enable-encoder=h264_nvenc"
+                  #$flags))))
+     (description (package-description ffmpeg/nvidia)))))
+
 (define* (replace-mesa obj #:key (driver nvda))
   (with-transformation
       (package-input-grafting
