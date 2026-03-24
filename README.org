@@ -241,17 +241,17 @@ version to use.
 
 Here're GPUs supported by our packaged proprietary drivers.
 
-| Code name    | Series                             | nvda-beta | nvda-590 | nvda-580 | nvda-470 | nvda-390 | Nouveau |
-|--------------+------------------------------------+-----------+----------+----------+----------+----------+---------|
-| [[https://en.wikipedia.org/wiki/Blackwell_(microarchitecture)][Blackwell]]    | GeForce 50 series                  | ✅       | ✅      | ✅      | ❌      | ❌      | ✅     |
-| [[https://en.wikipedia.org/wiki/Ada_Lovelace_(microarchitecture)][Ada Lovelace]] | GeForce 40 series                  | ✅       | ✅      | ✅      | ❌      | ❌      | ✅     |
-| [[https://en.wikipedia.org/wiki/Ampere_(microarchitecture)][Ampere]]       | GeForce 30 series                  | ✅       | ✅      | ✅      | ✅      | ❌      | ✅     |
-| [[https://en.wikipedia.org/wiki/Turing_(microarchitecture)][Turing]]       | GeForce 16/20 series               | ✅       | ✅      | ✅      | ✅      | ❌      | ✅     |
-| [[https://en.wikipedia.org/wiki/Volta_(microarchitecture)][Volta]]        | Titan V                            | ❌       | ❌      | ✅      | ✅      | ✅      | ✅     |
-| [[https://en.wikipedia.org/wiki/Pascal_(microarchitecture)][Pascal]]       | GeForce 10 series                  | ❌       | ❌      | ✅      | ✅      | ✅      | ✅     |
-| [[https://en.wikipedia.org/wiki/Pascal_(microarchitecture)][Maxwell]]      | GeForce 750/900                    | ❌       | ❌      | ✅      | ✅      | ✅      | ✅     |
-| [[https://en.wikipedia.org/wiki/Kepler_(microarchitecture)][Kepler]]       | GeForce 600/700, GeForce GTX Titan | ❌       | ❌      | ❌      | ✅      | ✅      | ✅     |
-| [[https://en.wikipedia.org/wiki/Fermi_(microarchitecture)][Fermi]]        | GeForce 400/500                    | ❌       | ❌      | ❌      | ❌      | ✅      | ✅     |
+| Code name    | Series                             | nvda-beta | nvda-595 | nvda-590 | nvda-580 | nvda-470 | nvda-390 | Nouveau |
+|--------------+------------------------------------+-----------+----------+----------+----------+----------+----------+---------|
+| [[https://en.wikipedia.org/wiki/Blackwell_(microarchitecture)][Blackwell]]    | GeForce 50 series                  | ✅       | ✅      | ✅      | ✅      | ❌      | ❌      | ✅     |
+| [[https://en.wikipedia.org/wiki/Ada_Lovelace_(microarchitecture)][Ada Lovelace]] | GeForce 40 series                  | ✅       | ✅      | ✅      | ✅      | ❌      | ❌      | ✅     |
+| [[https://en.wikipedia.org/wiki/Ampere_(microarchitecture)][Ampere]]       | GeForce 30 series                  | ✅       | ✅      | ✅      | ✅      | ✅      | ❌      | ✅     |
+| [[https://en.wikipedia.org/wiki/Turing_(microarchitecture)][Turing]]       | GeForce 16/20 series               | ✅       | ✅      | ✅      | ✅      | ✅      | ❌      | ✅     |
+| [[https://en.wikipedia.org/wiki/Volta_(microarchitecture)][Volta]]        | Titan V                            | ❌       | ❌      | ❌      | ✅      | ✅      | ✅      | ✅     |
+| [[https://en.wikipedia.org/wiki/Pascal_(microarchitecture)][Pascal]]       | GeForce 10 series                  | ❌       | ❌      | ❌      | ✅      | ✅      | ✅      | ✅     |
+| [[https://en.wikipedia.org/wiki/Pascal_(microarchitecture)][Maxwell]]      | GeForce 750/900                    | ❌       | ❌      | ❌      | ✅      | ✅      | ✅      | ✅     |
+| [[https://en.wikipedia.org/wiki/Kepler_(microarchitecture)][Kepler]]       | GeForce 600/700, GeForce GTX Titan | ❌       | ❌      | ❌      | ❌      | ✅      | ✅      | ✅     |
+| [[https://en.wikipedia.org/wiki/Fermi_(microarchitecture)][Fermi]]        | GeForce 400/500                    | ❌       | ❌      | ❌      | ❌      | ❌      | ✅      | ✅     |
 
 *NOTE*: Open source kernel modules are supported since Turing and required since
 Blackwell.  Wayland support for =nvda-470= and =nvda-390= is only available on
@@ -263,6 +263,7 @@ The sign ⚠️ means open source kernel modules don't work but close source one
 | Driver    | linux-6.19 | linux-6.18 | linux-6.12 | linux-6.6 | linux-6.1 |
 |-----------+------------+------------+------------+-----------+-----------|
 | nvda-beta | ⚠️        | ⚠️        | ✅        | ✅       | ✅       |
+| nvda-595  | ⚠️        | ⚠️        | ✅        | ✅       | ✅       |
 | nvda-590  | ⚠️        | ✅        | ✅        | ✅       | ✅       |
 | nvda-580  | ✅        | ⚠️        | ✅        | ✅       | ✅       |
 | nvda-470  | ✅        | ✅        | ✅        | ✅       | ✅       |
@@ -273,6 +274,7 @@ Driver package specifications, for command-line interface usage.
 | Driver    | Specification |
 |-----------+---------------|
 | nvda-beta | nvda-beta     |
+| nvda-595  | nvda@595      |
 | nvda-590  | nvda@590      |
 | nvda-580  | nvda@580      |
 | nvda-470  | nvda@470      |
@@ -472,6 +474,7 @@ more variants:
 | Variable           | Specification      |
 |--------------------+--------------------|
 | heroic-nvidia-beta | heroic-nvidia-beta |
+| heroic-nvidia-595  | heroic-nvidia@595  |
 | heroic-nvidia-590  | heroic-nvidia@590  |
 | heroic-nvidia-580  | heroic-nvidia@580  |
 | heroic-nvidia-470  | heroic-nvidia@470  |
@@ -480,6 +483,7 @@ more variants:
 | Variable          | Specification     |
 |-------------------+-------------------|
 | steam-nvidia-beta | steam-nvidia-beta |
+| steam-nvidia-595  | steam-nvidia@595  |
 | steam-nvidia-590  | steam-nvidia@590  |
 | steam-nvidia-580  | steam-nvidia@580  |
 | steam-nvidia-470  | steam-nvidia@470  |
@@ -492,11 +496,13 @@ available to the programming interface:
 - ffmpeg/nvidia-470
 - ffmpeg/nvidia-580
 - ffmpeg/nvidia-590
+- ffmpeg/nvidia-595
 - ffmpeg/nvidia-beta
 - ffmpeg-6/nvidia-390
 - ffmpeg-6/nvidia-470
 - ffmpeg-6/nvidia-580
 - ffmpeg-6/nvidia-590
+- ffmpeg-6/nvidia-595
 - ffmpeg-6/nvidia-beta
 
 ** Substitutes for nonguix

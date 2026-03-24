@@ -167,6 +167,13 @@ REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
                     #:nvfbc "s/\\x85\\xc0\\x0f\\x85\\xd4\\x00\\x00\\x00\\x48/\\x85\\xc0\\x90\\x90\\x90\\x90\\x90\\x90\\x48/g")
                    identity)
                 driver))
+           (,nvda-595
+            . ,((if remove-nvenc-restriction?
+                    (remove-restriction
+                     #:nvenc "s/\\xe8\\x51\\x21\\xfe\\xff\\x41\\x89\\xc6\\x85\\xc0/\\xe8\\x51\\x21\\xfe\\xff\\x29\\xc0\\x41\\x89\\xc6/g"
+                     #:nvfbc "s/\\x85\\xc0\\x0f\\x85\\xd4\\x00\\x00\\x00\\x48/\\x85\\xc0\\x90\\x90\\x90\\x90\\x90\\x90\\x48/g")
+                    identity)
+                driver))
            (,nvda-590
             . ,((if remove-nvenc-restriction?
                     (remove-restriction
@@ -203,6 +210,7 @@ REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
   (define %firmware
     (assoc-ref
      `((,nvda-beta . ,nvidia-firmware-beta)
+       (,nvda-595  . ,nvidia-firmware-595)
        (,nvda-590  . ,nvidia-firmware-590)
        (,nvda-580  . ,nvidia-firmware-580)
        (,nvda-470  . ,nvidia-firmware-470))
@@ -213,6 +221,9 @@ REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
      `((,nvda-beta . ,(if open-source-kernel-module?
                           nvidia-module-open-beta
                           nvidia-module-beta))
+       (,nvda-595  . ,(if open-source-kernel-module?
+                          nvidia-module-open-595
+                          nvidia-module-595))
        (,nvda-590  . ,(if open-source-kernel-module?
                           nvidia-module-open-590
                           nvidia-module-590))
@@ -226,6 +237,7 @@ REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
   (define %modprobe
     (assoc-ref
      `((,nvda-beta . ,nvidia-modprobe-beta)
+       (,nvda-595  . ,nvidia-modprobe-595)
        (,nvda-590  . ,nvidia-modprobe-590)
        (,nvda-580  . ,nvidia-modprobe-580)
        (,nvda-470  . ,nvidia-modprobe-470)
@@ -236,6 +248,7 @@ REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
     (and configure-xorg?
          (assoc-ref
           `((,nvda-beta . ,nvidia-settings-beta)
+            (,nvda-595  . ,nvidia-settings-595)
             (,nvda-590  . ,nvidia-settings-590)
             (,nvda-580  . ,nvidia-settings-580)
             (,nvda-470  . ,nvidia-settings-470)
