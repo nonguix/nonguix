@@ -53,13 +53,14 @@
   #:use-module (gnu packages xdisorg)
   #:use-module (gnu packages xml)
   #:use-module (gnu packages xorg)
+  #:use-module (nongnu packages game-client)
   #:use-module (nongnu packages linux)
   #:use-module (nongnu packages video)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-26)
   #:export (replace-mesa))
 
-(define-public %nvidia-environment-variable-regexps
+(define %nvidia-environment-variable-regexps
   '("^__NV_"
     "^__GL_"                            ; NVIDIA OpenGL settings.
     "^__GLX_VENDOR_LIBRARY_NAME$"       ; For GLVND.
@@ -1297,6 +1298,18 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 (define-public nvda nvda-580)
 ;; 2026-03
 (define-deprecated-package nvdb nvda-beta)
+
+
+;;;
+;;; Package variants for NVIDIA proprietary driver
+;;;
+
+(define-public steam-nvidia
+  (package-with-alias "steam-nvidia" (steam-for nvda)))
+
+(define-public heroic-nvidia
+  (package-with-alias "heroic-nvidia" (heroic-for nvda)))
+
 
 (define* (replace-mesa obj #:key (driver nvda))
   (with-transformation

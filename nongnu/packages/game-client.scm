@@ -243,7 +243,6 @@ implementation with gogdl and Amazon Games using Nile.")
    (packages
     (modify-inputs steam-container-libs
       (replace "mesa" driver)))
-   (preserved-env %nvidia-environment-variable-regexps)
    (link-files '("share"))
    (description "Steam is a digital software distribution platform created by
 Valve.  This package provides a script for launching Steam in a Guix container
@@ -252,10 +251,7 @@ all games will be installed.")))
 
 (define-public steam-for
   (compose nonguix-container->package steam-container-for))
-
 (define-public steam (steam-for mesa))
-(define-public steam-nvidia
-  (package-with-alias "steam-nvidia" (steam-for nvda)))
 
 (define-public (heroic-container-for driver)
   (nonguix-container
@@ -283,7 +279,6 @@ all games will be installed.")))
                  (delete "python"))
                #:name "fhs-union-32"
                #:system "i686-linux"))
-   (preserved-env %nvidia-environment-variable-regexps)
    (link-files '("share"))
    (description "Heroic is an Open Source Game Launcher.  Right now it supports launching
 games from the Epic Games Store using Legendary, GOG Games using our custom
@@ -294,10 +289,7 @@ installed.")))
 
 (define-public heroic-for
   (compose nonguix-container->package heroic-container-for))
-
 (define-public heroic (heroic-for mesa))
-(define-public heroic-nvidia
-  (package-with-alias "heroic-nvidia" (heroic-for nvda)))
 
 (define-public protonup
   (package
