@@ -231,6 +231,7 @@ implementation with gogdl and Amazon Games using Nile.")
 (define heroic-extra-client-libs
   `(("curl" ,curl)                      ; Required for Heroic to download e.g. Wine.
     ("openssl" ,openssl)                ; Required for MonoGame mods.
+    ("python" ,python)                  ; Required (64-bit) for legendary.
     ("which" ,which)                    ; Heroic complains about trying to use which (though works).
     ("gtk+" ,gtk+)))                    ; Required for Heroic interface (gtk filechooser schema).
 
@@ -276,7 +277,12 @@ all games will be installed.")))
    ;; Don't include heroic-client-libs as they are not needed in 32-bit.
    (union32
     (fhs-union (modify-inputs steam-container-libs
-                 (replace "mesa" driver))
+                 (replace "mesa" driver)
+                 ;; The first python found will be used and it needs to be
+                 ;; 64-bit.
+                 ;; TODO: Change order in manifest, or set PATH, but Steam
+                 ;; needs a 32-bit ldd (found first?).
+                 (delete "python"))
                #:name "fhs-union-32"
                #:system "i686-linux"))
    (preserved-env %nvidia-environment-variable-regexps)
