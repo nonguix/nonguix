@@ -12,6 +12,7 @@
   #:use-module (guix utils)
   #:use-module (guix packages)
   #:use-module (guix platform)
+  #:use-module (guix build-system trivial)
   #:use-module (gnu services)
   #:use-module (gnu packages base)
   #:export (package-input-grafting
@@ -41,24 +42,39 @@ package to replace, and the second one is the replacement.
 
 Name and version of replacement packages will be padded to meet graft
 requirement."
+  (define (graft-string old new)
+    (string-pad-right new (string-length old) #\0))
+
+  (define (string-length=? a b)
+    (= (string-length a)
+       (string-length b)))
+
+  (define (graft-package old new)
+    (let ((old-name (package-name old))
+          (new-name (package-name new))
+          (old-version (package-version old))
+          (new-version (package-version new)))
+      (package
+        (inherit old)
+        (replacement
+         (if (and (string-length=? old-name new-name)
+                  (string-length=? old-version new-version))
+             new
+             (package
+               (inherit new)
+               (name (graft-string old-name new-name))
+               (version (graft-string old-version new-version))
+               (build-system trivial-build-system)
+               (arguments (list #:builder #~(symlink #$new #$output)))
+               (native-inputs '())
+               (inputs '())
+               (propagated-inputs '())
+               (outputs '("out"))))))))
+
   (package-input-rewriting
    (map (match-lambda
           ((old . new)
-           `(,old . ,(package
-                       (inherit old)
-                       (replacement
-                        (package
-                          (inherit new)
-                          (name
-                           (string-pad-right
-                            (package-name new)
-                            (string-length (package-name old))
-                            #\0))
-                          (version
-                           (string-pad-right
-                            (package-version new)
-                            (string-length (package-version old))
-                            #\0))))))))
+           `(,old . ,(graft-package old new))))
         replacements)))
 
 ;; For concerns and direction of improvement, see this thread:
