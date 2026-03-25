@@ -256,16 +256,16 @@ Chromium and is used by the Atom editor and many other apps.")
 (define-public electron-38
   (package
     (inherit electron-37)
-    (version "38.8.4")
+    (version "38.8.6")
     (source (electron-source version
-                             "07l4wxywr0ng778ikmazlshskfc26dxz43df34flxdvzglq3n202"))))
+                             "1gp896wf6vpk581m6ds3b3xcyisrlr89bqcdvjs3ds0bgjyg5a21"))))
 
 (define-public electron-38-node-headers
   (package
     (inherit electron-37-node-headers)
     (version (package-version electron-38))
     (source (electron-node-headers-source
-             version "1nplppzkhmsdq4r89yzsfg0fzgx7a6wd14z6ss05b3kdv31lm738"))))
+             version "1z9fvxhm4y15p87q4dldap5sjj1dxjx3sx0znqqxxikdhjd5x2nb"))))
 
 (define-public electron-39
   (package
