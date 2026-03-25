@@ -56,6 +56,7 @@
   #:use-module (nongnu packages linux)
   #:use-module (nongnu packages video)
   #:use-module (ice-9 match)
+  #:use-module (srfi srfi-26)
   #:export (replace-mesa))
 
 (define-public %nvidia-environment-variable-regexps
@@ -95,60 +96,74 @@
 ;;; NVIDIA driver checkouts
 ;;;
 
-(define* (make-nvidia-source version installer #:key (patches '()) snippet)
-  (origin
-    (method (@@ (guix packages) computed-origin-method))
-    (file-name (string-append "nvidia-driver-source-" version "-checkout"))
-    (sha256 #f)
-    (patches patches)
-    (modules '((guix build utils)))
-    (snippet snippet)
-    (uri
-     (delay
-       (with-imported-modules '((guix build utils))
-         #~(begin
-             (use-modules (ice-9 ftw)
-                          (srfi srfi-1)
-                          (guix build utils))
-             (set-path-environment-variable
-              "PATH" '("bin")
-              '#+(list bash-minimal
-                       coreutils-minimal
-                       gawk
-                       grep
-                       tar
-                       which
-                       xz
-                       zstd))
-             (invoke "sh" #+installer "--extract-only" "--target" "extractdir")
-             (when (file-exists? "extractdir/kernel-open")
-               (delete-file-recursively "extractdir/kernel-open"))
-             (for-each delete-file
-                       (find-files "extractdir"
-                                   (string-join
-                                    '(;; egl-gbm
-                                      "libnvidia-egl-gbm\\.so\\."
-                                      ;; egl-wayland
-                                      "libnvidia-egl-wayland\\.so\\."
-                                      ;; egl-wayland2
-                                      "libnvidia-egl-wayland2\\.so\\."
-                                      ;; egl-x11
-                                      "libnvidia-egl-xcb\\.so\\."
-                                      "libnvidia-egl-xlib\\.so\\."
-                                      ;; libglvnd
-                                      "libEGL\\.so\\."
-                                      "libGL\\.so\\."
-                                      "libGLESv1_CM\\.so\\."
-                                      "libGLESv2\\.so\\."
-                                      "libGLX\\.so\\."
-                                      "libGLdispatch\\.so\\."
-                                      "libOpenGL\\.so\\."
-                                      ;; nvidia-settings
-                                      "libnvidia-gtk[23]\\.so\\."
-                                      ;; opencl-icd-loader
-                                      "libOpenCL\\.so\\.")
-                                    "|")))
-             (copy-recursively "extractdir" #$output)))))))
+(define* (make-nvidia-source version arch hash #:key (patches '()) snippet)
+  (define installer
+    (origin
+      (method url-fetch)
+      (uri (list (string-append
+                  "https://international.download.nvidia.com/XFree86/"
+                  arch "/" version "/NVIDIA-Linux-" arch "-" version ".run")
+                 (string-append
+                  "https://download.nvidia.com/XFree86/Linux-"
+                  arch "/" version "/NVIDIA-Linux-" arch "-" version ".run")))
+      (sha256 hash)))
+  (package
+    (inherit %binary-source)
+    (version version)
+    (source
+     (origin
+       (method (@@ (guix packages) computed-origin-method))
+       (file-name (string-append "nvidia-driver-source-" version "-checkout"))
+       (sha256 #f)
+       (patches patches)
+       (modules '((guix build utils)))
+       (snippet snippet)
+       (uri
+        (delay
+          (with-imported-modules '((guix build utils))
+            #~(begin
+                (use-modules (guix build utils))
+                (set-path-environment-variable
+                 "PATH" '("bin")
+                 '#+(list bash-minimal
+                          coreutils-minimal
+                          gawk
+                          grep
+                          tar
+                          which
+                          xz
+                          zstd))
+                (invoke "sh" #+installer
+                        "--extract-only" "--target" "extractdir")
+                ;; We'll build open source kernel modules from git.
+                (when (file-exists? "extractdir/kernel-open")
+                  (delete-file-recursively "extractdir/kernel-open"))
+                (for-each delete-file
+                          (find-files "extractdir"
+                                      (string-join
+                                       '(;; egl-gbm
+                                         "libnvidia-egl-gbm\\.so\\."
+                                         ;; egl-wayland
+                                         "libnvidia-egl-wayland\\.so\\."
+                                         ;; egl-wayland2
+                                         "libnvidia-egl-wayland2\\.so\\."
+                                         ;; egl-x11
+                                         "libnvidia-egl-xcb\\.so\\."
+                                         "libnvidia-egl-xlib\\.so\\."
+                                         ;; libglvnd
+                                         "libEGL\\.so\\."
+                                         "libGL\\.so\\."
+                                         "libGLESv1_CM\\.so\\."
+                                         "libGLESv2\\.so\\."
+                                         "libGLX\\.so\\."
+                                         "libGLdispatch\\.so\\."
+                                         "libOpenGL\\.so\\."
+                                         ;; nvidia-settings
+                                         "libnvidia-gtk[23]\\.so\\."
+                                         ;; opencl-icd-loader
+                                         "libOpenCL\\.so\\.")
+                                       "|")))
+                (copy-recursively "extractdir" #$output)))))))))
 
 (define %nvidia-patches-390
   (let ((commit "caed47174d2c835921d9f23ea08c630ef5cdea06"))
@@ -180,189 +195,97 @@
            (string-append all "kernel/")))))))
 
 (define nvidia-source-390-x86_64-linux
-  (package
-    (inherit %binary-source)
-    (name "nvidia-driver")
-    (version "390.157")
-    (source
-     (make-nvidia-source
-      version
-      (origin
-        (method url-fetch)
-        (uri (string-append
-              "https://download.nvidia.com/XFree86/Linux-x86_64/"
-              version "/NVIDIA-Linux-x86_64-" version ".run"))
-        (sha256
-         (base32 "12ijkc5zvs3ivk5m69cm6k2ys60z6nggnw0hv2wxdmgyx2kbrssv")))
-      #:patches
-      (map (lambda (name)
-             (file-append %nvidia-patches-390 "/" name))
-           '("kernel-4.16+-memory-encryption.patch"
-             "kernel-6.2.patch"
-             "kernel-6.3.patch"
-             "kernel-6.4.patch"
-             "kernel-6.5.patch"
-             "kernel-6.6.patch"
-             "kernel-6.8.patch"
-             "gcc-14.patch"
-             "kernel-6.10.patch"
-             "kernel-6.12.patch"
-             "kernel-6.13.patch"
-             "kernel-6.14.patch"
-             "gcc-15.patch"
-             "kernel-6.15.patch"
-             "kernel-6.17.patch"
-             "kernel-6.19.patch"
-             "kernel-6.18-nv_workqueue_flush.patch"))
-      #:snippet
-      #~(rename-file "nvidia_icd.json.template" "nvidia_icd.json")))))
+  (make-nvidia-source
+   "390.157"
+   "x86_64"
+   (base32 "12ijkc5zvs3ivk5m69cm6k2ys60z6nggnw0hv2wxdmgyx2kbrssv")
+   #:patches
+   (map (cut file-append %nvidia-patches-390 "/" <>)
+        '("kernel-4.16+-memory-encryption.patch"
+          "kernel-6.2.patch"
+          "kernel-6.3.patch"
+          "kernel-6.4.patch"
+          "kernel-6.5.patch"
+          "kernel-6.6.patch"
+          "kernel-6.8.patch"
+          "gcc-14.patch"
+          "kernel-6.10.patch"
+          "kernel-6.12.patch"
+          "kernel-6.13.patch"
+          "kernel-6.14.patch"
+          "gcc-15.patch"
+          "kernel-6.15.patch"
+          "kernel-6.17.patch"
+          "kernel-6.19.patch"
+          "kernel-6.18-nv_workqueue_flush.patch"))
+   #:snippet
+   #~(rename-file "nvidia_icd.json.template" "nvidia_icd.json")))
 
 (define nvidia-source-470-x86_64-linux
-  (package
-    (inherit %binary-source)
-    (name "nvidia-driver")
-    (version "470.256.02")
-    (source
-     (make-nvidia-source
-      version
-      (origin
-        (method url-fetch)
-        (uri (string-append
-              "https://download.nvidia.com/XFree86/Linux-x86_64/"
-              version "/NVIDIA-Linux-x86_64-" version ".run"))
-        (sha256
-         (base32 "1pmi949s0gzzjw2w3qhhihb82gppd1icvdzk8w2bp5dnvri1hifn")))
-      #:patches
-      (map (lambda (name)
-             (file-append %nvidia-patches-470 "/patches/" name))
-           '("0001-Fix-conftest-to-ignore-implicit-function-declaration.patch"
-             "0002-Fix-conftest-to-use-a-short-wchar_t.patch"
-             "0003-Fix-conftest-to-use-nv_drm_gem_vmap-which-has-the-se.patch"
-             "kernel-6.10.patch"
-             "kernel-6.12.patch"
-             "nvidia-470xx-fix-gcc-15.patch"
-             "nvidia-470xx-fix-linux-6.13.patch"
-             "nvidia-470xx-fix-linux-6.14.patch"
-             "nvidia-470xx-fix-linux-6.15.patch"
-             "nvidia-470xx-fix-linux-6.17.patch"
-             "nvidia-470xx-fix-linux-6.19-part1.patch"
-             "nvidia-470xx-fix-linux-6.19-part2.patch"
-             "nvidia-470xx-fix-linux-7.0.patch"
-             "disable-objtool-override.patch"
-             "enable-drm-modeset-by-default.patch"))))))
+  (make-nvidia-source
+   "470.256.02"
+   "x86_64"
+   (base32 "1pmi949s0gzzjw2w3qhhihb82gppd1icvdzk8w2bp5dnvri1hifn")
+   #:patches
+   (map (cut file-append %nvidia-patches-470 "/patches/" <>)
+        '("0001-Fix-conftest-to-ignore-implicit-function-declaration.patch"
+          "0002-Fix-conftest-to-use-a-short-wchar_t.patch"
+          "0003-Fix-conftest-to-use-nv_drm_gem_vmap-which-has-the-se.patch"
+          "kernel-6.10.patch"
+          "kernel-6.12.patch"
+          "nvidia-470xx-fix-gcc-15.patch"
+          "nvidia-470xx-fix-linux-6.13.patch"
+          "nvidia-470xx-fix-linux-6.14.patch"
+          "nvidia-470xx-fix-linux-6.15.patch"
+          "nvidia-470xx-fix-linux-6.17.patch"
+          "nvidia-470xx-fix-linux-6.19-part1.patch"
+          "nvidia-470xx-fix-linux-6.19-part2.patch"
+          "nvidia-470xx-fix-linux-7.0.patch"
+          "disable-objtool-override.patch"
+          "enable-drm-modeset-by-default.patch"))))
 
 ;; FIXME: The kernel module doesn't build on aarch64-linux currently.
 (define nvidia-source-470-aarch64-linux
-  (package
-    (inherit %binary-source)
-    (name "nvidia-driver")
-    (version "470.256.02")
-    (source
-     (make-nvidia-source
-      version
-      (origin
-        (method url-fetch)
-        (uri (string-append
-              "https://us.download.nvidia.com/XFree86/aarch64/"
-              version "/NVIDIA-Linux-aarch64-" version ".run"))
-        (sha256
-         (base32 "138dg91zq1a8syrp8rax0braw82aacn6ggd08v4zs5mpwh9jzr3v")))))))
+  (make-nvidia-source
+   "470.256.02"
+   "aarch64"
+   (base32 "138dg91zq1a8syrp8rax0braw82aacn6ggd08v4zs5mpwh9jzr3v")))
 
 (define nvidia-source-580-x86_64-linux
-  (package
-    (inherit %binary-source)
-    (name "nvidia-driver")
-    (version "580.142")
-    (source
-     (make-nvidia-source
-      version
-      (origin
-        (method url-fetch)
-        (uri (string-append
-              "https://download.nvidia.com/XFree86/Linux-x86_64/"
-              version "/NVIDIA-Linux-x86_64-" version ".run"))
-        (sha256
-         (base32 "0qvm8hh3d90i3674dqlj1lam6m189ah60fzr1iaw72gy7z7mz490")))))))
+  (make-nvidia-source
+   "580.142"
+   "x86_64"
+   (base32 "0qvm8hh3d90i3674dqlj1lam6m189ah60fzr1iaw72gy7z7mz490")))
 
 (define nvidia-source-580-aarch64-linux
-  (package
-    (inherit %binary-source)
-    (name "nvidia-driver")
-    (version "580.142")
-    (source
-     (make-nvidia-source
-      version
-      (origin
-        (method url-fetch)
-        (uri (string-append
-              "https://us.download.nvidia.com/XFree86/aarch64/"
-              version "/NVIDIA-Linux-aarch64-" version ".run"))
-        (sha256
-         (base32 "0cqi2wgvyxid0dwav8c1awmgq7wcs0naxxf3wdx88kd9qkrnnywf")))))))
+  (make-nvidia-source
+   "580.142"
+   "aarch64"
+   (base32 "0cqi2wgvyxid0dwav8c1awmgq7wcs0naxxf3wdx88kd9qkrnnywf")))
 
 (define nvidia-source-590-x86_64-linux
-  (package
-    (inherit %binary-source)
-    (name "nvidia-driver")
-    (version "590.48.01")
-    (source
-     (make-nvidia-source
-      version
-      (origin
-        (method url-fetch)
-        (uri (string-append
-              "https://download.nvidia.com/XFree86/Linux-x86_64/"
-              version "/NVIDIA-Linux-x86_64-" version ".run"))
-        (sha256
-         (base32 "12fnddljvgxksil6n3d5a35wwg8kkq82kkglhz63253qjc3giqmr")))))))
+  (make-nvidia-source
+   "590.48.01"
+   "x86_64"
+   (base32 "12fnddljvgxksil6n3d5a35wwg8kkq82kkglhz63253qjc3giqmr")))
 
 (define nvidia-source-590-aarch64-linux
-  (package
-    (inherit %binary-source)
-    (name "nvidia-driver")
-    (version "590.48.01")
-    (source
-     (make-nvidia-source
-      version
-      (origin
-        (method url-fetch)
-        (uri (string-append
-              "https://us.download.nvidia.com/XFree86/aarch64/"
-              version "/NVIDIA-Linux-aarch64-" version ".run"))
-        (sha256
-         (base32 "107xpshd3rn6sdcrprd32a7n5crdzarr3y7yv66d3m2nm9zzpv0l")))))))
+  (make-nvidia-source
+   "590.48.01"
+   "aarch64"
+   (base32 "107xpshd3rn6sdcrprd32a7n5crdzarr3y7yv66d3m2nm9zzpv0l")))
 
 (define nvidia-source-beta-x86_64-linux
-  (package
-    (inherit %binary-source)
-    (name "nvidia-driver-beta")
-    (version "595.45.04")
-    (source
-     (make-nvidia-source
-      version
-      (origin
-        (method url-fetch)
-        (uri (string-append
-              "https://download.nvidia.com/XFree86/Linux-x86_64/"
-              version "/NVIDIA-Linux-x86_64-" version ".run"))
-        (sha256
-         (base32 "0plg9vsim8252c7k3slxblvrspy4xqa6q719flxjmfkc4i4najfd")))))))
+  (make-nvidia-source
+   "595.45.04"
+   "x86_64"
+   (base32 "0plg9vsim8252c7k3slxblvrspy4xqa6q719flxjmfkc4i4najfd")))
 
 (define nvidia-source-beta-aarch64-linux
-  (package
-    (inherit %binary-source)
-    (name "nvidia-driver-beta")
-    (version "595.45.04")
-    (source
-     (make-nvidia-source
-      version
-      (origin
-        (method url-fetch)
-        (uri (string-append
-              "https://us.download.nvidia.com/XFree86/aarch64/"
-              version "/NVIDIA-Linux-aarch64-" version ".run"))
-        (sha256
-         (base32 "1jff1jahw3bj3bdnr793xjpps4hix61qa03bvfdaq5r0dd0saplf")))))))
+  (make-nvidia-source
+   "595.45.04"
+   "aarch64"
+   (base32 "1jff1jahw3bj3bdnr793xjpps4hix61qa03bvfdaq5r0dd0saplf")))
 
 
 ;;;
