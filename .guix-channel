@@ -1,7 +1,6 @@
-;;; SPDX-License-Identifier: GPL-3.0-or-later
-;; -*- mode: scheme; -*-
+;; This file is best viewed as -*- Scheme -*-.
 
 (channel
- (version 0)
- (news-file "news.txt")
- (url "https://gitlab.com/nonguix/nonguix")) ; the primary URL
+  (version 0)
+  (news-file "news.txt")
+  (url "https://gitlab.com/nonguix/nonguix")) ; the primary URL
