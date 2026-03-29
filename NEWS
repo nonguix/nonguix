@@ -1,10 +1,27 @@
-                                                              -*- org -*-
+-*- org -*-
 # SPDX-License-Identifier: CC0-1.0
 # Copyright © 2022-2023 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 # Copyright © 2023 John Kehayias <john.kehayias@protonmail.com>
+# Copyright © 2026 Hilton Chain <hako@ultrarare.space>
 #+TITLE: NEWS about user visible changes of nonguix
 
-* Unreleased
+* 2026-04
+*** NVIDIA: open source kernel modules now built from git
+From testing, their compatibility with kernels is different from the ones we
+packaged before.  Please refer to our documentation for currently supported
+kernels.
+
+*** NVIDIA: aarch64-linux and legacy series (390.xx, 470.xx) support
+
+*** `package-with-alias' now uses the superseding mechanism
+This is the same mechanism as seen in package deprecations.  It is implemented
+in Guix UI so we can bind new names to a package without needing to rebuild.
+
+*** New procedure `binary-package-from-sources' for better multiarch binary package support
+Examples are available in =(nongnu packages nvidia)=.  Sources are defiend as
+=<package>= to support ~guix refresh~ with manifests.
+
+* 2023-07
 *** New `chromium-binary-build-system`
 
 * Changes in 1.4.0 (since 2022-05-21 (Guix 1.3.0))
