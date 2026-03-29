@@ -1,6 +1,7 @@
 ;;; Copyright © 2020 Alex Griffin <a@ajgrf.com>
 ;;; Copyright © 2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2023 Wolf <wolf@wolfsden.cz>
+;;; Copyright © 2026 Hilton Chain <hako@ultrarare.space>
 ;;
 ;; Copying and distribution of this file, with or without modification, are
 ;; permitted in any medium without royalty provided the copyright notice and
@@ -8,6 +9,21 @@
 
 (channel-news
  (version 0)
+
+ (entry (commit "14dafc04725a13f40c2851f4b7e993a0583d7a4e")
+        (title
+         (en "New NVIDIA driver versions and documentation changes"))
+        (body
+         (en "Besides the new 595.xx NVIDIA proprietary driver series,
+@code{aarch64-linux} support and legacy series (390.xx and 470.xx) are now
+available.  @code{nonguix-transformation-nvidia} is now the preferred setup
+interface and it's recommended to migrate your previous configurations.
+
+@cite{NVIDIA graphics card} section of Nonguix README has been updated with
+supported GPUs and kernel versions for each driver series.  Open source kernel
+modules have been built from Git source and their compatible kernel versions may
+differ from previously packaged ones.  Please refer to the documentation for
+details.")))
 
  (entry (commit "be61a1829a19724299e46d6e3c1038229039c3ee")
         (title
