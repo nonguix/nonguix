@@ -4,13 +4,17 @@
 ;;; Copyright © 2024 Murilo <murilo@disroot.org>
 ;;; Copyright © 2025 John Kehayias <john@guixotic.coop>
 ;;; Copyright © 2025 Robin Templeton <robin@guixotic.coop>
+;;; Copyright © 2026 Maxim Cournoyer <maxim@guixotic.coop>
 
 (define-module (nongnu packages video)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
+  #:use-module (gnu packages bootstrap)
   #:use-module (gnu packages compression)
   #:use-module (gnu packages cups)
+  #:use-module (gnu packages curl)
   #:use-module (gnu packages databases)
+  #:use-module (gnu packages elf)
   #:use-module (gnu packages fontutils)
   #:use-module (gnu packages freedesktop)
   #:use-module (gnu packages icu4c)
@@ -24,6 +28,7 @@
   #:use-module (gnu packages nss)
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages pulseaudio)
+  #:use-module (gnu packages qt)
   #:use-module (gnu packages tls)
   #:use-module (gnu packages video)
   #:use-module (gnu packages xdisorg)
@@ -38,6 +43,7 @@
   #:use-module (guix packages)
   #:use-module (guix utils)
   #:use-module ((guix licenses) #:prefix license:)
+  #:use-module (nongnu packages)
   #:use-module (nongnu packages chromium)
   #:use-module (nongnu packages nvidia)
   #:use-module (nonguix build-system binary)
@@ -471,3 +477,133 @@ import new integrations.")
      ;; etc. but with a non-commercial prohibition.
      (nonguix-license:nonfree
       "https://gitlab.futo.org/videostreaming/grayjay/-/blob/master/LICENSE.md"))))
+
+(define-public makemkv
+  (package
+    (name "makemkv")
+    ;; This is not the last version, but newer ones like 1.18.3 have a bug
+    ;; where the 'makemkvcon' process hang at 100% CPU when attempting to read
+    ;; a Blu-ray disc, as reported by multiple users (see for example:
+    ;; <https://forum.makemkv.com/forum/viewtopic.php?t=35897> and
+    ;; <https://forum.makemkv.com/forum/viewtopic.php?p=178014>).
+    (version "1.17.7")
+    (source (origin
+              (method url-fetch)
+              (uri (string-append "https://www.makemkv.com/download/old/"
+                                  name "-oss-" version ".tar.gz"))
+              (sha256
+               (base32
+                "1vx0sf8y5kl0l3szc3hd28anm7pxq2bpvjrdqskpbv7r8qnmabkn"))
+              (patches (nongnu-patches "makemkv-app-id.patch"))))
+    (build-system gnu-build-system)
+    (arguments
+     (list
+      #:imported-modules (cons '(guix build qt-utils)
+                               %default-gnu-imported-modules)
+      #:modules (cons '(guix build qt-utils)
+                      %default-gnu-modules)
+      #:tests? #f                     ;no test suite
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-after 'unpack 'remove-ldconfig-invocation
+            (lambda _
+              (substitute* "Makefile.in"
+                (("\tldconfig.*") ""))))
+          (add-after 'install 'install-makemkv-bin
+            ;; This is the closed-source binary component of makemkv, which
+            ;; contains e.g. the 'makemkvcon' executable for retrieving keys
+            ;; from their server.
+            (lambda* (#:key inputs #:allow-other-keys #:rest args)
+              (invoke "tar" "xf"
+                      #$(this-package-native-input
+                         (format #f "makemkv-bin-~a.tar.gz"
+                                 (package-version this-package))))
+              (with-directory-excursion #$(string-append "makemkv-bin-" version)
+                (substitute* "Makefile"
+                  ;; Automatically accept the EULA non-interactively.
+                  (("@/bin/bash src/ask_eula.sh") "true"))
+                (apply (assoc-ref %standard-phases 'install)
+                       `(,@args #:make-flags
+                                (,(string-append "PREFIX="
+                                                 #$output))))
+                (install-file "src/eula_en_linux.txt"
+                              (string-append #$output "/share/MakeMKV")))
+              ;; Fix the RUNPATH of the makemkvcon binary.
+              (let ((makemkvcon (string-append #$output "/bin/makemkvcon")))
+                (invoke "patchelf" "--set-rpath"
+                        ;; libcurl is dlopen'ed from makemkvcon
+                        (string-append #$output "/lib:"
+                                       (dirname (search-input-file
+                                                 inputs "lib/libcurl.so")))
+                        makemkvcon)
+                (invoke "patchelf" "--set-interpreter"
+                        (search-input-file inputs #$(glibc-dynamic-linker))
+                        makemkvcon))))
+          (add-after 'install 'wrap-qt
+            (lambda* (#:key inputs #:allow-other-keys)
+              (wrap-qt-program "makemkv"
+                               #:output #$output
+                               #:inputs inputs))))))
+    (native-inputs
+     (list patchelf
+           pkg-config
+           (origin
+             (method url-fetch)
+             (uri (string-append "https://www.makemkv.com/download/old/"
+                                 name "-bin-" version ".tar.gz"))
+             (sha256
+              (base32
+               "1l2ii5k6bjgzy20d29mng4j0pnwjwdj0qif87j3iyawmphqwhnwc")))))
+    (inputs (list curl ffmpeg-6 expat openssl qtbase-5 qtwayland-5 zlib))
+    (home-page "https://www.makemkv.com")
+    (synopsis "Video converter with support for Blu-ray and DVD encryption")
+    (description "MakeMKV allows converting the video clips from
+proprietary (and usually encrypted) discs into a set of MKV files, preserving
+most information but not changing it in any way.  The MKV format can store
+multiple video/audio tracks with all meta-information and preserve chapters.
+There are many players that can play MKV files nearly on all platforms, and
+there are tools to convert MKV files to many formats, including DVD and
+Blu-ray discs.
+
+Additionally, MakeMKV can instantly stream decrypted video without
+intermediate conversion to wide range of players, so you may watch Blu-ray and
+DVD discs with your favorite player.  This is made possible via its
+@code{libmmdb} library, which can act as a replacement for the @code{libaacs}
+library.  To use it with VLC for example, you can force its use instead of the
+regular @code{libaacs} library by setting the following (@code{libbluray},
+used by VLC) environment variable:
+
+@example
+guix install makemkv vlc
+export MAKEMKVCON=$(which makemkvcon)
+export LIBAACS_PATH=$HOME/.guix-profile/lib/libmmbd
+export LIBBDPLUS_PATH=$HOME/.guix-profile/lib/libmmbd
+vlc /dev/sr0
+@end example
+
+Among its features are:
+@itemize
+@item Reads DVD and Blu-ray discs
+@item Reads Blu-ray discs protected with latest versions of AACS and BD+
+@item Preserves all video and audio tracks, including HD audio
+@item Preserves chapters information
+@item Preserves all meta-information (track language, audio type)
+@item Fast conversion -- converts as fast as your drive can read data
+@item No additional software required for conversion or decryption.
+@end itemize
+
+IMPORTANT:
+@itemize
+@item
+By installing this package, you agree to its end user license
+agreement, which you can read at @file{share/MakeMKV/eula_en_linux.txt}.
+@item
+Purchasing a license key is required to use this older version.
+@item
+UHD (4K) Blu-ray playback requires LibreDrive compatibility.  Do your research
+before buying a Blu-ray drive!
+@end itemize")
+    ;; Redistributable, with a proprietary license (shareware).
+    (license (nonguix-license:nonfree "file://License.txt"))
+    (supported-systems (list "x86_64-linux" "i686-linux"
+                             "aarch64-linux" "armhf-linux"))))
