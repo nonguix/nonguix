@@ -303,6 +303,121 @@
 
 
 ;;;
+;;; NVIDIA driver dependencies.
+;;;
+
+;; Define dependencies before NVIDIA driver definitions, since
+;; binary-package-from-sources accesses non-delayed package fields.
+
+(define-public egl-gbm
+  (package
+    (name "egl-gbm")
+    (version "1.1.3")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/NVIDIA/egl-gbm")
+                    (commit version)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "1p9w7xc7zdrwxxiwmmhmsqf0jlzcgnrkgci2j5da4xzjasyf109s"))))
+    (build-system meson-build-system)
+    (arguments
+     (list
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-after 'install 'patch-library-reference
+            (lambda* (#:key outputs #:allow-other-keys)
+              (let ((dir "share/egl/egl_external_platform.d"))
+                (with-directory-excursion (in-vicinity #$output dir)
+                  (substitute* "15_nvidia_gbm.json"
+                    (("libnvidia-egl-.*\\.so\\.." lib)
+                     (search-input-file
+                      outputs (in-vicinity "lib" lib)))))))))))
+    (native-inputs (list pkg-config))
+    (inputs (list eglexternalplatform mesa-for-nvda))
+    (synopsis "GBM EGL external platform library")
+    (description
+     "This package provides an EGL External Platform library implementation for
+GBM EGL support.")
+    (home-page "https://github.com/NVIDIA/egl-gbm")
+    (license license-gnu:expat)))
+
+(define-public egl-wayland2
+  (package
+    (inherit egl-wayland)
+    (name "egl-wayland2")
+    (version "1.0.1")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/NVIDIA/egl-wayland2")
+              (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "15n6jf8kxkha0bxhjj9x720i88nqar8k6wkirav2izbi52vgxnji"))))
+    (arguments
+     (list
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-after 'install 'patch-library-reference
+            (lambda* (#:key outputs #:allow-other-keys)
+              (let ((dir "share/egl/egl_external_platform.d"))
+                (with-directory-excursion (in-vicinity #$output dir)
+                  (substitute* "09_nvidia_wayland2.json"
+                    (("libnvidia-egl-.*\\.so\\.." lib)
+                     (search-input-file
+                      outputs (in-vicinity "lib" lib)))))))))))
+    (synopsis "Dma-buf-based Wayland external platform library")
+    (description
+     "This is a new implementation of the EGL External Platform Library for
+Wayland (@code{EGL_KHR_platform_wayland}), using the NVIDIA driver's new
+platform surface interface, which simplifies a lot of the library and improves
+window resizing.")
+    (home-page "https://github.com/NVIDIA/egl-wayland2")
+    (license license-gnu:asl2.0)))
+
+(define-public egl-x11
+  (package
+    (name "egl-x11")
+    (version "1.0.5")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                    (url "https://github.com/NVIDIA/egl-x11")
+                    (commit (string-append "v" version))))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "07d72z4dm2w9ys01li2v770j51zciahn0m5yn4bxrns7gxrylpsa"))))
+    (build-system meson-build-system)
+    (arguments
+     (list
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-after 'install 'patch-library-reference
+            (lambda* (#:key outputs #:allow-other-keys)
+              (let ((dir "share/egl/egl_external_platform.d"))
+                (with-directory-excursion (in-vicinity #$output dir)
+                  (substitute* '("20_nvidia_xcb.json"
+                                 "20_nvidia_xlib.json")
+                    (("libnvidia-egl-.*\\.so\\.." lib)
+                     (search-input-file
+                      outputs (in-vicinity "lib" lib)))))))))))
+    (native-inputs (list pkg-config))
+    (inputs (list eglexternalplatform mesa-for-nvda))
+    (synopsis "X11 and XCB EGL external platform library")
+    (description
+     "This package provides an EGL platform library for the NVIDIA driver to
+support XWayland via xlib (using @code{EGL_KHR_platform_x11}) or xcb (using
+@code{EGL_EXT_platform_xcb}).")
+    (home-page "https://github.com/NVIDIA/egl-x11")
+    (license license-gnu:expat)))
+
+
+;;;
 ;;; NVIDIA drivers
 ;;;
 
@@ -1590,113 +1705,6 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 ;;;
 ;;; Other packages
 ;;;
-
-(define-public egl-gbm
-  (package
-    (name "egl-gbm")
-    (version "1.1.3")
-    (source (origin
-              (method git-fetch)
-              (uri (git-reference
-                    (url "https://github.com/NVIDIA/egl-gbm")
-                    (commit version)))
-              (file-name (git-file-name name version))
-              (sha256
-               (base32
-                "1p9w7xc7zdrwxxiwmmhmsqf0jlzcgnrkgci2j5da4xzjasyf109s"))))
-    (build-system meson-build-system)
-    (arguments
-     (list
-      #:phases
-      #~(modify-phases %standard-phases
-          (add-after 'install 'patch-library-reference
-            (lambda* (#:key outputs #:allow-other-keys)
-              (let ((dir "share/egl/egl_external_platform.d"))
-                (with-directory-excursion (in-vicinity #$output dir)
-                  (substitute* "15_nvidia_gbm.json"
-                    (("libnvidia-egl-.*\\.so\\.." lib)
-                     (search-input-file
-                      outputs (in-vicinity "lib" lib)))))))))))
-    (native-inputs (list pkg-config))
-    (inputs (list eglexternalplatform mesa-for-nvda))
-    (synopsis "GBM EGL external platform library")
-    (description
-     "This package provides an EGL External Platform library implementation for
-GBM EGL support.")
-    (home-page "https://github.com/NVIDIA/egl-gbm")
-    (license license-gnu:expat)))
-
-(define-public egl-wayland2
-  (package
-    (inherit egl-wayland)
-    (name "egl-wayland2")
-    (version "1.0.1")
-    (source
-     (origin
-       (method git-fetch)
-       (uri (git-reference
-              (url "https://github.com/NVIDIA/egl-wayland2")
-              (commit (string-append "v" version))))
-       (file-name (git-file-name name version))
-       (sha256
-        (base32 "15n6jf8kxkha0bxhjj9x720i88nqar8k6wkirav2izbi52vgxnji"))))
-    (arguments
-     (list
-      #:phases
-      #~(modify-phases %standard-phases
-          (add-after 'install 'patch-library-reference
-            (lambda* (#:key outputs #:allow-other-keys)
-              (let ((dir "share/egl/egl_external_platform.d"))
-                (with-directory-excursion (in-vicinity #$output dir)
-                  (substitute* "09_nvidia_wayland2.json"
-                    (("libnvidia-egl-.*\\.so\\.." lib)
-                     (search-input-file
-                      outputs (in-vicinity "lib" lib)))))))))))
-    (synopsis "Dma-buf-based Wayland external platform library")
-    (description
-     "This is a new implementation of the EGL External Platform Library for
-Wayland (@code{EGL_KHR_platform_wayland}), using the NVIDIA driver's new
-platform surface interface, which simplifies a lot of the library and improves
-window resizing.")
-    (home-page "https://github.com/NVIDIA/egl-wayland2")
-    (license license-gnu:asl2.0)))
-
-(define-public egl-x11
-  (package
-    (name "egl-x11")
-    (version "1.0.5")
-    (source (origin
-              (method git-fetch)
-              (uri (git-reference
-                    (url "https://github.com/NVIDIA/egl-x11")
-                    (commit (string-append "v" version))))
-              (file-name (git-file-name name version))
-              (sha256
-               (base32
-                "07d72z4dm2w9ys01li2v770j51zciahn0m5yn4bxrns7gxrylpsa"))))
-    (build-system meson-build-system)
-    (arguments
-     (list
-      #:phases
-      #~(modify-phases %standard-phases
-          (add-after 'install 'patch-library-reference
-            (lambda* (#:key outputs #:allow-other-keys)
-              (let ((dir "share/egl/egl_external_platform.d"))
-                (with-directory-excursion (in-vicinity #$output dir)
-                  (substitute* '("20_nvidia_xcb.json"
-                                 "20_nvidia_xlib.json")
-                    (("libnvidia-egl-.*\\.so\\.." lib)
-                     (search-input-file
-                      outputs (in-vicinity "lib" lib)))))))))))
-    (native-inputs (list pkg-config))
-    (inputs (list eglexternalplatform mesa-for-nvda))
-    (synopsis "X11 and XCB EGL external platform library")
-    (description
-     "This package provides an EGL platform library for the NVIDIA driver to
-support XWayland via xlib (using @code{EGL_KHR_platform_x11}) or xcb (using
-@code{EGL_EXT_platform_xcb}).")
-    (home-page "https://github.com/NVIDIA/egl-x11")
-    (license license-gnu:expat)))
 
 (define-public nvidia-prime
   (package
