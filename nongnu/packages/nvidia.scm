@@ -681,12 +681,16 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
            (lambda args
              (apply (assoc-ref copy:%standard-phases 'install)
                     #:install-plan
-                    `(("." "bin/" #:include ,(if #$(target-x86-64?) '("nvidia-pcc") '()))
+                    `(("." "bin/"
+                       #:include
+                       ,(append (if #$(target-x86-64?) '("nvidia-pcc")    '())
+                                (if #$(target-64bit?)  '("nvidia-powerd") '())))
                       ("." "etc/vulkansc/icd.d/" #:include-regexp ("nvidia_icd_vksc\\.json$"))
                       ("." "share/egl/egl_external_platform.d/"
                        #:include ("15_nvidia_gbm.json"
                                   "20_nvidia_xcb.json"
                                   "20_nvidia_xlib.json"))
+                      ("nvidia-dbus.conf" "etc/dbus-1/system.d/")
                       ("nvoptix.bin" "share/nvidia/")
                       ("sandboxutils-filelist.json" "share/nvidia/files.d/"))
                     args)))
