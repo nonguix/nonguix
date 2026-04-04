@@ -255,6 +255,13 @@ REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
             (,nvda-390  . ,nvidia-settings-390))
           driver)))
 
+  (define %dynamic-boost?
+    (not (assoc-ref
+          ;; Unsupported in these series.
+          `((,nvda-470  . #t)
+            (,nvda-390  . #t))
+          driver)))
+
   (define %xorg-extension
     (and=> configure-xorg?
            (match-lambda
@@ -299,7 +306,8 @@ won't add kernel arguments other than the minimum necessary in the future.~%")
                (firmware %firmware)
                (module %module)
                (modprobe %modprobe)
-               (settings %settings)))
+               (settings %settings)
+               (powerd %dynamic-boost?)))
           ,@(if configure-xorg?
                 (list %xorg-extension)
                 '())
