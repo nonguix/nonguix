@@ -9,6 +9,7 @@
   #:use-module (gnu packages linux)
   #:use-module (gnu services)
   #:use-module (gnu services base)
+  #:use-module (gnu services dbus)
   #:use-module (gnu services linux)
   #:use-module (gnu services shepherd)
   #:use-module (nongnu packages nvidia)
@@ -29,7 +30,9 @@
   (modprobe nvidia-configuration-modprobe
             (default nvidia-modprobe))  ; file-like
   (settings nvidia-configuration-settings
-            (default #f)))              ; file-like or #f
+            (default #f))               ; file-like or #f
+  (powerd   nvidia-configuration-powerd
+            (default #t)))              ; boolean
 
 (define (%nvidia-firmware config)
   (match-record config <nvidia-configuration>
@@ -87,6 +90,20 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
 ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\"0x0c8000\", TEST==\"power/control\", ATTR{power/control}=\"on\"
 ")))
 
+(define nvidia-shepherd-service
+  (match-record-lambda <nvidia-configuration>
+      (driver powerd)
+    (if powerd
+        (list (shepherd-service
+                (documentation "NVIDIA Dynamic Boost support.")
+                (provision '(nvidia-powerd))
+                (requirement '(user-processes))
+                (start
+                 #~(make-forkexec-constructor
+                    (list #$(file-append driver "/bin/nvidia-powerd"))))
+                (stop #~(make-kill-destructor))))
+        '())))
+
 (define nvidia-service-type
   (service-type
    (name 'nvidia)
@@ -97,6 +114,10 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                              nvidia-privileged-program)
           (service-extension special-files-service-type
                              nvidia-special-files)
+          (service-extension shepherd-root-service-type
+                             nvidia-shepherd-service)
+          (service-extension dbus-root-service-type
+                             (compose list nvidia-configuration-driver))
           (service-extension udev-service-type
                              nvidia-udev-rule)
           (service-extension firmware-service-type
