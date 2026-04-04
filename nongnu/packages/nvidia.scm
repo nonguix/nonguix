@@ -613,8 +613,8 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
            (lambda _
              ;; Vulkan ICD configuraiton
              (substitute* "nvidia_icd.json"
-               (("libGLX(_nvidia\\.so\\.)" _ suffix)
-                (string-append #$output "/lib/libEGL" suffix)))
+               (("libGLX_nvidia\\.so\\." all)
+                (string-append #$output "/lib/" all)))
              ;; Vulkan layer configuraiton
              (substitute* "nvidia_layers.json"
                (("libGLX_nvidia\\.so\\." all)
