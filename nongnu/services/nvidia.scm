@@ -98,6 +98,7 @@ ACTION==\"unbind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x10de\", ATTR{class}==\
                 (documentation "NVIDIA Dynamic Boost support.")
                 (provision '(nvidia-powerd))
                 (requirement '(user-processes))
+                (respawn? #f)
                 (start
                  #~(make-forkexec-constructor
                     (list #$(file-append driver "/bin/nvidia-powerd"))))
