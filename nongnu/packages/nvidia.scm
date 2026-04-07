@@ -507,6 +507,7 @@ support XWayland via xlib (using @code{EGL_KHR_platform_x11}) or xcb (using
                                         "libXext.so.6"
                                         "libcrypto.so.1.1"
                                         "libcrypto.so.3"
+                                        "libdbus-1.so.3"
                                         "libdrm.so.2"
                                         "libgbm.so.1"
                                         "libgcc_s.so.1"
@@ -588,7 +589,8 @@ support XWayland via xlib (using @code{EGL_KHR_platform_x11}) or xcb (using
     (supported-systems '("x86_64-linux" "i686-linux"))
     (native-inputs (list patchelf-0.16))
     (inputs
-     (list egl-wayland
+     (list dbus
+           egl-wayland
            `(,gcc "lib")
            glibc
            mesa-for-nvda
@@ -711,7 +713,13 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
                   (with-directory-excursion gbmdir
                     (symlink (in-vicinity ".." (basename file))
                              "nvidia-drm_gbm.so")))
-                (find-files libdir "libnvidia-allocator\\.so\\.")))))))))
+                (find-files libdir "libnvidia-allocator\\.so\\.")))))
+         (add-after 'patch-elf 'wrap-program-580
+           (lambda* (#:key inputs #:allow-other-keys)
+             (let ((nvidia-powerd (string-append #$output "/bin/nvidia-powerd")))
+               (when (file-exists? nvidia-powerd)
+                 (wrap-program nvidia-powerd
+                   `("PATH" = (,(dirname (search-input-file inputs "bin/lscpu")))))))))))))
 
 (define-public nvidia-driver-580
   (binary-package-from-sources
@@ -722,7 +730,7 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
      (arguments (%nvidia-driver-arguments-580))
      (inputs
       (modify-inputs inputs
-        (prepend egl-gbm egl-x11)))
+        (prepend bash-minimal egl-gbm egl-x11 util-linux)))
      (synopsis "Proprietary NVIDIA driver (libraries), production branch"))))
 
 (define (%nvidia-driver-arguments-590)
