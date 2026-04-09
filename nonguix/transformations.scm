@@ -107,6 +107,7 @@ and INITRD (default: microcode-initrd)."
                                         (open-source-kernel-module? #f)
                                         (kernel-mode-setting? #t)
                                         (configure-xorg? #f)
+                                        (dynamic-boost? #f)
                                         (remove-nvenc-restriction? #f)
                                         ;; Deprecated.
                                         (s0ix-power-management? #f))
@@ -121,6 +122,8 @@ support.
 
 CONFIGURE-XORG? (default: #f) is required for Xorg display managers.  It accepts
 a display manager service type, or #t when using '%desktop-services'.
+
+DYNAMIC-BOOST? (default: #f) is supported on laptops since Ampere.
 
 REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
 <https://github.com/keylase/nvidia-patch>."
@@ -256,11 +259,9 @@ REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
           driver)))
 
   (define %dynamic-boost?
-    (not (assoc-ref
-          ;; Unsupported in these series.
-          `((,nvda-470  . #t)
-            (,nvda-390  . #t))
-          driver)))
+    (and dynamic-boost?
+         ;; Unsupported in these series.
+         (not (member driver (list nvda-470 nvda-390)))))
 
   (define %xorg-extension
     (and=> configure-xorg?
