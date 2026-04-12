@@ -625,7 +625,7 @@ application."
              ;; Try to install the locale after symlinking it.
              ;; See <https://gitlab.com/nonguix/nonguix/-/issues/407>
              (with-exception-handler
-                 (lambda ()
+                 (lambda _
                    (format #t "~%~%Failed to install locale. Is glibc-locales available in the container?~%"))
                (lambda ()
                  (setlocale LC_ALL ""))
