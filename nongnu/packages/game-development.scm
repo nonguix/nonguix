@@ -330,4 +330,4 @@ game.  Game data is not provided.  Run @command{fury} with the option
                    (file-name "restored-nuget-dependencies")
                    (sha256
                     (base32
-                     "1lhwmpgnfc880nk0nns65vik7qg0q0kvvg63rhsshp697q8avynf")))))))))
+                     "1vxcfs8jxkwnqcrzwflsb73gc5hrrdqrz8l1lrpgghml9brbmvqc")))))))))
