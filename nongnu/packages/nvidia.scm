@@ -1074,7 +1074,8 @@ NVIDIA driver.")
         (base32
          "13izbl0npxc6mxaq7123sj7cqksqwcha8fgsgj2dphdk1dz8fh44"))
        (patches
-        (nongnu-patches "nvidia-module-open-add-ibt-support.patch"))))
+        (nongnu-patches "nvidia-module-open-add-ibt-support.patch"
+                        "nvidia-module-open-fix-linux-6.19.patch"))))
     (synopsis "Proprietary NVIDIA driver (open source kernel modules), new feature branch")))
 
 (define-public nvidia-module-open-595
