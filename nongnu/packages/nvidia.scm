@@ -1025,7 +1025,8 @@ driver.")))
         (base32
          "01nq1hmb0kcd7wx38z5a1ivc6r1z3vbwp1zcyz0wijvanhnvrpmz"))
        (patches
-        (nongnu-patches "nvidia-module-open-add-ibt-support.patch"))))
+        (nongnu-patches "nvidia-module-open-add-ibt-support.patch"
+                        "nvidia-module-open-bsb-dsc-fix.patch"))))
     (build-system linux-module-build-system)
     (arguments
      (list
@@ -1075,6 +1076,7 @@ NVIDIA driver.")
          "13izbl0npxc6mxaq7123sj7cqksqwcha8fgsgj2dphdk1dz8fh44"))
        (patches
         (nongnu-patches "nvidia-module-open-add-ibt-support.patch"
+                        "nvidia-module-open-bsb-dsc-fix.patch"
                         "nvidia-module-open-fix-linux-6.19.patch"))))
     (synopsis "Proprietary NVIDIA driver (open source kernel modules), new feature branch")))
 
@@ -1094,7 +1096,8 @@ NVIDIA driver.")
         (base32
          "0zz2297icklbjk4301vahsfkxdznbp48f0yxvf972c8w7p4wkfz8"))
        (patches
-        (nongnu-patches "nvidia-module-open-add-ibt-support.patch"))))
+        (nongnu-patches "nvidia-module-open-add-ibt-support.patch"
+                        "nvidia-module-open-bsb-dsc-fix.patch"))))
     (synopsis "Proprietary NVIDIA driver (open source kernel modules), production branch")))
 
 (define-public nvidia-module-open-beta
@@ -1113,7 +1116,8 @@ NVIDIA driver.")
         (base32
          "108faqi446ck42gc9q10dbl0779yagyp853phay14ahkdhi5z8xs"))
        (patches
-        (nongnu-patches "nvidia-module-open-add-ibt-support.patch"))))
+        (nongnu-patches "nvidia-module-open-add-ibt-support.patch"
+                        "nvidia-module-open-bsb-dsc-fix.patch"))))
     (synopsis "Proprietary NVIDIA driver (open source kernel modules), beta")))
 
 (define-public nvidia-module-open nvidia-module-open-580)
