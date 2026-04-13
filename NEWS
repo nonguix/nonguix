@@ -5,6 +5,11 @@
 # Copyright © 2026 Hilton Chain <hako@ultrarare.space>
 #+TITLE: NEWS about user visible changes of nonguix
 
+* 2026-05
+*** Linux: Inherit kernel patches from Guix
+These are patches applied to linux-libre-* packages.  Previously they were
+ignored in linux-* packages.
+
 * 2026-04
 *** NVIDIA: New #:dynamic-boost? argument for nonguix-transformation-nvidia
 The feature is supported on laptops since Ampere.  For detailed introduction and

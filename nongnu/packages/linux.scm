@@ -140,7 +140,10 @@ some freedo package or an output of package-version procedure."
          (pristine-source (package-source freedo))
          (inputs (map gexp-input-thing (extract-gexp-inputs pristine-source)))
          (sources (filter origin? inputs))
-         (hash (find-source-hash sources url)))
+         (hash (find-source-hash sources url))
+         (patches
+          (delete (@@ (gnu packages linux) %boot-logo-patch)
+                  (origin-patches pristine-source))))
     (package
       (inherit
        (customize-linux
@@ -168,7 +171,8 @@ some freedo package or an output of package-version procedure."
         #:source (origin
                    (method url-fetch)
                    (uri url)
-                   (hash hash))
+                   (hash hash)
+                   (patches patches))
         #:configs configs
         #:defconfig defconfig
         #:modconfig modconfig))
