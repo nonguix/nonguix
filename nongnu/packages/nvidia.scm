@@ -1641,76 +1641,83 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
   heroic-nvidia-beta
   (package-version nvidia-driver-beta))
 
-(define-public ffmpeg/nvidia
-  (hidden-package
-   (package
-     (inherit ffmpeg)
-     (name "ffmpeg-nvidia")
-     (inputs
-      (modify-inputs inputs
-        (prepend nv-codec-headers)))
-     (arguments
-      (substitute-keyword-arguments arguments
-        ((#:configure-flags flags)
-         ;; Currently only interested in NVENC.
-         ;; Might be better to make a ffmpeg-nonfree with all nonfree codecs
-         ;; in the future.
-         #~(cons* "--enable-cuvid"
-                  "--enable-ffnvcodec"
-                  "--enable-encoder=hevc_nvenc"
-                  "--enable-encoder=h264_nvenc"
-                  #$flags))))
-     (description
-      (string-append
-       (package-description ffmpeg)
-       "  This build of FFmpeg includes the nonfree NVIDIA encoder for
-@code{h264_nvenc} and @code{hevc_nvenc} hardware encoding on NVIDIA GPUs.")))))
+(define-syntax define-ffmpeg-nvidia
+  (syntax-rules ()
+    ((_ name ffmpeg driver)
+     (define-public name
+       (hidden-package
+        ((replace-nvidia-driver driver)
+         (package
+           (inherit ffmpeg)
+           (inputs
+            (modify-inputs inputs
+              (prepend nv-codec-headers)))
+           (arguments
+            (substitute-keyword-arguments arguments
+              ((#:configure-flags flags)
+               #~(cons* "--enable-cuvid"
+                        "--enable-ffnvcodec"
+                        "--enable-encoder=hevc_nvenc"
+                        "--enable-encoder=h264_nvenc"
+                        #$flags)))))))))
+    ((_ name alias ffmpeg-nvidia alias-version)
+     (define-public name
+       (package
+         (inherit (package-with-alias alias ffmpeg-nvidia))
+         (version alias-version))))))
 
-(define-public ffmpeg-6/nvidia
-  (hidden-package
-   (package
-     (inherit ffmpeg-6)
-     (inputs
-      (modify-inputs inputs
-        (prepend nv-codec-headers)))
-     (arguments
-      (substitute-keyword-arguments arguments
-        ((#:configure-flags flags)
-         ;; Currently only interested in NVENC.
-         ;; Might be better to make a ffmpeg-nonfree with all nonfree codecs
-         ;; in the future.
-         #~(cons* "--enable-cuvid"
-                  "--enable-ffnvcodec"
-                  "--enable-encoder=hevc_nvenc"
-                  "--enable-encoder=h264_nvenc"
-                  #$flags))))
-     (description (package-description ffmpeg/nvidia)))))
+(define-ffmpeg-nvidia ffmpeg/nvidia-390 ffmpeg nvda-390)
+(define-ffmpeg-nvidia ffmpeg/nvidia-470 ffmpeg nvda-470)
+(define-ffmpeg-nvidia ffmpeg/nvidia-580 ffmpeg nvda-580)
+(define-ffmpeg-nvidia ffmpeg/nvidia-590 ffmpeg nvda-590)
+(define-ffmpeg-nvidia ffmpeg/nvidia-595 ffmpeg nvda-595)
+(define-ffmpeg-nvidia ffmpeg/nvidia-beta ffmpeg nvda-beta)
+(define-public ffmpeg/nvidia ffmpeg/nvidia-580)
 
-(define-public ffmpeg/nvidia-390
-  ((replace-nvidia-driver nvda-390) ffmpeg/nvidia))
-(define-public ffmpeg/nvidia-470
-  ((replace-nvidia-driver nvda-470) ffmpeg/nvidia))
-(define-public ffmpeg/nvidia-580
-  ((replace-nvidia-driver nvda-580) ffmpeg/nvidia))
-(define-public ffmpeg/nvidia-590
-  ((replace-nvidia-driver nvda-590) ffmpeg/nvidia))
-(define-public ffmpeg/nvidia-595
-  ((replace-nvidia-driver nvda-595) ffmpeg/nvidia))
-(define-public ffmpeg/nvidia-beta
-  ((replace-nvidia-driver nvda-beta) ffmpeg/nvidia))
-(define-public ffmpeg-6/nvidia-390
-  ((replace-nvidia-driver nvda-390) ffmpeg/nvidia))
-(define-public ffmpeg-6/nvidia-470
-  ((replace-nvidia-driver nvda-470) ffmpeg/nvidia))
-(define-public ffmpeg-6/nvidia-580
-  ((replace-nvidia-driver nvda-580) ffmpeg/nvidia))
-(define-public ffmpeg-6/nvidia-590
-  ((replace-nvidia-driver nvda-590) ffmpeg/nvidia))
-(define-public ffmpeg-6/nvidia-595
-  ((replace-nvidia-driver nvda-595) ffmpeg/nvidia))
-(define-public ffmpeg-6/nvidia-beta
-  ((replace-nvidia-driver nvda-beta) ffmpeg/nvidia))
+(define-ffmpeg-nvidia ffmpeg-6/nvidia-390 ffmpeg-6 nvda-390)
+(define-ffmpeg-nvidia ffmpeg-6/nvidia-470 ffmpeg-6 nvda-470)
+(define-ffmpeg-nvidia ffmpeg-6/nvidia-580 ffmpeg-6 nvda-580)
+(define-ffmpeg-nvidia ffmpeg-6/nvidia-590 ffmpeg-6 nvda-590)
+(define-ffmpeg-nvidia ffmpeg-6/nvidia-595 ffmpeg-6 nvda-595)
+(define-ffmpeg-nvidia ffmpeg-6/nvidia-beta ffmpeg-6 nvda-beta)
+(define-public ffmpeg-6/nvidia ffmpeg-6/nvidia-580)
 
+(define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-390 "ffmpeg-nvidia"
+  ffmpeg/nvidia-390
+  (package-version nvidia-driver-390))
+(define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-470 "ffmpeg-nvidia"
+  ffmpeg/nvidia-470
+  (package-version nvidia-driver-470))
+(define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-580 "ffmpeg-nvidia"
+  ffmpeg/nvidia-580
+  (package-version nvidia-driver-580))
+(define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-590 "ffmpeg-nvidia"
+  ffmpeg/nvidia-590
+  (package-version nvidia-driver-590))
+(define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-595 "ffmpeg-nvidia"
+  ffmpeg/nvidia-595
+  (package-version nvidia-driver-595))
+(define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-beta "ffmpeg-nvidia-beta"
+  ffmpeg/nvidia-beta
+  (package-version nvidia-driver-beta))
+(define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-390 "ffmpeg-6-nvidia"
+  ffmpeg-6/nvidia-390
+  (package-version nvidia-driver-390))
+(define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-470 "ffmpeg-6-nvidia"
+  ffmpeg-6/nvidia-470
+  (package-version nvidia-driver-470))
+(define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-580 "ffmpeg-6-nvidia"
+  ffmpeg-6/nvidia-580
+  (package-version nvidia-driver-580))
+(define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-590 "ffmpeg-6-nvidia"
+  ffmpeg-6/nvidia-590
+  (package-version nvidia-driver-590))
+(define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-595 "ffmpeg-6-nvidia"
+  ffmpeg-6/nvidia-595
+  (package-version nvidia-driver-595))
+(define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-beta "ffmpeg-6-nvidia-beta"
+  ffmpeg-6/nvidia-beta
+  (package-version nvidia-driver-beta))
 
 (define* (replace-mesa obj #:key (driver nvda))
   (let ((rebuild (replace-nvidia-driver driver)))

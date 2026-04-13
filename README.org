@@ -471,8 +471,20 @@ of the normal one.  Aforementioned application setup is still necessary.
 - mpv-nvidia
 - obs-nvidia
 
-Container packages must be built for the specific driver version, so they have
-more variants:
+| Variable             | Specification        |
+|----------------------+----------------------|
+| ffmpeg/nvidia-beta   | ffmpeg-nvidia-beta   |
+| ffmpeg/nvidia-595    | ffmpeg-nvidia@595    |
+| ffmpeg/nvidia-590    | ffmpeg-nvidia@590    |
+| ffmpeg/nvidia-580    | ffmpeg-nvidia@580    |
+| ffmpeg/nvidia-470    | ffmpeg-nvidia@470    |
+| ffmpeg/nvidia-390    | ffmpeg-nvidia@390    |
+| ffmpeg-6/nvidia-beta | ffmpeg-6-nvidia-beta |
+| ffmpeg-6/nvidia-595  | ffmpeg-6-nvidia@595  |
+| ffmpeg-6/nvidia-590  | ffmpeg-6-nvidia@590  |
+| ffmpeg-6/nvidia-580  | ffmpeg-6-nvidia@580  |
+| ffmpeg-6/nvidia-470  | ffmpeg-6-nvidia@470  |
+| ffmpeg-6/nvidia-390  | ffmpeg-6-nvidia@390  |
 
 | Variable           | Specification      |
 |--------------------+--------------------|
@@ -491,22 +503,6 @@ more variants:
 | steam-nvidia-580  | steam-nvidia@580  |
 | steam-nvidia-470  | steam-nvidia@470  |
 | steam-nvidia-390  | steam-nvidia@390  |
-
-Since ffmpeg has multiple versions itself already, its variants are only
-available to the programming interface:
-
-- ffmpeg/nvidia-390
-- ffmpeg/nvidia-470
-- ffmpeg/nvidia-580
-- ffmpeg/nvidia-590
-- ffmpeg/nvidia-595
-- ffmpeg/nvidia-beta
-- ffmpeg-6/nvidia-390
-- ffmpeg-6/nvidia-470
-- ffmpeg-6/nvidia-580
-- ffmpeg-6/nvidia-590
-- ffmpeg-6/nvidia-595
-- ffmpeg-6/nvidia-beta
 
 ** Substitutes for nonguix
 
