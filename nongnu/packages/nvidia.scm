@@ -1531,7 +1531,9 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
   (syntax-rules ()
     ((_ name driver)
      (define-public name
-       (hidden-package (make-nvda driver))))
+       (package
+         (inherit (hidden-package (make-nvda driver)))
+         (location (package-location driver)))))
     ((_ name driver alias)
      (define-public name
        (let ((nvda (make-nvda driver)))
@@ -1565,10 +1567,12 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
     ((_ name container-builder driver)
      (define-public name
        (hidden-package
-        (nonguix-container->package
-         (nonguix-container
-           (inherit (container-builder driver))
-           (preserved-env %nvidia-environment-variable-regexps))))))
+        (package
+          (inherit (nonguix-container->package
+                    (nonguix-container
+                      (inherit (container-builder driver))
+                      (preserved-env %nvidia-environment-variable-regexps))))
+          (location (package-location driver))))))
     ((_ name alias container alias-version)
      (define-public name
        (package
@@ -1641,25 +1645,29 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
   heroic-nvidia-beta
   (package-version nvidia-driver-beta))
 
+(define (make-ffmpeg-nvidia ffmpeg driver)
+  ((replace-nvidia-driver driver)
+   (package
+     (inherit ffmpeg)
+     (inputs
+      (modify-inputs inputs
+        (prepend nv-codec-headers)))
+     (arguments
+      (substitute-keyword-arguments arguments
+        ((#:configure-flags flags)
+         #~(cons* "--enable-cuvid"
+                  "--enable-ffnvcodec"
+                  "--enable-encoder=hevc_nvenc"
+                  "--enable-encoder=h264_nvenc"
+                  #$flags)))))))
+
 (define-syntax define-ffmpeg-nvidia
   (syntax-rules ()
     ((_ name ffmpeg driver)
      (define-public name
-       (hidden-package
-        ((replace-nvidia-driver driver)
-         (package
-           (inherit ffmpeg)
-           (inputs
-            (modify-inputs inputs
-              (prepend nv-codec-headers)))
-           (arguments
-            (substitute-keyword-arguments arguments
-              ((#:configure-flags flags)
-               #~(cons* "--enable-cuvid"
-                        "--enable-ffnvcodec"
-                        "--enable-encoder=hevc_nvenc"
-                        "--enable-encoder=h264_nvenc"
-                        #$flags)))))))))
+       (package
+         (inherit (hidden-package (make-ffmpeg-nvidia ffmpeg driver)))
+         (location (package-location driver)))))
     ((_ name alias ffmpeg-nvidia alias-version)
      (define-public name
        (package

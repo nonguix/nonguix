@@ -139,7 +139,8 @@ matches PRED."
     (name alias)
     (properties
      `((superseded . ,pkg)
-       (supress-supersession-info? . #t)))))
+       (supress-supersession-info? . #t)))
+    (location (package-location pkg))))
 
 ;; Using a package here to support ‘guix refresh’.
 (define %binary-source
