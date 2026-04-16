@@ -153,6 +153,11 @@
 ;;     "filter=endtime=none,fraction%3E=0.5&order_by=version%20desc")
 ;;
 ;; in which CHAN can be stable, beta, canary and dev (dev corresponds to our unstable)
+;;
+;; Yet another (From AUR scripts):
+;;   https://dl.google.com/linux/chrome/deb/dists/stable/main/binary-amd64/Packages
+;; This link provides a Debian-like control file containing most recent versions.
+;;
 ;; TODO: write a nice importer for this in Scheme.
 
 (define-public google-chrome-stable
