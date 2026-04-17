@@ -13,14 +13,14 @@
 (define-public geekbench5
   (package
     (name "geekbench5")
-    (version "5.4.5")
+    (version "5.5.1")
     (source (origin
               (method url-fetch)
               (uri (string-append "https://cdn.geekbench.com/Geekbench-"
                                   version "-Linux.tar.gz"))
               (sha256
                (base32
-                "0qppx5ivclfwldb4fcmzg3v9a9nzi7d4f44vx634mfzw2symn3r4"))))
+                "016474r0wcr8y268vr40b6kpwf1iilcbnzvbw47kd3ywqdapw0rj"))))
     (build-system binary-build-system)
     (arguments
      (list #:strip-binaries? #f ;TODO: For some reason it fails validate-runpath
