@@ -404,3 +404,33 @@ the makers of Ubuntu.  It is part of the expanded Ubuntu font family and
 offers a clean, reliable, and free typographic voice for the operating
 system and its community.")
     (license (nonfree "https://ubuntu.com/legal/font-licence"))))
+
+(define-public font-ubuntu-sans-mono
+  (package
+    (name "font-ubuntu-sans-mono")
+    (version "1.006")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/canonical/ubuntu-sans-mono-fonts")
+              (commit (string-append "v" version))))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1cfaj0dayxzldb90wjl1pmx8b1qghb9gw21b8abqsvk2xw02aax0"))))
+    (build-system font-build-system)
+    (arguments
+     (list
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-after 'unpack 'enter-font-directory
+            (lambda _
+              (chdir "fonts"))))))
+    (outputs '("out" "woff" "otf"))
+    (home-page "https://github.com/canonical/ubuntu-sans-mono-fonts")
+    (synopsis "Ubuntu Sans Mono font family")
+    (description
+     "Ubuntu Sans Mono is a monospaced variant of the Ubuntu Sans typeface,
+designed specifically for coding, terminal emulators, and other environments
+where character alignment is critical.")
+    (license (nonfree "https://ubuntu.com/legal/font-licence"))))
