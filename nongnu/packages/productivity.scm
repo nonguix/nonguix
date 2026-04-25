@@ -233,7 +233,7 @@ synchronization.")
 (define-public zotero
   (package
     (name "zotero")
-    (version "8.0")
+    (version "9.0.1")
     (source
      (origin
        ;; Can switch to git-fetch from Github too!
@@ -243,7 +243,7 @@ synchronization.")
                        version "/Zotero-" version "_linux-x86_64.tar.xz"))
        (sha256
         (base32
-         "06883y5839blg14hdqkym2rf01vw2gbrs8r3c5v8klyjavxy9s8g"))))
+         "1m2yg4r5ipx8sm6cf6i43cz0c3xvrsaf2ip1hasc5ykh8as7pw5q"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list
