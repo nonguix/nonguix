@@ -417,7 +417,7 @@ system and its community.")
               (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1cfaj0dayxzldb90wjl1pmx8b1qghb9gw21b8abqsvk2xw02aax0"))))
+        (base32 "04g6j152lq0d67z89fgl1yah160bzgbawzxz9qv7lh2kqsf5jmhh"))))
     (build-system font-build-system)
     (arguments
      (list
