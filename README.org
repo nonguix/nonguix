@@ -259,14 +259,14 @@ GNOME desktop environment.
 
 Per-driver supported kernel versions, let us know if you have hardware to test!
 
-| Driver    | linux-6.19 | linux-6.18 | linux-6.12 | linux-6.6 | linux-6.1 |
-|-----------+------------+------------+------------+-----------+-----------|
-| nvda-beta | ✅️        | ✅️️        | ✅        | ✅       | ✅       |
-| nvda-595  | ✅️        | ✅️️        | ✅        | ✅       | ✅       |
-| nvda-590  | ✅️️        | ✅        | ✅        | ✅       | ✅       |
-| nvda-580  | ✅        | ✅️️        | ✅        | ✅       | ✅       |
-| nvda-470  | ✅        | ✅        | ✅        | ✅       | ✅       |
-| nvda-390  |            |            |            |           |           |
+| Driver    | linux-7.0 | linux-6.19 | linux-6.18 | linux-6.12 | linux-6.6 | linux-6.1 |
+|-----------+-----------+------------+------------+------------+-----------+-----------|
+| nvda-beta | ✅️       | ✅️        | ✅️        | ✅️        | ✅️       | ✅️       |
+| nvda-595  | ✅️       | ✅        | ✅        | ✅        | ✅       | ✅       |
+| nvda-590  | ✅       | ✅️        | ✅️        | ✅️        | ✅️       | ✅️       |
+| nvda-580  | ✅       | ✅        | ✅        | ✅        | ✅       | ✅       |
+| nvda-470  | ✅       | ✅️        | ✅️        | ✅️        | ✅️       | ✅️       |
+| nvda-390  |           |            |            |            |           |           |
 
 Driver package specifications, for command-line interface usage.
 
