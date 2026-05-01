@@ -1802,7 +1802,7 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 
 
 (define* (replace-mesa obj #:key (driver nvda))
-  (with-transformation
+  (with-transformation/nonguix
       (package-input-grafting
        `((,mesa . ,driver)
          (,nvidia-driver . ,driver)

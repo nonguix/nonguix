@@ -17,7 +17,7 @@
   #:use-module (gnu packages base)
   #:export (package-input-grafting
             package-with-alias
-            with-transformation
+            with-transformation/nonguix
 
             %binary-source
             binary-package-from-sources))
@@ -79,21 +79,21 @@ requirement."
 
 ;; For concerns and direction of improvement, see this thread:
 ;; https://lists.gnu.org/archive/html/guix-devel/2024-06/msg00275.html
-(define* (with-transformation proc obj #:optional (pred package?))
+(define* (with-transformation/nonguix proc obj #:optional (pred package?))
   "Recursing into child elements, apply PROC to every element of OBJ that
 matches PRED."
   (match obj
     ((? pred)
      (proc obj))
     ((a . b)
-     (cons (with-transformation proc a pred)
-           (with-transformation proc b pred)))
+     (cons (with-transformation/nonguix proc a pred)
+           (with-transformation/nonguix proc b pred)))
     ((_ ...)
-     (map (cut with-transformation proc <> pred)
+     (map (cut with-transformation/nonguix proc <> pred)
           obj))
     (#(_ ...)
      (vector-map (lambda (vec elt)
-                   (with-transformation proc elt pred))
+                   (with-transformation/nonguix proc elt pred))
                  obj))
     ;; `<service-type>' and `<origin>' record types are expected to not be
     ;; modified. Altering them causes very difficult to debug run-time errors.
@@ -117,7 +117,7 @@ matches PRED."
                 (map (lambda (field)
                        (let* ((accessor (record-accessor record-type field))
                               (obj (accessor obj)))
-                         (with-transformation proc obj pred)))
+                         (with-transformation/nonguix proc obj pred)))
                      record-fields))))))
     ;; TODO: Check if this can be handled as well.
     ((? parameter?)
@@ -125,7 +125,7 @@ matches PRED."
     ((? procedure?)
      (lambda args
        (apply values
-              (map (cut with-transformation proc <> pred)
+              (map (cut with-transformation/nonguix proc <> pred)
                    (call-with-values
                        (lambda ()
                          (apply obj args))

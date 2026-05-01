@@ -5,6 +5,13 @@
 # Copyright © 2026 Hilton Chain <hako@ultrarare.space>
 #+TITLE: NEWS about user visible changes of nonguix
 
+* 2026-10
+*** `with-transformation' renamed to `with-transformation/nonguix'
+Guix has implemented a monadic =with-transformation= interface in
+=(guix gexp)=, so our non-monadic =with-transformation= in =(nonguix utils)=
+is now renamed to =with-transformation/nonguix=.  It's recommended to use the
+Guix one when possible.
+
 * 2026-07
 *** Linux: Add linux-7.1
 
