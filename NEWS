@@ -6,6 +6,8 @@
 #+TITLE: NEWS about user visible changes of nonguix
 
 * 2026-05
+*** Linux: Add linux-7.0
+
 *** Linux: Inherit kernel patches from Guix
 These are patches applied to linux-libre-* packages.  Previously they were
 ignored in linux-* packages.
