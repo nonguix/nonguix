@@ -5,6 +5,7 @@
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
+  #:use-module (srfi srfi-43)
   #:use-module (guix channels)
   #:use-module (guix diagnostics)
   #:use-module (guix gexp)
@@ -14,6 +15,7 @@
   #:use-module (guix build-system trivial)
   #:use-module (gnu system)
   #:use-module (nongnu system linux-initrd)
+  #:use-module (gnu home)
   #:use-module (gnu services)
   #:use-module (gnu services base)
   #:use-module (gnu services xorg)
@@ -104,15 +106,24 @@ and INITRD (default: microcode-initrd)."
       (initrd initrd))))
 
 (define* (nonguix-transformation-nvidia #:key (driver nvda)
+                                        (remove-nvenc-restriction? #f)
+                                        ;; operating-system
                                         (open-source-kernel-module? #f)
                                         (kernel-mode-setting? #t)
                                         (configure-xorg? #f)
                                         (dynamic-boost? #f)
-                                        (remove-nvenc-restriction? #f)
                                         ;; Deprecated.
                                         (s0ix-power-management? #f))
-  "Return a procedure that transforms an operating system, setting up DRIVER
-(default: nvda) for NVIDIA GPU.
+  "Return a procedure that transforms an operating system, a home environment,
+or a package, setting up DRIVER (default: nvda) for NVIDIA GPU.  For
+convenience, the procedure also handles pairs and vectors.
+
+REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
+<https://github.com/keylase/nvidia-patch>.  Ffmpeg variants will be built
+locally after enabling this option.
+
+The following options only apply to an operating system and will be ignored
+otherwise:
 
 OPEN-SOURCE-KERNEL-MODULE? (default: #f) is supported since Turing and required
 since Blackwell.
@@ -123,10 +134,7 @@ support.
 CONFIGURE-XORG? (default: #f) is required for Xorg display managers.  It accepts
 a display manager service type, or #t when using '%desktop-services'.
 
-DYNAMIC-BOOST? (default: #f) is supported on laptops since Ampere.
-
-REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
-<https://github.com/keylase/nvidia-patch>."
+DYNAMIC-BOOST? (default: #f) is supported on laptops since Ampere."
 
   (define* (remove-restriction #:key nvenc nvfbc)
     (lambda (pkg)
@@ -276,42 +284,67 @@ REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
                  (modules (list %driver)))
                display-manager)))))
 
-  (lambda (os)
-    (operating-system
-      (inherit os)
-      (location (operating-system-location os))
-      (kernel-arguments
-       `("modprobe.blacklist=nouveau"
-         "modprobe.blacklist=nova_core,nova_drm"
-         ,@(if s0ix-power-management?
-               (begin
-                 ;; 2026-03
-                 (warning
-                  (G_ "'~a': argument '~a' is deprecated, the transformation \
+  (define %transformer
+    (graphics-driver-transformation %driver))
+
+  (define (transform x)
+    (match x
+      ((? package?)
+       (%transformer x))
+      ((? operating-system?)
+       (operating-system
+         (inherit x)
+         (location (operating-system-location x))
+         (kernel-arguments
+          `("modprobe.blacklist=nouveau"
+            "modprobe.blacklist=nova_core,nova_drm"
+            ,@(if s0ix-power-management?
+                  (begin
+                    ;; 2026-03
+                    (warning
+                     (G_ "'~a': argument '~a' is deprecated, the transformation \
 won't add kernel arguments other than the minimum necessary in the future.~%")
-                  "nonguix-transformation-nvidia"
-                  "#:s0ix-power-management?")
-                 '("mem_sleep_default=s2idle"
-                   "nvidia.NVreg_EnableS0ixPowerManagement=1"))
-               '())
-         ,(if kernel-mode-setting?
-              "nvidia_drm.modeset=1"
-              "nvidia_drm.modeset=0")
-         ,@(operating-system-user-kernel-arguments os)))
-      (packages
-       (replace-mesa (operating-system-packages os) #:driver %driver))
-      (services
-       (replace-mesa
-        `(,(service nvidia-service-type
-             (nvidia-configuration
-               (driver %driver)
-               (firmware %firmware)
-               (module %module)
-               (modprobe %modprobe)
-               (settings %settings)
-               (powerd %dynamic-boost?)))
-          ,@(if configure-xorg?
-                (list %xorg-extension)
-                '())
-          ,@(operating-system-user-services os))
-        #:driver %driver)))))
+                     "nonguix-transformation-nvidia"
+                     "#:s0ix-power-management?")
+                    '("mem_sleep_default=s2idle"
+                      "nvidia.NVreg_EnableS0ixPowerManagement=1"))
+                  '())
+            ,(if kernel-mode-setting?
+                 "nvidia_drm.modeset=1"
+                 "nvidia_drm.modeset=0")
+            ,@(operating-system-user-kernel-arguments x)))
+         (services
+          `(,(service nvidia-service-type
+               (nvidia-configuration
+                 (driver %driver)
+                 (firmware %firmware)
+                 (module %module)
+                 (modprobe %modprobe)
+                 (settings %settings)
+                 (powerd %dynamic-boost?)))
+            ,@(if configure-xorg?
+                  (list %xorg-extension)
+                  '())
+            ,@(operating-system-user-services x)))
+         (transformation
+          (compose (operating-system-transformation x)
+                   transform))))
+      ((? home-environment?)
+       (home-environment
+         (inherit x)
+         (location (home-environment-location x))
+         (transformation
+          (compose (home-environment-transformation x)
+                   transform))))
+      ;; Handle pairs and vectors as well, for convenience.
+      ((a . b)
+       (cons (transform a)
+             (transform b)))
+      ((? vector?)
+       (vector-map
+        (lambda (_ elt)
+          (transform elt))
+        x))
+      (_ x)))
+
+  transform)

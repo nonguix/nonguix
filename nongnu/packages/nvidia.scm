@@ -61,7 +61,8 @@
   #:use-module (nongnu packages video)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-26)
-  #:export (replace-mesa))
+  #:export (graphics-driver-transformation
+            replace-mesa))
 
 (define %nvidia-environment-variable-regexps
   '("^__NV_"
@@ -1800,15 +1801,15 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
   ffmpeg-6 nvda-beta)
 (define-public ffmpeg-6/nvidia ffmpeg-6/nvidia-580)
 
+(define (graphics-driver-transformation driver)
+  (package-input-grafting
+   `((,mesa . ,driver)
+     (,nvidia-driver . ,driver)
+     (,ffmpeg . ,(make-ffmpeg-nvidia ffmpeg driver))
+     (,ffmpeg-6 . ,(make-ffmpeg-nvidia ffmpeg-6 driver)))))
 
 (define* (replace-mesa obj #:key (driver nvda))
-  (with-transformation/nonguix
-      (package-input-grafting
-       `((,mesa . ,driver)
-         (,nvidia-driver . ,driver)
-         (,ffmpeg . ,(make-ffmpeg-nvidia ffmpeg driver))
-         (,ffmpeg-6 . ,(make-ffmpeg-nvidia ffmpeg-6 driver))))
-    obj))
+  (with-transformation/nonguix (graphics-driver-transformation driver) obj))
 
 
 ;;;
