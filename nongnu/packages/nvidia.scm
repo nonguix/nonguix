@@ -1504,7 +1504,7 @@ codec APIs.")
 (define-public nvidia-vaapi-driver
   (package
     (name "nvidia-vaapi-driver")
-    (version "0.0.13")
+    (version "0.0.17")
     (source
      (origin
        (method git-fetch)
@@ -1513,7 +1513,7 @@ codec APIs.")
               (commit (string-append "v" version))))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "1ycrik4sdiy14miqvin5vg79776p7p2pazm0s8la4kngbgss1qr9"))))
+        (base32 "0sh2zhqpcj8hd4d0n4db1p7pidp85ngy03gl8wz8n1r6a7g7d7kq"))))
     (build-system meson-build-system)
     (arguments
      (list #:phases
