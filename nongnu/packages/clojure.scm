@@ -126,7 +126,7 @@ and EDN, without the need of a running REPL.")
 (define-public cljfmt
   (package
     (name "cljfmt")
-    (version "0.15.6")
+    (version "0.16.4")
     (source (origin
               (method url-fetch/tarbomb)
               (uri (string-append
@@ -134,7 +134,7 @@ and EDN, without the need of a running REPL.")
                     version "/cljfmt-" version "-linux-amd64.tar.gz"))
               (sha256
                (base32
-                "1hnk0kb5za18gla2lgskl53aws721r9lpwif2fnm6jixymkv32ih"))))
+                "1d8b026bh3w2k5c17pjz5512drzzqyn9gc9kik1chbpm0qnmz502"))))
     (build-system binary-build-system)
     (arguments
      (list #:patchelf-plan `'(("cljfmt" ("gcc" "zlib")))
