@@ -77,7 +77,7 @@ for VAAPI.")
 (define-public intel-media-driver
   (package
     (name "intel-media-driver")
-    (version "25.2.6")
+    (version "26.2.0")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -86,7 +86,7 @@ for VAAPI.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1rp4s9a4x26p07w36ywql7qz7gyk15mgp9yrdx9j2b9qbmr1w1zs"))))
+                "0g27f6xq6ga7bdchj6ffblnwdmhpadqivjiwq7rh5mhmxvjyyf20"))))
     (build-system cmake-build-system)
     (inputs (list libva gmmlib))
     (native-inputs (list pkg-config))
