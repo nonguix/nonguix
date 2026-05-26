@@ -6,6 +6,11 @@
 #+TITLE: NEWS about user visible changes of nonguix
 
 * 2026-05
+*** NVIDIA: Rename new feature branch driver series to nvda-new-feature
+The new feature branch has been updated to 610.xx series, with the old 590.xx
+series (nvda-590) removed.  The renaming is to prevent such removals in the
+future.
+
 *** Linux: Add linux-7.0
 
 *** Linux: Inherit kernel patches from Guix

@@ -10,6 +10,16 @@
 (channel-news
  (version 0)
 
+ (entry (commit "e9f969e848aca57aeca91853f36b51b37b1e44aa")
+        (title
+         (en "NVIDIA proprietary driver 590.xx series removal"))
+        (body
+         (en "The new feature branch of NVIDIA proprietary driver has been
+updated to 610.xx and the old 590.xx series (@code{nvda-590}) has been removed.
+
+To prevent similar removals in the future, a new driver name
+@code{nvda-new-feature} is used for the branch.")))
+
  (entry (commit "14dafc04725a13f40c2851f4b7e993a0583d7a4e")
         (title
          (en "New NVIDIA driver versions and documentation changes"))
