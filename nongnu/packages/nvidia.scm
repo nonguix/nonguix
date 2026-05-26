@@ -266,18 +266,6 @@
    "aarch64"
    (base32 "1sra6yr5j4lwsjjkmzyal8s1hlx3nhyyxz1nbxv3kj677dig44l9")))
 
-(define nvidia-source-590-x86_64-linux
-  (make-nvidia-source
-   "590.48.01"
-   "x86_64"
-   (base32 "12fnddljvgxksil6n3d5a35wwg8kkq82kkglhz63253qjc3giqmr")))
-
-(define nvidia-source-590-aarch64-linux
-  (make-nvidia-source
-   "590.48.01"
-   "aarch64"
-   (base32 "107xpshd3rn6sdcrprd32a7n5crdzarr3y7yv66d3m2nm9zzpv0l")))
-
 (define nvidia-source-595-x86_64-linux
   (make-nvidia-source
    "595.71.05"
@@ -746,40 +734,6 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
         (prepend bash-minimal egl-gbm egl-x11 util-linux)))
      (synopsis "Proprietary NVIDIA driver (libraries), production branch"))))
 
-(define (%nvidia-driver-arguments-590)
-  (substitute-keyword-arguments (%nvidia-driver-arguments-580)
-    ((#:phases phases)
-     #~(modify-phases #$phases
-         (add-after 'create-files 'create-files-590
-           (lambda* (#:key inputs #:allow-other-keys)
-             ;; EGL external platform configuraiton
-             (substitute* "99_nvidia_wayland2.json"
-               (("libnvidia-egl-.*\\.so\\.." all)
-                (search-input-file inputs (in-vicinity "lib" all))))))
-         (add-after 'install 'install-590
-           (lambda args
-             (apply (assoc-ref copy:%standard-phases 'install)
-                    #:install-plan
-                    '(("99_nvidia_wayland2.json" "share/egl/egl_external_platform.d/"))
-                    args)))
-         (add-after 'add-architecture 'add-architecture-590
-           (lambda _
-             (for-each
-              #$(add-architecture-to-filename)
-              '("/share/egl/egl_external_platform.d/99_nvidia_wayland2.json"))))))))
-
-(define-public nvidia-driver-590
-  (binary-package-from-sources
-   `(("x86_64-linux"  . ,nvidia-source-590-x86_64-linux)
-     ("aarch64-linux" . ,nvidia-source-590-aarch64-linux))
-   (package
-     (inherit nvidia-driver-580)
-     (arguments (%nvidia-driver-arguments-590))
-     (inputs
-      (modify-inputs inputs
-        (prepend egl-wayland2)))
-     (synopsis "Proprietary NVIDIA driver (libraries), new feature branch"))))
-
 (define (%nvidia-driver-arguments-595)
   (substitute-keyword-arguments (%nvidia-driver-arguments-580)
     ((#:phases phases)
@@ -905,15 +859,6 @@ instead.")))
      (supported-systems '("x86_64-linux" "aarch64-linux"))
      (synopsis "Proprietary NVIDIA driver (GPU System Processor firmware), production branch"))))
 
-(define-public nvidia-firmware-590
-  (binary-package-from-sources
-   `(("x86_64-linux"  . ,nvidia-source-590-x86_64-linux)
-     ("aarch64-linux" . ,nvidia-source-590-aarch64-linux))
-   (package
-     (inherit nvidia-firmware-580)
-     (arguments (%nvidia-firmware-arguments (package-version this-package)))
-     (synopsis "Proprietary NVIDIA driver (GPU System Processor firmware), new feature branch"))))
-
 (define-public nvidia-firmware-595
   (binary-package-from-sources
    `(("x86_64-linux"  . ,nvidia-source-595-x86_64-linux)
@@ -1010,15 +955,6 @@ driver.")))
      (arguments (%nvidia-module-arguments))
      (synopsis "Proprietary NVIDIA driver (kernel modules), production branch"))))
 
-(define-public nvidia-module-590
-  (binary-package-from-sources
-   `(("x86_64-linux"  . ,nvidia-source-590-x86_64-linux)
-     ("aarch64-linux" . ,nvidia-source-590-aarch64-linux))
-   (package
-     (inherit nvidia-module-580)
-     (arguments (%nvidia-module-arguments))
-     (synopsis "Proprietary NVIDIA driver (kernel modules), new feature branch"))))
-
 (define-public nvidia-module-595
   (binary-package-from-sources
    `(("x86_64-linux"  . ,nvidia-source-595-x86_64-linux)
@@ -1103,27 +1039,6 @@ driver.")))
      "This package provides open source kernel modules of the proprietary
 NVIDIA driver.")
     (license license-gnu:gpl2)))
-
-(define-public nvidia-module-open-590
-  (package
-    (inherit nvidia-module-open-580)
-    (name "nvidia-module-open")
-    (version "590.48.01")
-    (source
-     (origin
-       (method git-fetch)
-       (uri (git-reference
-              (url "https://github.com/NVIDIA/open-gpu-kernel-modules")
-              (commit version)))
-       (file-name (git-file-name name version))
-       (sha256
-        (base32
-         "13izbl0npxc6mxaq7123sj7cqksqwcha8fgsgj2dphdk1dz8fh44"))
-       (patches
-        (nongnu-patches "nvidia-module-open-add-ibt-support.patch"
-                        "nvidia-module-open-bsb-dsc-fix.patch"
-                        "nvidia-module-open-fix-linux-6.19.patch"))))
-    (synopsis "Proprietary NVIDIA driver (open source kernel modules), new feature branch")))
 
 (define-public nvidia-module-open-595
   (package
@@ -1256,22 +1171,6 @@ device files are present and configure certain runtime settings in the kernel.")
                (base32
                 "127rb7qfvx7gmcwn13232r44fhb2lyamnrx9g07k8z6im3jav0kz"))))
     (synopsis "Create NVIDIA character device files, production branch")))
-
-(define-public nvidia-modprobe-590
-  (package
-    (inherit nvidia-modprobe-580)
-    (name "nvidia-modprobe")
-    (version "590.48.01")
-    (source (origin
-              (method git-fetch)
-              (uri (git-reference
-                     (url "https://github.com/NVIDIA/nvidia-modprobe")
-                     (commit version)))
-              (file-name (git-file-name name version))
-              (sha256
-               (base32
-                "1y6kqhvjfpq0zssjsbkwkav2khsb7x63nxgd1lnvrkg660a7knjn"))))
-    (synopsis "Create NVIDIA character device files, new feature branch")))
 
 (define-public nvidia-modprobe-595
   (package
@@ -1447,23 +1346,6 @@ configuration, application profiles, GPU monitoring and more.")
        (modules '((guix build utils)))
        (snippet '(delete-file-recursively "src/jansson"))))
     (synopsis "NVIDIA proprietary driver control panel, production branch")))
-
-(define-public nvidia-settings-590
-  (package
-    (inherit nvidia-settings-580)
-    (name "nvidia-settings")
-    (version "590.48.01")
-    (source
-     (origin
-       (method git-fetch)
-       (uri (git-reference
-              (url "https://github.com/NVIDIA/nvidia-settings")
-              (commit version)))
-       (file-name (git-file-name name version))
-       (sha256 (base32 "0h9059gkibyiidg5s9cakbg369y9nwfd17vycpsqfswgr18jlsrm"))
-       (modules '((guix build utils)))
-       (snippet '(delete-file-recursively "src/jansson"))))
-    (synopsis "NVIDIA proprietary driver control panel, new feature branch")))
 
 (define-public nvidia-settings-595
   (package
@@ -1730,14 +1612,12 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 (define-nvda-package nvda-390 nvidia-driver-390)
 (define-nvda-package nvda-470 nvidia-driver-470)
 (define-nvda-package nvda-580 nvidia-driver-580)
-(define-nvda-package nvda-590 nvidia-driver-590)
 (define-nvda-package nvda-595 nvidia-driver-595)
 (define-nvda-package nvda-new-feature nvidia-driver-new-feature)
 (define-nvda-package nvda-beta nvidia-driver-beta)
 (define-nvda-package nvda-user-alias-390 nvidia-driver-390 "nvda")
 (define-nvda-package nvda-user-alias-470 nvidia-driver-470 "nvda")
 (define-nvda-package nvda-user-alias-580 nvidia-driver-580 "nvda")
-(define-nvda-package nvda-user-alias-590 nvidia-driver-590 "nvda")
 (define-nvda-package nvda-user-alias-595 nvidia-driver-595 "nvda")
 (define-nvda-package nvda-user-alias-new-feature nvidia-driver-new-feature "nvda-new-feature")
 (define-nvda-package nvda-user-alias-beta nvidia-driver-beta "nvda-beta")
@@ -1773,8 +1653,6 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
   steam-container-for nvda-470)
 (define-nvidia-container steam-nvidia-580
   steam-container-for nvda-580)
-(define-nvidia-container steam-nvidia-590
-  steam-container-for nvda-590)
 (define-nvidia-container steam-nvidia-595
   steam-container-for nvda-595)
 (define-nvidia-container steam-nvidia-new-feature
@@ -1792,9 +1670,6 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 (define-nvidia-container steam-nvidia-user-alias-580 "steam-nvidia"
   steam-nvidia-580
   (package-version nvidia-driver-580))
-(define-nvidia-container steam-nvidia-user-alias-590 "steam-nvidia"
-  steam-nvidia-590
-  (package-version nvidia-driver-590))
 (define-nvidia-container steam-nvidia-user-alias-595 "steam-nvidia"
   steam-nvidia-595
   (package-version nvidia-driver-595))
@@ -1811,8 +1686,6 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
   heroic-container-for nvda-470)
 (define-nvidia-container heroic-nvidia-580
   heroic-container-for nvda-580)
-(define-nvidia-container heroic-nvidia-590
-  heroic-container-for nvda-590)
 (define-nvidia-container heroic-nvidia-595
   heroic-container-for nvda-595)
 (define-nvidia-container heroic-nvidia-new-feature
@@ -1830,9 +1703,6 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 (define-nvidia-container heroic-nvidia-user-alias-580 "heroic-nvidia"
   heroic-nvidia-580
   (package-version nvidia-driver-580))
-(define-nvidia-container heroic-nvidia-user-alias-590 "heroic-nvidia"
-  heroic-nvidia-590
-  (package-version nvidia-driver-590))
 (define-nvidia-container heroic-nvidia-user-alias-595 "heroic-nvidia"
   heroic-nvidia-595
   (package-version nvidia-driver-595))
@@ -1879,7 +1749,6 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 (define-ffmpeg-nvidia ffmpeg/nvidia-390 ffmpeg nvda-390)
 (define-ffmpeg-nvidia ffmpeg/nvidia-470 ffmpeg nvda-470)
 (define-ffmpeg-nvidia ffmpeg/nvidia-580 ffmpeg nvda-580)
-(define-ffmpeg-nvidia ffmpeg/nvidia-590 ffmpeg nvda-590)
 (define-ffmpeg-nvidia ffmpeg/nvidia-595 ffmpeg nvda-595)
 (define-ffmpeg-nvidia ffmpeg/nvidia-new-feature ffmpeg nvda-new-feature)
 (define-ffmpeg-nvidia ffmpeg/nvidia-beta ffmpeg nvda-beta)
@@ -1888,7 +1757,6 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 (define-ffmpeg-nvidia ffmpeg-6/nvidia-390 ffmpeg-6 nvda-390)
 (define-ffmpeg-nvidia ffmpeg-6/nvidia-470 ffmpeg-6 nvda-470)
 (define-ffmpeg-nvidia ffmpeg-6/nvidia-580 ffmpeg-6 nvda-580)
-(define-ffmpeg-nvidia ffmpeg-6/nvidia-590 ffmpeg-6 nvda-590)
 (define-ffmpeg-nvidia ffmpeg-6/nvidia-595 ffmpeg-6 nvda-595)
 (define-ffmpeg-nvidia ffmpeg-6/nvidia-new-feature ffmpeg-6 nvda-new-feature)
 (define-ffmpeg-nvidia ffmpeg-6/nvidia-beta ffmpeg-6 nvda-beta)
@@ -1903,9 +1771,6 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 (define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-580 "ffmpeg-nvidia"
   ffmpeg/nvidia-580
   (package-version nvidia-driver-580))
-(define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-590 "ffmpeg-nvidia"
-  ffmpeg/nvidia-590
-  (package-version nvidia-driver-590))
 (define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-595 "ffmpeg-nvidia"
   ffmpeg/nvidia-595
   (package-version nvidia-driver-595))
@@ -1924,9 +1789,6 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 (define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-580 "ffmpeg-6-nvidia"
   ffmpeg-6/nvidia-580
   (package-version nvidia-driver-580))
-(define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-590 "ffmpeg-6-nvidia"
-  ffmpeg-6/nvidia-590
-  (package-version nvidia-driver-590))
 (define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-595 "ffmpeg-6-nvidia"
   ffmpeg-6/nvidia-595
   (package-version nvidia-driver-595))
