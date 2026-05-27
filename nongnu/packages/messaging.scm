@@ -4,7 +4,7 @@
 ;;; Copyright © 2022 Evgenii Lepikhin <johnlepikhin@gmail.com>
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2023 Raven Hallsby <karl@hallsby.org>
-;;; Copyright © 2025 Ashish SHUKLA <ashish.is@lostca.se>
+;;; Copyright © 2025, 2026 Ashish SHUKLA <ashish.is@lostca.se>
 ;;; Copyright © 2025 Luca Kredel <luca.kredel@web.de>
 
 (define-module (nongnu packages messaging)
@@ -86,7 +86,7 @@ its core.")
 (define-public signal-desktop
   (package
     (name "signal-desktop")
-    (version "8.11.0")
+    (version "8.12.0")
     (source
      (origin
        (method url-fetch)
@@ -95,7 +95,7 @@ its core.")
          "https://updates.signal.org/desktop/apt/pool/s/" name "/" name "_" version
          "_amd64.deb"))
        (sha256
-        (base32 "0snh28smzz56xc4qbv8fh3gwz4djn9ls9fbh44yv68fc6wyxc1g3"))))
+        (base32 "1r1n609c9qnhfvdifz3nzjqc2nwvl6qzh3bv6n2avk9zi17x469l"))))
     (supported-systems '("x86_64-linux"))
     (build-system chromium-binary-build-system)
     (arguments
