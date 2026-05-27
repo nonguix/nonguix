@@ -10,7 +10,7 @@
 (channel-news
  (version 0)
 
- (entry (commit "e9f969e848aca57aeca91853f36b51b37b1e44aa")
+ (entry (commit "d14639ff88614e8aa30d958390b1ee7905cf78ca")
         (title
          (en "NVIDIA proprietary driver 590.xx series removal"))
         (body
