@@ -472,6 +472,7 @@ of the normal one.  Aforementioned application setup is still necessary.
 
 - mpv-nvidia
 - obs-nvidia
+- obs-with-cef-nvidia
 
 | Variable                    | Specification               |
 |-----------------------------+-----------------------------|

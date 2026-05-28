@@ -247,6 +247,25 @@ cards)")))
       "  This build of OBS includes embeded Chromium-based browser to enable
 Browser source."))))
 
+(define-public obs-with-cef-nvidia
+  (package/inherit obs-with-cef
+    (name "obs-with-cef-nvidia")
+    (arguments
+     (substitute-keyword-arguments arguments
+       ((#:configure-flags flags #~'())
+        #~(append #$flags '("-DENABLE_NVENC=ON")))))
+    (inputs
+     (modify-inputs inputs
+       (prepend nv-codec-headers)))
+    (synopsis
+     "Live streaming software (with hardware acceleration for NVIDIA graphics
+cards)")
+    (description
+     (string-append
+      (package-description obs-nvidia)
+      "  This build of OBS includes embeded Chromium-based browser to enable
+Browser source."))))
+
 (define-public grayjay
   (package
     (name "grayjay")
