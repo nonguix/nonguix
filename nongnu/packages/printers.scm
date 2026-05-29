@@ -6,6 +6,7 @@
 (define-module (nongnu packages printers)
   #:use-module (gnu packages)
   #:use-module (gnu packages cups)
+  #:use-module (gnu packages python-build)
   #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module (guix utils)
@@ -28,6 +29,7 @@
                        (origin-snippet (package-source hplip))))))
     (inputs
      (modify-inputs inputs
+       (prepend python-setuptools)
        (delete "python-pyqt")))
     (native-inputs
      (append
