@@ -166,20 +166,20 @@ cards)")))
      (substitute-keyword-arguments arguments
        ((#:configure-flags flags)
         #~(append #$flags
-                  '("-DBUILD_BROWSER=ON"
-                    "-DCEF_ROOT_DIR=../source/cef")))
+                  '("-DENABLE_BROWSER=ON"
+                    "-DCEF_ROOT_DIR=../cef")))
        ((#:phases phases)
         #~(modify-phases #$phases
             (add-before 'configure 'add-cef
               (lambda* (#:key inputs #:allow-other-keys)
                 (let ((chromium-embedded-framework
                        #$(this-package-input "chromium-embedded-framework")))
-                  (mkdir-p "cef/Release")
-                  (mkdir-p "cef/Resources")
+                  (mkdir-p "../cef/Release")
+                  (mkdir-p "../cef/Resources")
                   (for-each (lambda (file)
-                              (symlink file (string-append "cef/Release/"
+                              (symlink file (string-append "../cef/Release/"
                                                            (basename file)))
-                              (symlink file (string-append "cef/Resources/"
+                              (symlink file (string-append "../cef/Resources/"
                                                            (basename file))))
                             (filter
                              (lambda (file)
@@ -190,27 +190,57 @@ cards)")))
                                              "/share/cef"))))
                   (symlink (string-append chromium-embedded-framework
                                           "/lib/libcef.so")
-                           "cef/Release/libcef.so")
-                  (mkdir-p "cef/libcef_dll_wrapper")
+                           "../cef/Release/libcef.so")
+                  (mkdir-p "../cef/libcef_dll_wrapper")
                   (symlink (string-append chromium-embedded-framework
                                           "/lib/libcef_dll_wrapper.a")
-                           "cef/libcef_dll_wrapper/libcef_dll_wrapper.a")
+                           "../cef/libcef_dll_wrapper/libcef_dll_wrapper.a")
                   (symlink (string-append chromium-embedded-framework
                                           "/include")
-                           "cef/include"))))
+                           "../cef/include")
+                  (symlink (string-append chromium-embedded-framework
+                                          "/share/cef/locales")
+                           "../cef/Resources/locales")
+                  ;; OBS build process copies these files.  Temporary create
+                  ;; empty ones not to patch cmake helper, which often updates.
+                  (for-each
+                   (lambda (f)
+                     (let ((path (string-append "../cef/Release/" f)))
+                       (unless (file-exists? path)
+                         (call-with-output-file path
+                           (lambda (port) (display "" port))))))
+                   '("libEGL.so"
+                     "libGLESv2.so"
+                     "libvulkan.so.1"
+                     "libvk_swiftshader.so"
+                     "vk_swiftshader_icd.json"
+                     "chrome-sandbox")))))
             (add-after 'install 'symlink-obs-browser
               ;; Required for lib/obs-plugins/obs-browser.so file.
               (lambda* (#:key outputs #:allow-other-keys)
-                (symlink
-                 (string-append #$output
-                                "/lib/libobs-frontend-api.so.0")
-                 (string-append #$output
-                                "/lib/obs-plugins/libobs-frontend-api.so.0"))
-                (symlink
-                 (string-append #$output
-                                "/lib/libobs.so.0")
-                 (string-append #$output
-                                "/lib/obs-plugins/libobs.so.0"))))))))
+                (let ((lib-dir (string-append #$output "/lib")))
+                (for-each
+                 (lambda (file)
+                   (symlink file
+                            (string-append lib-dir "/obs-plugins/" (basename file))))
+                 (append (find-files lib-dir "^libobs\\.so\\.[0-9]+$")
+                         (find-files lib-dir "^libobs-frontend-api\\.so\\.[0-9]+$"))))))
+
+            (add-after 'install 'remove-fake-cef-libs
+              ;; Remove temporary empty files we created.
+              (lambda* (#:key outputs #:allow-other-keys)
+                (let ((lib-dir (string-append #$output "/lib/obs-plugins")))
+                  (for-each
+                   (lambda (f)
+                     (let ((path (string-append lib-dir "/" f)))
+                       (when (file-exists? path)
+                         (delete-file path))))
+                   '("libEGL.so"
+                     "libGLESv2.so"
+                     "libvulkan.so.1"
+                     "libvk_swiftshader.so"
+                     "vk_swiftshader_icd.json"
+                     "chrome-sandbox")))))))))
     (description
      (string-append
       (package-description obs)
