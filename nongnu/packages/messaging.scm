@@ -138,7 +138,7 @@ or iOS.")
 (define-public signal-cli
   (package
     (name "signal-cli")
-    (version "0.14.1")
+    (version "0.14.5")
     (source
      (origin
        (method url-fetch)
@@ -146,7 +146,7 @@ or iOS.")
              "https://github.com/AsamK/signal-cli/releases/download/v" version
              "/signal-cli-" version ".tar.gz"))
        (sha256
-        (base32 "1s1n2s62zs31yfji1cnglp114qjkfw9z18gkcx28iha25jqs9kff"))))
+        (base32 "19yp7jykw3gp39nfd0hk26fm9vkm7cc2hwvy8f7xg21rxyzqxlv2"))))
     (build-system copy-build-system)
     (arguments
      `(#:install-plan '(("bin/" "bin/"
