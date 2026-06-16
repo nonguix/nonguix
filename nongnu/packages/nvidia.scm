@@ -169,7 +169,7 @@
                 (copy-recursively "extractdir" #$output)))))))))
 
 (define %nvidia-patches-390
-  (let ((commit "caed47174d2c835921d9f23ea08c630ef5cdea06"))
+  (let ((commit "2df85fee07fffc9a889c3dde21899ef209ac2d55"))
     (origin
       (method git-fetch)
       (uri (git-reference
@@ -177,7 +177,7 @@
              (commit commit)))
       (file-name (string-append "nvidia-patches." (string-take commit 7)))
       (sha256
-       (base32 "0bsdb8lhycpiqf32lnxm7nnivh4hyfikwd2lii357pv12ix6z6v7")))))
+       (base32 "12fg0m1kk8s8hpxqsjxbl4r8wmqc3rn87p57a4mkyj3fc780fqd5")))))
 
 (define %nvidia-patches-470
   (let ((commit "23ccd6e8d9b27256d4f491666b2779c663ab9f39"))
@@ -220,7 +220,8 @@
           "kernel-6.15.patch"
           "kernel-6.17.patch"
           "kernel-6.19.patch"
-          "kernel-6.18-nv_workqueue_flush.patch"))
+          "kernel-6.18-nv_workqueue_flush.patch"
+          "kernel-7.0.patch"))
    #:snippet
    #~(rename-file "nvidia_icd.json.template" "nvidia_icd.json")))
 
