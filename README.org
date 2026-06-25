@@ -5,11 +5,14 @@ Nonguix is a software repository for the
 which packages some software which cannot be included in the official
 distribution for ethical or policy-related reasons.
 
-Please do NOT promote this repository on any official Guix
-communication channels, such as their mailing lists or IRC channel, even in
-response to support requests!  This is to show respect for the Guix project's
-[[http://www.gnu.org/distros/free-system-distribution-guidelines.html][strict policy]]
-against recommending nonfree software, and to avoid any unnecessary hostility.
+Please do not promote this repository on any official Guix communication
+channels, such as their mailing lists or IRC channel.  This is to show respect
+for the Guix project's [[http://www.gnu.org/distros/free-system-distribution-guidelines.html][strict policy]] against recommending nonfree software.
+Nevertheless, the Guix project acknowledges that most of its members do not have
+the choice to buy new FDSG compliant hardware, so it is acceptable to mention
+Nonguix but it is off-topic and the people may not know best how to provide
+help. The discussion should be moved on Nonguix' communication channels like the
+[[https://gitlab.com/nonguix/nonguix/-/work_items][issue board]].
 
 Before using this channel, you should understand the implications of using
 nonfree software.  Read [[https://www.gnu.org/philosophy/free-sw.en.html][What is free software?]]
