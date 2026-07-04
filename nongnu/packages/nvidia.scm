@@ -14,6 +14,7 @@
   #:use-module (guix download)
   #:use-module (guix gexp)
   #:use-module (guix git-download)
+  #:use-module (guix search-paths)
   #:use-module (guix utils)
   #:use-module ((guix licenses) #:prefix license-gnu:)
   #:use-module ((nonguix licenses) #:prefix license:)
@@ -1578,10 +1579,19 @@ content.")
         (variable "VDPAU_DRIVER_PATH")
         (files '("lib/vdpau"))
         (separator #f))
-      ;; https://github.com/KhronosGroup/Vulkan-Loader/blob/main/docs/LoaderLayerInterface.md
+      ;; https://github.com/KhronosGroup/Vulkan-Loader/blob/main/docs/LoaderInterfaceArchitecture.md#active-environment-variables
+      $XDG_DATA_DIRS
       (search-path-specification
-        (variable "XDG_DATA_DIRS")
-        (files '("share")))))
+        (variable "VK_ADD_DRIVER_FILES")
+        (files '("share/vulkan/icd.d"))
+        (file-type 'regular)
+        (file-pattern "^.*\\.json$"))
+      (search-path-specification
+        (variable "VK_ADD_LAYER_PATH")
+        (files '("share/vulkan/explicit_layer.d")))
+      (search-path-specification
+        (variable "VK_ADD_IMPLICIT_LAYER_PATH")
+        (files '("share/vulkan/implicit_layer.d")))))
     (synopsis "Nonguix's user-facing NVIDIA driver package")
     (description
      "This package provides a @code{mesa} variant with NVIDIA proprietary driver
