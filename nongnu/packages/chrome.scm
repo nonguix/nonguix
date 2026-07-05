@@ -72,7 +72,7 @@
          #~(modify-phases %standard-phases
              (add-before 'install 'patch-assets
                ;; Many thanks to
-               ;; https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/networking/browsers/google-chrome/default.nix
+               ;; https://github.com/NixOS/nixpkgs/blob/nixos-23.05-small/pkgs/applications/networking/browsers/google-chrome/default.nix
                (lambda _
                  (let* ((bin (string-append #$output "/bin"))
                         (share (string-append #$output "/share"))
