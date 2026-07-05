@@ -373,6 +373,9 @@ GBM EGL support.")
                     (("libnvidia-egl-.*\\.so\\.." lib)
                      (search-input-file
                       outputs (in-vicinity "lib" lib)))))))))))
+    (inputs
+     (modify-inputs inputs
+       (replace "mesa" mesa-for-nvda)))
     (synopsis "Dma-buf-based Wayland external platform library")
     (description
      "This is a new implementation of the EGL External Platform Library for
