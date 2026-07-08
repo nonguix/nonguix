@@ -182,6 +182,9 @@ some freedo package or an output of package-version procedure."
        "The unmodified Linux kernel, including nonfree blobs, for running Guix System
 on hardware which requires nonfree software to function."))))
 
+(define-public linux-7.1
+  (corrupt-linux linux-libre-7.1))
+
 (define-public linux-7.0
   (corrupt-linux linux-libre-7.0))
 
