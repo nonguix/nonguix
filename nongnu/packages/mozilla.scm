@@ -526,26 +526,26 @@ Release (ESR) version.")
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-build-id "20260714035250")
+(define %firefox-build-id "20260720102324")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "152.0.6")
+    (version "153.0.4")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "03hgcrhdc56qiy1f5b8ps2z7vc5fqk9xznp642mfvm0rim7hq8pa"))
+        (base32 "0j4a0ak5658n6iwgx4jc0agqlf1dc403p6qkrw23pfv69j987app"))
        (patches
         (nongnu-patches
-         "firefox-restore-desktop-files.patch"
+         "firefox-add-store-to-rdd-allowlist.patch"
          "firefox-compare-paths.patch"
-         "firefox-use-system-wide-dir.patch"
-         "firefox-add-store-to-rdd-allowlist.patch"))
+         "firefox-restore-desktop-files.patch"
+         "firefox-use-system-wide-dir.patch"))
        ;; XXX: 75 Mo (800+ Mo uncompressed) of unused tests.
        ;; Removing it makes it possible to compile on some systems.
        (modules '((guix build utils)))
@@ -560,8 +560,7 @@ Release (ESR) version.")
     (native-inputs
      (modify-inputs native-inputs
        (replace "rust" rust-firefox)
-       (replace "rust:cargo" `(,rust-firefox "cargo"))
-       (replace "rust-cbindgen" rust-cbindgen-0.29)))
+       (replace "rust:cargo" `(,rust-firefox "cargo"))))
     (description
      "Full-featured browser client built from Firefox source tree, without
 the official icon and the name \"firefox\".")))
