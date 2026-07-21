@@ -88,25 +88,25 @@
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-esr-build-id "20260720102539")
+(define %firefox-esr-build-id "20260720102245")
 
 (define-public firefox-esr
   (package
     (name "firefox-esr")
-    (version "140.13.0esr")
+    (version "153.0esr")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "00adf648nrhzngb4ssx31l17bh4zym491mx7b8ca3g9ajk39sfzm"))
+        (base32 "1dbcc80wq1354pzy6wg17gm81qiddyf5b3384fva865ivkgdkqyv"))
        (patches
         (nongnu-patches
+         "firefox-add-store-to-rdd-allowlist.patch"
+         "firefox-compare-paths.patch"
          "firefox-restore-desktop-files.patch"
-         "firefox-ge-138-compare-paths.patch"
-         "firefox-esr-use-system-wide-dir.patch"
-         "firefox-esr-add-store-to-rdd-allowlist.patch"))
+         "firefox-use-system-wide-dir.patch"))
        ;; XXX: 75 Mo (800+ Mo uncompressed) of unused tests.
        ;; Removing it makes it possible to compile on some systems.
        (modules '((guix build utils)))
@@ -460,7 +460,7 @@
         gtk+
         gtk+-2
         hunspell
-        icu4c-76
+        icu4c-78
         jemalloc
         libcanberra
         libevent
@@ -498,7 +498,7 @@
         alsa-lib
         autoconf-2.13
         `(,rust-firefox-esr "cargo")
-        clang-18
+        clang-19
         llvm
         wasm32-wasi-clang-toolchain
         m4
@@ -508,7 +508,7 @@
         pkg-config
         python
         rust-firefox-esr
-        rust-cbindgen-0.28
+        rust-cbindgen-0.29
         which
         yasm))
     (native-search-paths
@@ -543,7 +543,7 @@ Release (ESR) version.")
        (patches
         (nongnu-patches
          "firefox-restore-desktop-files.patch"
-         "firefox-ge-138-compare-paths.patch"
+         "firefox-compare-paths.patch"
          "firefox-use-system-wide-dir.patch"
          "firefox-add-store-to-rdd-allowlist.patch"))
        ;; XXX: 75 Mo (800+ Mo uncompressed) of unused tests.
@@ -557,9 +557,6 @@ Release (ESR) version.")
             (replace 'set-build-id
               (lambda _
                 (setenv "MOZ_BUILD_DATE" #$%firefox-build-id)))))))
-    (inputs
-     (modify-inputs inputs
-       (replace "icu4c" icu4c-78)))
     (native-inputs
      (modify-inputs native-inputs
        (replace "rust" rust-firefox)

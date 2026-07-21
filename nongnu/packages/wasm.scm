@@ -67,11 +67,11 @@ other APIs.")
               license:expat))))
 
 (define-public wasm32-wasi-clang-runtime
-  (package (inherit clang-runtime-17)
+  (package (inherit clang-runtime-19)
     (native-inputs
-     (list clang-17
+     (list clang-19
            wasi-libc))
-    (inputs (list llvm-17))
+    (inputs (list llvm-19))
     (arguments
      (list
       #:build-type "Release"
@@ -109,8 +109,7 @@ other APIs.")
 
 (define-public wasm32-wasi-clang
   (let ((base
-         (clang-from-llvm llvm-17 wasm32-wasi-clang-runtime
-                          #:patches '("clang-17.0-fix-build-with-gcc-14-on-arm.patch"))))
+         (clang-from-llvm llvm-19 wasm32-wasi-clang-runtime)))
     (package
       (inherit base)
       (name "wasm32-wasi-clang")
@@ -132,7 +131,7 @@ other APIs.")
 (define-public wasm32-wasi-libcxx
   (package
     (name "wasm32-wasi-libcxx")
-    (version (package-version llvm-17))
+    (version (package-version llvm-19))
     (source (llvm-monorepo version))
     (build-system cmake-build-system)
     (arguments
@@ -173,7 +172,8 @@ other APIs.")
               "-DLIBCXXABI_ENABLE_EXCEPTIONS=OFF"
               "-DLIBCXXABI_ENABLE_SHARED=OFF"
               "-DLIBCXXABI_ENABLE_THREADS=OFF"
-              "-DLIBCXXABI_ENABLE_FILESYSTEM=OFF")
+              "-DLIBCXXABI_ENABLE_FILESYSTEM=OFF"
+              "-DLIBCXXABI_USE_LLVM_UNWINDER=OFF")
       #:tests? #f
       #:phases
       #~(modify-phases %standard-phases
