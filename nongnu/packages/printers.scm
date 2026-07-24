@@ -11,8 +11,7 @@
   #:use-module (guix packages)
   #:use-module (guix utils)
   #:use-module (srfi srfi-1)
-  #:use-module (guix download)
-  #:use-module (guix build utils))
+  #:use-module (guix download))
 
 (define-public hplip-plugin
   (package

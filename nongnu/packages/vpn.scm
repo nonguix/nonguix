@@ -2,7 +2,6 @@
 ;;; Copyright © 2020, 2026 Alexey Abramov <levenson@mmer.org>
 
 (define-module (nongnu packages vpn)
-  #:use-module (guix build utils)
   #:use-module (guix build-system gnu)
   #:use-module (guix download)
   #:use-module (guix git-download)
