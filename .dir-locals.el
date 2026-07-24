@@ -44,6 +44,7 @@
    ;; one working with a local guix checkout may want something different.
    (geiser-guile-binary . ("guix" "repl"))
 
+   (eval . (put 'make-wrapper        'scheme-indent-function 2))
    (eval . (put 'with-transformation 'scheme-indent-function 1))
 
    (eval . (put 'nonguix-container 'scheme-indent-function 0))
