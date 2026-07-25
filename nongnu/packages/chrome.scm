@@ -159,15 +159,15 @@
   (package
     (inherit (make-google-chrome "stable"))
     (name "google-chrome-stable")
-    (version "148.0.7778.215")
+    (version "150.0.7871.186-1")
     (source
      (origin
        (method url-fetch)
        (uri (string-append
              "https://dl.google.com/linux/chrome/deb/pool/main/g/" name "/"
-             name "_" version "-1_amd64.deb"))
+             name "_" version "_amd64.deb"))
        (sha256
-        (base32 "091d2hk0dvxnpmiq0hmdc389sdg87h0zl9d001yv5h70v2i8q8i3"))))))
+        (base32 "004xf4n1xk7r1cz7n1ybx2h6lm4ghsb9b9ppcgp6jnaxdl5y14s1"))))))
 
 (define-public google-chrome-beta
   (package
