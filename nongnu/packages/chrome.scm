@@ -52,8 +52,10 @@
                  '("chrome"
                    "chrome-sandbox"
                    "chrome_crashpad_handler"
-                   "libEGL.so"
-                   "libGLESv2.so"
+                   #$@(if (string=? repo "stable")
+                          '("libEGL.so"
+                            "libGLESv2.so")
+                          '())
                    "liboptimization_guide_internal.so"
                    "libqt5_shim.so"
                    "libqt6_shim.so"
@@ -173,15 +175,15 @@
   (package
     (inherit (make-google-chrome "beta"))
     (name "google-chrome-beta")
-    (version "149.0.7827.22")
+    (version "151.0.7922.47-1")
     (source
      (origin
        (method url-fetch)
        (uri (string-append
              "https://dl.google.com/linux/chrome/deb/pool/main/g/" name "/"
-             name "_" version "-1_amd64.deb"))
+             name "_" version "_amd64.deb"))
        (sha256
-        (base32 "1sa41cly7vckpyc7f72yrkjrcm02vahvlfcjn3ng8z8sci18yglr"))))))
+        (base32 "060xs5b991lnzcvmkv3rkr6rcy0q2cqb7xpmvwzhxh6m7sjhvf4s"))))))
 
 (define-public google-chrome-unstable
   (package
