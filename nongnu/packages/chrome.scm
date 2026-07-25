@@ -27,83 +27,78 @@
   #:use-module (guix build-system gnu)
   #:use-module (nonguix build-system chromium-binary)
   #:use-module (nonguix licenses)
+  #:use-module (nonguix utils)
   #:use-module (ice-9 string-fun))
 
-(define-public (make-google-chrome repo version hash)
+(define-public (make-google-chrome repo)
+  "Build phases and metadata for Google Chrome packages."
   (let* ((name (string-append "google-chrome-" repo))
          (appname (if (string=? repo "stable")
                       "chrome"
                       (string-replace-substring name "google-" ""))))
     (package
-     (name name)
-     (version version)
-     (source (origin
-               (method url-fetch)
-               (uri
-                (string-append
-                 "https://dl.google.com/linux/chrome/deb/pool/main/g/"
-                 name "/" name "_" version "-1_amd64.deb"))
-               (sha256
-                (base32 hash))))
-     (build-system chromium-binary-build-system)
-     (arguments
-      (list
+      (name #f)
+      (version #f)
+      (source #f)
+      (build-system chromium-binary-build-system)
+      (arguments
+       (list
         ;; almost 300MB, faster to download and build from Google servers
         #:substitutable? #f
         #:wrapper-plan
-         #~(let ((path (string-append "opt/google/" #$appname "/")))
-             (map (lambda (file)
-                    (string-append path file))
-                  '("chrome"
-                    "chrome-sandbox"
-                    "chrome_crashpad_handler"
-                    "libEGL.so"
-                    "libGLESv2.so"
-                    "liboptimization_guide_internal.so"
-                    "libqt5_shim.so"
-                    "libqt6_shim.so"
-                    "libvk_swiftshader.so"
-                    "libvulkan.so.1"
-                    "WidevineCdm/_platform_specific/linux_x64/libwidevinecdm.so")))
+        #~(let ((path (string-append "opt/google/" #$appname "/")))
+            (map (lambda (file)
+                   (string-append path file))
+                 '("chrome"
+                   "chrome-sandbox"
+                   "chrome_crashpad_handler"
+                   "libEGL.so"
+                   "libGLESv2.so"
+                   "liboptimization_guide_internal.so"
+                   "libqt5_shim.so"
+                   "libqt6_shim.so"
+                   "libvk_swiftshader.so"
+                   "libvulkan.so.1"
+                   "WidevineCdm/_platform_specific/linux_x64/libwidevinecdm.so")))
         #:install-plan
-         #~'(("opt/" "/share")
-             ("usr/share/" "/share"))
+        #~'(("opt/" "/share")
+            ("usr/share/" "/share"))
         #:phases
-         #~(modify-phases %standard-phases
-             (add-before 'install 'patch-assets
-               ;; Many thanks to
-               ;; https://github.com/NixOS/nixpkgs/blob/nixos-23.05-small/pkgs/applications/networking/browsers/google-chrome/default.nix
-               (lambda _
-                 (let* ((bin (string-append #$output "/bin"))
-                        (share (string-append #$output "/share"))
-                        (opt "./opt")
-                        (usr/share "./usr/share")
-                        (old-exe (string-append "/opt/google/" #$appname "/google-" #$appname))
-                        (exe (string-append bin "/google-" #$appname)))
-                   ;; This allows us to override CHROME_WRAPPER later.
-                   (substitute* (string-append opt "/google/" #$appname "/google-" #$appname)
-                     (("CHROME_WRAPPER") "WRAPPER"))
-                   (substitute* (string-append usr/share "/applications/google-" #$appname ".desktop")
-                     (("^Exec=.*") (string-append "Exec=" exe "\n")))
-                   (substitute* (string-append usr/share "/gnome-control-center/default-apps/google-" #$appname ".xml")
-                     ((old-exe) exe)))))
-             (add-after 'install 'install-icons
-                (lambda _
-                  (define (format-icon-size name)
-                    (car
-                      (string-split
-                       (string-drop-right (string-drop name 13) 4)
-                       #\_)))
-                  (let ((icons (string-append #$output "/share/icons/hicolor"))
-                        (share (string-append #$output "/share/google/" #$appname)))
-                    (for-each (lambda (icon)
-                                (let* ((icon-name (basename icon))
-                                       (icon-size (format-icon-size icon-name))
-                                       (target (string-append icons "/" icon-size "x" icon-size "/apps/google-" #$appname ".png")))
-                                  (mkdir-p (dirname target))
-                                  (rename-file icon target)))
-                              (find-files share "product_logo_.*\\.png")))))
-             (add-before 'install-wrapper 'install-exe
+        #~(modify-phases %standard-phases
+            (add-before 'install 'patch-assets
+              ;; Many thanks to
+              ;; https://github.com/NixOS/nixpkgs/blob/nixos-23.05-small/pkgs/applications/networking/browsers/google-chrome/default.nix
+              (lambda _
+                (let* ((bin (string-append #$output "/bin"))
+                       (share (string-append #$output "/share"))
+                       (opt "./opt")
+                       (usr/share "./usr/share")
+                       (old-exe (string-append "/opt/google/" #$appname "/google-" #$appname))
+                       (exe (string-append bin "/google-" #$appname)))
+                  ;; This allows us to override CHROME_WRAPPER later.
+                  (substitute* (string-append opt "/google/" #$appname "/google-" #$appname)
+                    (("CHROME_WRAPPER") "WRAPPER"))
+                  (substitute* (string-append usr/share "/applications/google-" #$appname ".desktop")
+                    (("^Exec=.*") (string-append "Exec=" exe "\n")))
+                  (substitute* (string-append usr/share "/gnome-control-center/default-apps/google-" #$appname ".xml")
+                    ((old-exe) exe)))))
+            (add-after 'install 'install-icons
+              (lambda _
+                (define (format-icon-size name)
+                  (car
+                   (string-split
+                    (string-drop-right (string-drop name 13) 4)
+                    #\_)))
+                (let ((icons (string-append #$output "/share/icons/hicolor"))
+                      (share (string-append #$output "/share/google/" #$appname)))
+                  (for-each (lambda (icon)
+                              (let* ((icon-name (basename icon))
+                                     (icon-size (format-icon-size icon-name))
+                                     (target (string-append icons "/" icon-size "x" icon-size "/apps/google-" #$appname ".png")))
+                                (mkdir-p (dirname target))
+                                (rename-file icon target)))
+                            (find-files share "product_logo_.*\\.png")))))
+            (add-before 'install-wrapper 'install-exe
               (lambda _
                 (let* ((bin (string-append #$output "/bin"))
                        (exe (string-append bin "/google-" #$appname))
@@ -113,33 +108,33 @@
                   (symlink chrome-target exe)
                   (wrap-program exe
                     '("CHROME_WRAPPER" = (#$appname)))))))))
-     (inputs
-      (list bzip2
-            curl
-            flac
-            font-liberation
-            gdk-pixbuf
-            gtk
-            harfbuzz
-            libexif
-            libglvnd
-            libpng
-            libva
-            libxscrnsaver
-            opus
-            pciutils
-            pipewire
-            qtbase-5
-            qtbase
-            snappy
-            util-linux
-            xdg-utils
-            wget))
-     (synopsis  "Freeware web browser")
-     (supported-systems '("x86_64-linux"))
-     (description "Google Chrome is a cross-platform web browser developed by Google.")
-     (home-page "https://www.google.com/chrome/")
-     (license (nonfree "https://www.google.com/intl/en/chrome/terms/")))))
+      (inputs
+       (list bzip2
+             curl
+             flac
+             font-liberation
+             gdk-pixbuf
+             gtk
+             harfbuzz
+             libexif
+             libglvnd
+             libpng
+             libva
+             libxscrnsaver
+             opus
+             pciutils
+             pipewire
+             qtbase-5
+             qtbase
+             snappy
+             util-linux
+             xdg-utils
+             wget))
+      (synopsis  "Freeware web browser")
+      (supported-systems '("x86_64-linux"))
+      (description "Google Chrome is a cross-platform web browser developed by Google.")
+      (home-page "https://www.google.com/chrome/")
+      (license (nonfree "https://www.google.com/intl/en/chrome/terms/")))))
 
 ;; Available versions can be here: https://chromereleases.googleblog.com
 ;; The following has a nicer representation: https://deb.pkgs.org/apps/google-amd64/
@@ -161,13 +156,57 @@
 ;; TODO: write a nice importer for this in Scheme.
 
 (define-public google-chrome-stable
-  (make-google-chrome "stable" "148.0.7778.215" "091d2hk0dvxnpmiq0hmdc389sdg87h0zl9d001yv5h70v2i8q8i3"))
+  (package
+    (inherit (make-google-chrome "stable"))
+    (name "google-chrome-stable")
+    (version "148.0.7778.215")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://dl.google.com/linux/chrome/deb/pool/main/g/" name "/"
+             name "_" version "-1_amd64.deb"))
+       (sha256
+        (base32 "091d2hk0dvxnpmiq0hmdc389sdg87h0zl9d001yv5h70v2i8q8i3"))))))
 
 (define-public google-chrome-beta
-  (make-google-chrome "beta" "149.0.7827.22" "1sa41cly7vckpyc7f72yrkjrcm02vahvlfcjn3ng8z8sci18yglr"))
+  (package
+    (inherit (make-google-chrome "beta"))
+    (name "google-chrome-beta")
+    (version "149.0.7827.22")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://dl.google.com/linux/chrome/deb/pool/main/g/" name "/"
+             name "_" version "-1_amd64.deb"))
+       (sha256
+        (base32 "1sa41cly7vckpyc7f72yrkjrcm02vahvlfcjn3ng8z8sci18yglr"))))))
 
 (define-public google-chrome-unstable
-  (make-google-chrome "unstable" "150.0.7846.4" "02js9266yagzl0b575zdn0830bvk17jsqwjrgga9kg3mbn18a8wn"))
+  (package
+    (inherit (make-google-chrome "unstable"))
+    (name "google-chrome-unstable")
+    (version "150.0.7846.4")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://dl.google.com/linux/chrome/deb/pool/main/g/" name "/"
+             name "_" version "-1_amd64.deb"))
+       (sha256
+        (base32 "02js9266yagzl0b575zdn0830bvk17jsqwjrgga9kg3mbn18a8wn"))))))
 
 (define-public google-chrome-canary
-  (make-google-chrome "canary" "150.0.7862.0" "1qg4bdh0wgb62indh62glrq2qfsa0p7jn883w5sf76dywf44d9hr"))
+  (package
+    (inherit (make-google-chrome "canary"))
+    (name "google-chrome-canary")
+    (version "150.0.7862.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://dl.google.com/linux/chrome/deb/pool/main/g/" name "/"
+             name "_" version "-1_amd64.deb"))
+       (sha256
+        (base32 "1qg4bdh0wgb62indh62glrq2qfsa0p7jn883w5sf76dywf44d9hr"))))))
