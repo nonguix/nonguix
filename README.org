@@ -512,17 +512,14 @@ of the normal one.  Aforementioned application setup is still necessary.
 A Nonguix substitute server is available at [[https://substitutes.nonguix.org]].
 On Guix System, you can add and authorize this URL in the following way:
 #+BEGIN_SRC scheme
-(operating-system
-  (services (modify-services %desktop-services
-             (guix-service-type config => (guix-configuration
-               (inherit config)
-               (substitute-urls
-                (append (list "https://substitutes.nonguix.org")
-                  %default-substitute-urls))
-               (authorized-keys
-                (append (list (local-file "./signing-key.pub"))
-                  %default-authorized-guix-keys))))))
-  ...)
+  (operating-system
+    (services (list
+               (simple-service 'nonguix-substitutes guix-service-type
+                               (guix-extension
+                                 (substitute-urls (list "https://substitutes.nonguix.org"))
+                                 (authorized-keys (list (local-file "./signing-key.pub")))))
+               ...))
+    ...)
 #+END_SRC
 
 Notice that the URL of the server should be specified without a trailing
@@ -531,8 +528,8 @@ slash.  The file ~signing-key.pub~ should be downloaded directly from
 
 Alternatively, you can replace ~(local-file "./signing-key.pub")~ by:
 #+BEGIN_SRC scheme
-(plain-file "non-guix.pub"
-            "<contents of signing-key.pub>")
+  (plain-file "non-guix.pub"
+              "(public-key (ecc (curve Ed25519) (q #C1FD53E5D4CE971933EC50C9F307AE2171A2D3B52C804642A7A35F84F3A4EA98#)))")
 #+END_SRC
 
 Guix System will only use the substitution server after it has been
