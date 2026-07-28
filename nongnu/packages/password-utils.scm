@@ -12,7 +12,7 @@
 (define-public bitwarden-desktop
   (package
     (name "bitwarden-desktop")
-    (version "2025.6.1")
+    (version "2026.7.0")
     (source
      (origin
        (method url-fetch)
@@ -22,7 +22,7 @@
        (file-name (string-append name "-" version ".deb"))
        (sha256
         (base32
-         "15zd3prfkgh52mjjw1904hpdakmp8gwn0151x5rqi4m29j2cmmrq"))))
+         "0r5fadaf6ixk737j34sg9bqxl7wl57iwfw1ndnkrkwk7qdbk4lhp"))))
     (build-system chromium-binary-build-system)
     (arguments
      (list
@@ -39,7 +39,7 @@
                "libGLESv2.so"
                "libvk_swiftshader.so"
                "libvulkan.so.1"
-               "resources/app.asar.unpacked/node_modules/@bitwarden/desktop-napi/desktop_napi.linux-x64-musl.node"))
+               "resources/app.asar.unpacked/node_modules/@bitwarden/desktop-napi/desktop_napi.linux-x64-gnu.node"))
       #:install-plan
       #~'(("opt/" "/share")
           ("usr/share/" "/share"))
