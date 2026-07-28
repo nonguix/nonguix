@@ -40,7 +40,7 @@
 (define-public element-desktop
   (package
     (name "element-desktop")
-    (version "1.12.22")
+    (version "1.12.24")
     (source
      (origin
        (method url-fetch)
@@ -49,7 +49,7 @@
          "https://packages.element.io/debian/pool/main/e/" name "/" name "_" version
          "_amd64.deb"))
        (sha256
-        (base32 "16h4hmrrb5ycpblrcfzl0vrkvkqi6cnaz11fmnnj8n34xkxk34nv"))))
+        (base32 "1rx3m6bavpnlw7bymin2ipsncii4rr229pr6v9l8i881sx9g7wsn"))))
     (supported-systems '("x86_64-linux"))
     (build-system chromium-binary-build-system)
     (arguments
