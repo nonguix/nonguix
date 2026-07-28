@@ -68,7 +68,13 @@
                    ;; Fix the .desktop file binary location.
                    (substitute* '("share/applications/element-desktop.desktop")
                      (("/opt/Element/")
-                      (string-append #$output "/bin/")))))
+                      (string-append #$output "/bin/"))
+                     ;; Use a lowercase 'element' WMClass, to match the
+                     ;; application ID, otherwise the icon is not displayed
+                     ;; correctly when using Wayland (see:
+                     ;; <https://github.com/element-hq/element-web/pull/33635>).
+                     (("StartupWMClass=Element")
+                      "StartupWMClass=element"))))
                (add-after 'install 'symlink-binary-file
                  (lambda _
                    (mkdir-p (string-append #$output "/bin"))
