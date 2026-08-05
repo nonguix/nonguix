@@ -6,6 +6,7 @@
 ;;; Copyright © 2023 Raven Hallsby <karl@hallsby.org>
 ;;; Copyright © 2025, 2026 Ashish SHUKLA <ashish.is@lostca.se>
 ;;; Copyright © 2025 Luca Kredel <luca.kredel@web.de>
+;;; Copyright © 2026 Dimitry Gashinsky <dig@gashinsky.com>
 
 (define-module (nongnu packages messaging)
   #:use-module (gnu packages base)
@@ -170,14 +171,14 @@ interface for the Signal messenger.")
 (define-public zoom
   (package
     (name "zoom")
-    (version "5.17.5.2543")
+    (version "7.1.5.4332")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://cdn.zoom.us/prod/" version "/zoom_x86_64.tar.xz"))
        (file-name (string-append name "-" version "-x86_64.tar.xz"))
        (sha256
-        (base32 "06m53d3jrpiq1z5wd7m61lb3w8m8g72iaqx5sixnzn290gyyzgim"))))
+        (base32 "0h21jfjr1nplzsllzavqjzrk67i8g2mz5r33lmi3dqdcbnb37v0p"))))
     (supported-systems '("x86_64-linux"))
     (build-system binary-build-system)
     (arguments
@@ -193,10 +194,12 @@ interface for the Signal messenger.")
                            "eudev"
                            "expat"
                            "fontconfig-minimal"
+                           "freetype"
                            "gcc"
                            "glib"
                            "gtk+"
                            "libdrm"
+                           "libglvnd"
                            "libx11"
                            "libxcb"
                            "libxcomposite"
@@ -208,15 +211,25 @@ interface for the Signal messenger.")
                            "libxkbcommon"
                            "libxkbfile"
                            "libxrandr"
+                           "libxrender"
                            "libxshmfence"
                            "libxtst"
                            "mesa"
                            "nspr"
                            "pango"
                            "pulseaudio"
+                           "xcb-util"
+                           "xcb-util-cursor"
                            "xcb-util-image"
                            "xcb-util-keysyms"
-                           "zlib")))
+                           "xcb-util-renderutil"
+                           "xcb-util-wm"
+                           "zlib"
+                           "zstd"
+                           ("out" "/lib/zoom")
+                           ("out" "/lib/zoom/cef")
+                           ("out" "/lib/zoom/Qt/lib")
+                           ("nss" "/lib/nss"))))
                `(("lib/zoom/ZoomLauncher"
                  ,libs)
                 ("lib/zoom/zoom"
@@ -224,6 +237,34 @@ interface for the Signal messenger.")
                 ("lib/zoom/zopen"
                  ,libs)
                 ("lib/zoom/aomhost"
+                 ,libs)
+                ("lib/zoom/ZoomWebviewHost"
+                 ,libs)
+                ("lib/zoom/ZoomClips"
+                 ,libs)
+                ("lib/zoom/cpthost"
+                 ,libs)
+                ("lib/zoom/libaomagent.so"
+                 ,libs)
+                ("lib/zoom/cef/libcef.so"
+                 ,libs)
+                ("lib/zoom/Qt/lib/libQt6Core.so.6"
+                 ,libs)
+                ("lib/zoom/Qt/lib/libQt6DBus.so.6"
+                 ,libs)
+                ("lib/zoom/Qt/lib/libQt6Gui.so.6"
+                 ,libs)
+                ("lib/zoom/Qt/lib/libQt6Network.so.6"
+                 ,libs)
+                ("lib/zoom/Qt/lib/libQt6Widgets.so.6"
+                 ,libs)
+                ("lib/zoom/Qt/lib/libQt6XcbQpa.so.6"
+                 ,libs)
+                ("lib/zoom/Qt/plugins/platforms/libqxcb.so"
+                 ,libs)
+                ("lib/zoom/Qt/plugins/platforms/libqminimal.so"
+                 ,libs)
+                ("lib/zoom/Qt/plugins/platforms/libqvkkhrdisplay.so"
                  ,libs)))
            #:phases
            #~(modify-phases %standard-phases
@@ -334,7 +375,43 @@ interface for the Signal messenger.")
                                         "xcb-util-keysyms"
                                         "xcb-util-wm"
                                         "xcb-util-renderutil"
-                                        "zlib")))))))
+                                        "zlib")))))
+                   (let* ((zoom-directory
+                           (string-append #$output "/lib/zoom"))
+                          (qt-directory
+                           (string-append zoom-directory "/Qt"))
+                          (qt-library-directory
+                           (string-append qt-directory "/lib"))
+                          (qt-plugin-directory
+                           (string-append qt-directory "/plugins"))
+                          (qt-qml-directory
+                           (string-append qt-directory "/qml"))
+                          (xcb-cursor-library-directory
+                           (string-append
+                            #$(this-package-input "xcb-util-cursor")
+                            "/lib")))
+                     (for-each
+                      (lambda (program)
+                        (substitute* program
+                          (("export QML2_IMPORT_PATH=\"\"")
+                           (string-append "export QML2_IMPORT_PATH=\""
+                                          qt-qml-directory "\""))
+                          (("export QT_PLUGIN_PATH=\"\"")
+                           (string-append "export QT_PLUGIN_PATH=\""
+                                          qt-plugin-directory "\""))
+                          (("export LD_LIBRARY_PATH=\"")
+                           (string-append
+                            "export LD_LIBRARY_PATH=\""
+                            qt-library-directory ":" zoom-directory ":"
+                            xcb-cursor-library-directory ":"))))
+                      (list (string-append zoom-directory "/zoom")
+                            (string-append zoom-directory "/aomhost")
+                            (string-append zoom-directory "/zopen")))
+                     ;; Zoom starts zopen via a relative path for SSO.
+                     (substitute* (string-append zoom-directory "/zoom")
+                       (("^exec -a")
+                        (string-append "cd \"" zoom-directory
+                                       "\"\nexec -a"))))))
                (add-after 'wrap-where-patchelf-does-not-work 'rename-binary
                  ;; IPC (for single sign-on and handling links) fails if the
                  ;; name does not end in "zoom," so rename the real binary.
@@ -394,6 +471,7 @@ interface for the Signal messenger.")
                   glib
                   gtk+
                   libdrm
+                  libglvnd
                   librsvg
                   libx11
                   libxcb
@@ -413,11 +491,13 @@ interface for the Signal messenger.")
                   pango
                   pulseaudio
                   xcb-util
+                  xcb-util-cursor
                   xcb-util-image
                   xcb-util-keysyms
                   xcb-util-renderutil
                   xcb-util-wm
-                  zlib))
+                  zlib
+                  `(,zstd "lib")))
     (home-page "https://zoom.us/")
     (synopsis "Video conference client")
     (description "The Zoom video conferencing and messaging client.  Zoom must be run via an
