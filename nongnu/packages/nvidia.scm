@@ -270,15 +270,15 @@
 
 (define nvidia-source-595-x86_64-linux
   (make-nvidia-source
-   "595.84"
+   "595.91.07"
    "x86_64"
-   (base32 "01msbrn1mkwmm5ql05xbfdxdrgiyrvf6h0nslsy2ggri47jh9i4r")))
+   (base32 "04v3bq4qn0c0z50ayjap60vpbpdwnz7i27jfcj8s21sbsa6wh8ya")))
 
 (define nvidia-source-595-aarch64-linux
   (make-nvidia-source
-   "595.84"
+   "595.91.07"
    "aarch64"
-   (base32 "06a3mg292jmb551dxn5hxcnfmb6sck9r8h41pdap36az65s0snhs")))
+   (base32 "016g22k888fgrzdsvii9c7mkgfdfd069kdibbzgd8pj5wgn0vaby")))
 
 (define nvidia-source-new-feature-x86_64-linux
   (make-nvidia-source
@@ -1046,7 +1046,7 @@ NVIDIA driver.")
   (package
     (inherit nvidia-module-open-580)
     (name "nvidia-module-open")
-    (version "595.84")
+    (version "595.91.07")
     (source
      (origin
        (method git-fetch)
@@ -1056,7 +1056,7 @@ NVIDIA driver.")
        (file-name (git-file-name name version))
        (sha256
         (base32
-         "1mkhh7f8sqgjnghv7zvqxdv4z3sb5x23gfmc7haaqf0wspd80jd4"))
+         "0ngg4npxs58sr598vs4vkaa37q0hf5d8h3qvqfrgb7xavyjh87rq"))
        (patches
         (nongnu-patches "nvidia-module-open-add-ibt-support.patch"
                         "nvidia-module-open-bsb-dsc-fix.patch"))))
@@ -1178,7 +1178,7 @@ device files are present and configure certain runtime settings in the kernel.")
   (package
     (inherit nvidia-modprobe-580)
     (name "nvidia-modprobe")
-    (version "595.84")
+    (version "595.91.07")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -1187,7 +1187,7 @@ device files are present and configure certain runtime settings in the kernel.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1vzq4rgwfk5lp59glb185insj6lx366bxbax9gz5an2c33646ak9"))))
+                "13zcvj5l5d04kaz4spp4jqa910500i6ffxy7gv14pfnh935gvcnc"))))
     (synopsis "Create NVIDIA character device files, production branch")))
 
 (define-public nvidia-modprobe-new-feature
@@ -1353,7 +1353,7 @@ configuration, application profiles, GPU monitoring and more.")
   (package
     (inherit nvidia-settings-580)
     (name "nvidia-settings")
-    (version "595.84")
+    (version "595.91.07")
     (source
      (origin
        (method git-fetch)
@@ -1361,7 +1361,7 @@ configuration, application profiles, GPU monitoring and more.")
               (url "https://github.com/NVIDIA/nvidia-settings")
               (commit version)))
        (file-name (git-file-name name version))
-       (sha256 (base32 "100bp1x8ij571x8mx9hqi66nnr0yd6ydmfkkd83fwn0xxcrw3fa2"))
+       (sha256 (base32 "1717cp63xsp6iw8pba5j4s12gz9pqznqvm6h7x3fdfk51l5zqd23"))
        (modules '((guix build utils)))
        (snippet '(delete-file-recursively "src/jansson"))))
     (synopsis "NVIDIA proprietary driver control panel, production branch")))
