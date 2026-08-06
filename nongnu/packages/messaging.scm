@@ -305,49 +305,9 @@ interface for the Signal messenger.")
                        ,(list (string-append #$(this-package-input "nss") "/lib/nss")
                               #$@(map (lambda (pkg)
                                         (file-append (this-package-input pkg) "/lib"))
-                                      ;; TODO: Reuse this long list as it is
-                                      ;; needed for aomhost.  Or perhaps
-                                      ;; aomhost has a shorter needed list,
-                                      ;; but untested.
-                                      '("alsa-lib"
-                                        "at-spi2-core"
-                                        "cairo"
-                                        "cups"
-                                        "dbus"
-                                        "eudev"
-                                        "expat"
-                                        "gcc"
-                                        "glib"
-                                        "mesa"
-                                        "mit-krb5"
-                                        "nspr"
-                                        "libxcb"
-                                        "libxcomposite"
-                                        "libxdamage"
-                                        "libxext"
-                                        "libxkbcommon"
-                                        "libxkbfile"
-                                        "libxrandr"
-                                        "libxshmfence"
-                                        "pango"
-                                        "pulseaudio"
-                                        "xcb-util"
-                                        "xcb-util-image"
-                                        "xcb-util-keysyms"
-                                        "xcb-util-wm"
-                                        "xcb-util-renderutil"
-                                        "zlib")))))
-                   (wrap-program (string-append #$output "/lib/zoom/aomhost")
-                     `("FONTCONFIG_PATH" ":" prefix
-                       (,(string-join
-                          (list
-                           (string-append #$(this-package-input "fontconfig-minimal") "/etc/fonts")
-                           #$output)
-                          ":")))
-                     `("LD_LIBRARY_PATH" prefix
-                       ,(list (string-append #$(this-package-input "nss") "/lib/nss")
-                              #$@(map (lambda (pkg)
-                                        (file-append (this-package-input pkg) "/lib"))
+                                      ;; aomhost inherits this environment.
+                                      ;; Do not wrap it: Zoom passes its
+                                      ;; resource directory through argv[0].
                                       '("alsa-lib"
                                         "at-spi2-core"
                                         "cairo"
@@ -405,7 +365,6 @@ interface for the Signal messenger.")
                             qt-library-directory ":" zoom-directory ":"
                             xcb-cursor-library-directory ":"))))
                       (list (string-append zoom-directory "/zoom")
-                            (string-append zoom-directory "/aomhost")
                             (string-append zoom-directory "/zopen")))
                      ;; Zoom starts zopen via a relative path for SSO.
                      (substitute* (string-append zoom-directory "/zoom")
