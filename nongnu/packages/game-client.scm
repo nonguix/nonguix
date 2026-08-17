@@ -259,10 +259,10 @@ implementation with gogdl and Amazon Games using Nile.")
                #:name "fhs-union-32"
                #:system "i686-linux"))
    (link-files '("share"))
-   (description "Steam is a digital software distribution platform created by
-Valve.  This package provides a script for launching Steam in a Guix container
-which will use the directory @file{$HOME/.local/share/guix-sandbox-home} where
-all games will be installed.")))
+   (description
+     (make-ngc-description
+      "Steam is a digital software distribution platform created by
+Valve." "Steam"))))
 
 (define-public steam-for
   (compose nonguix-container->package steam-container-for))
