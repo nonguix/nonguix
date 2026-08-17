@@ -215,7 +215,7 @@ implementation with gogdl and Amazon Games using Nile.")
     ("alsa-plugins:pulseaudio" ,alsa-plugins "pulseaudio") ; Required for audio in most games.
     ("font-dejavu" ,font-dejavu)
     ("font-liberation" ,font-liberation)
-    ("imgui" ,imgui-1.86)               ; Required for MangoHud.
+    ("imgui" ,imgui-1.91)               ; Required for MangoHud.
     ("mangohud" ,mangohud)
     ("openal" ,openal)                  ; Prevents corrupt audio in Crypt of the Necrodancer.
     ("pulseaudio" ,pulseaudio)          ; Prevents corrupt audio in Sven Coop.
