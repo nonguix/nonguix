@@ -10,6 +10,7 @@
 ;;; Copyright © 2023 Elijah Malaby
 ;;; Copyright © 2023 Timo Wilken <guix@twilken.net>
 ;;; Copyright © 2025 James Smith <jsubuntuxp@disroot.org>
+;;; Copyright © 2026 Maxim Cournoyer <maxim@guixotic.coop>
 
 ;;; The script provided by this package may optionally be started as
 ;;; a shell instead of automatically launching the wrapped entrypoint by setting
@@ -75,6 +76,8 @@
             ngc-description
             ngc-license
 
+            make-ngc-description
+
             fhs-min-libs
             fhs-union
             ld.so.conf->ld.so.cache
@@ -121,6 +124,23 @@
   (synopsis      ngc-synopsis (default #f))
   (description   ngc-description (default #f))
   (license       ngc-license (default #f)))
+
+(define* (make-ngc-description description name)
+  "Helper that appends a boilerplate text templated with NAME to
+DESCRIPTION.  The purpose of the boilerplate text is to document the
+environment variables that can be used to configure the nonguix-container
+instance."
+  (format #f "~a This package provides a script for launching ~a in a Guix
+container which will expose the directory
+@file{@env{HOME}/.local/share/guix-sandbox-home} as its @env{HOME}.  The
+container honors the following environment variables:
+
+@table @env
+@item GUIX_SANDBOX_HOME
+Alternative location to expose as @env{HOME} inside the container.
+@item GUIX_SANDBOX_EXTRA_SHARES
+Colon-separated values of directories to share with the container.
+@end table" description name))
 
 (define fhs-min-libs
   `(("glibc" ,(@@ (gnu packages base) glibc-for-fhs))
