@@ -295,12 +295,11 @@ Valve." "Steam"))))
                #:name "fhs-union-32"
                #:system "i686-linux"))
    (link-files '("share"))
-   (description "Heroic is an Open Source Game Launcher.  Right now it supports launching
-games from the Epic Games Store using Legendary, GOG Games using our custom
-implementation with gogdl and Amazon Games using Nile.  This package provides
-a script for launching Heroic in a Guix container which will use the directory
-@file{$HOME/.local/share/guix-sandbox-home} where all games will be
-installed.")))
+   (description
+     (make-ngc-description
+      "Heroic is an Open Source Game Launcher.  Right now it supports
+launching games from the Epic Games Store using Legendary, GOG Games using our
+custom implementation with gogdl and Amazon Games using Nile." "Heroic"))))
 
 (define-public heroic-for
   (compose nonguix-container->package heroic-container-for))
