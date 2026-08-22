@@ -204,9 +204,6 @@ on hardware which requires nonfree software to function."))))
 ;; linux-lts points to the *newest* released long-term support version.
 (define-public linux-lts linux-6.18)
 
-(define-public linux-arm64-generic-5.10
-  (corrupt-linux linux-libre-arm64-generic-5.10 #:name "linux-arm64-generic"))
-
 (define-public linux-arm64-generic
   (corrupt-linux linux-libre-arm64-generic #:name "linux-arm64-generic"))
 
