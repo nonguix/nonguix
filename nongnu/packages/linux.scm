@@ -209,9 +209,6 @@ on hardware which requires nonfree software to function."))))
 (define-public linux-5.15
   (corrupt-linux linux-libre-5.15))
 
-(define-public linux-5.10
-  (corrupt-linux linux-libre-5.10))
-
 (define-public linux linux-7.1)
 ;; linux-lts points to the *newest* released long-term support version.
 (define-public linux-lts linux-6.18)
