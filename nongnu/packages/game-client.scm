@@ -8,6 +8,7 @@
 ;;; Copyright © 2023 Giacomo Leidi <goodoldpaul@autistici.org>
 ;;; Copyright © 2023 Elijah Malaby
 ;;; Copyright © 2023 Timo Wilken <guix@twilken.net>
+;;; Copyright © 2026 Maxim Cournoyer <maxim@guixotic.coop>
 
 (define-module (nongnu packages game-client)
   #:use-module ((guix licenses) #:prefix license:)
@@ -57,7 +58,13 @@
   #:use-module (gnu packages xorg)
   #:use-module (nonguix build-system chromium-binary)
   #:use-module (nonguix multiarch-container)
-  #:use-module (nonguix utils))
+  #:use-module (nonguix utils)
+
+  #:export (steam-for
+            steam-container-for
+            %legacy-steam-gameruntime-libs
+            heroic-for
+            heroic-container-for))
 
 (define heroic-client
   (package
@@ -213,7 +220,7 @@ implementation with gogdl and Amazon Games using Nile.")
     ("xz" ,xz)
     ("zenity" ,zenity)))                ; Required for progress dialogs.
 
-(define steam-gameruntime-libs
+(define %legacy-steam-gameruntime-libs
   `(("alsa-lib" ,alsa-lib)              ; Required for audio in most games.
     ("alsa-plugins:pulseaudio" ,alsa-plugins "pulseaudio") ; Required for audio in most games.
     ("font-dejavu" ,font-dejavu)
@@ -227,7 +234,6 @@ implementation with gogdl and Amazon Games using Nile.")
 
 (define steam-container-libs
   (append steam-client-libs
-          steam-gameruntime-libs
           fhs-min-libs))
 
 (define steam-i686-libs
@@ -248,13 +254,15 @@ implementation with gogdl and Amazon Games using Nile.")
     ("which" ,which)                    ; Heroic complains about trying to use which (though works).
     ("gtk+" ,gtk+)))                    ; Required for Heroic interface (gtk filechooser schema).
 
-(define-public (steam-container-for driver)
+(define* (steam-container-for driver #:key (extra-packages '()))
+  "Return a nonguix-container for the `steam-client' package, using DRIVER.
+EXTRA-PACKAGES? are extra libraries to be made available in the container."
   (nonguix-container
    (name "steam")
    (wrap-package steam-client)
    (run "/bin/steam")
    (packages
-    (modify-inputs steam-container-libs
+    (modify-inputs (append steam-container-libs extra-packages)
       (replace "mesa" driver)))
    (union32
     (fhs-union (modify-inputs steam-i686-libs
@@ -267,11 +275,17 @@ implementation with gogdl and Amazon Games using Nile.")
       "Steam is a digital software distribution platform created by
 Valve." "Steam"))))
 
-(define-public steam-for
-  (compose nonguix-container->package steam-container-for))
+(define* (steam-for driver #:key (extra-packages '()))
+  "Return a package with a script to run `steam' in a FHS container.
+EXTRA-PACKAGES? are extra libraries to be made available in the container."
+  (nonguix-container->package
+   (steam-container-for driver #:extra-packages extra-packages)))
+
 (define-public steam (steam-for mesa))
 
-(define-public (heroic-container-for driver)
+(define* (heroic-container-for driver #:key (extra-packages '()))
+  "Return a nonguix-container for the `heroic-client' package, using DRIVER.
+EXTRA-PACKAGES? are extra libraries to be made available in the container."
   (nonguix-container
    (name "heroic")
    (wrap-package heroic-client)
@@ -283,8 +297,9 @@ Valve." "Steam"))))
    ;; differentiate what packages are needed for what in general.  For now,
    ;; this is easier and works.
    (packages
-    (modify-inputs `(,@heroic-extra-client-libs
-                     ,@steam-container-libs)
+    (modify-inputs (append heroic-extra-client-libs
+                           steam-container-libs
+                           extra-packages)
       (replace "mesa" driver)))
    ;; Don't include heroic-client-libs as they are not needed in 32-bit.
    (union32
@@ -304,8 +319,12 @@ Valve." "Steam"))))
 launching games from the Epic Games Store using Legendary, GOG Games using our
 custom implementation with gogdl and Amazon Games using Nile." "Heroic"))))
 
-(define-public heroic-for
-  (compose nonguix-container->package heroic-container-for))
+(define* (heroic-for driver #:key (extra-packages '()))
+  "Return a package with a script to run `steam' in a FHS container.
+EXTRA-PACKAGES? are extra libraries to be made available in the container."
+  (nonguix-container->package
+   (heroic-container-for driver #:extra-packages extra-packages)))
+
 (define-public heroic (heroic-for mesa))
 
 (define-public protonup
