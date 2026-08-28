@@ -24,7 +24,7 @@
 ;;; Copyright © 2023 Adam Kandur <rndd@tuta.io>
 ;;; Copyright © 2023 Hilton Chain <hako@ultrarare.space>
 ;;; Copyright © 2023, 2024, 2025 Ada Stevenson <adanskana@gmail.com>
-;;; Copyright © 2023 Tomas Volf <~@wolfsden.cz>
+;;; Copyright © 2023, 2026 Tomas Volf <~@wolfsden.cz>
 ;;; Copyright © 2023 PRESFIL <presfil@protonmail.com>
 ;;; Copyright © 2024-2026 Maxim Cournoyer <maxim@guixotic.com>
 ;;; Copyright © 2025 David Wilson <david@systemcrafters.net>
@@ -126,21 +126,27 @@ some freedo package or an output of package-version procedure."
   (define extract-gexp-inputs
     (compose gexp-inputs force origin-uri))
 
-  (define (find-source-hash sources url)
-    (let ((versioned-origin
-           (find (lambda (source)
-                   (let ((uri (origin-uri source)))
-                     (and (string? uri) (string=? uri url)))) sources)))
-      (if versioned-origin
-          (origin-hash versioned-origin)
-          #f)))
+  (define (origin->input-things origin)
+    (map gexp-input-thing (extract-gexp-inputs origin)))
+
+  (define (extract-sources inputs)
+    (fold (λ (input sources)
+            (if (origin? input)
+                (if (string? (origin-uri input))
+                    (acons (origin-uri input) (origin-hash input) sources)
+                    (append sources
+                            (extract-sources (origin->input-things input))))
+                sources))
+          '()
+          inputs))
 
   (let* ((version (package-version freedo))
          (url (linux-url version))
          (pristine-source (package-source freedo))
          (inputs (map gexp-input-thing (extract-gexp-inputs pristine-source)))
-         (sources (filter origin? inputs))
-         (hash (find-source-hash sources url))
+         (sources (extract-sources inputs))
+         (hash (or (assoc-ref sources url)
+                   (error "fail to find hash for" freedo)))
          (patches
           (delete (@@ (gnu packages linux) %boot-logo-patch)
                   (origin-patches pristine-source))))
