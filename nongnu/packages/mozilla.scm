@@ -351,6 +351,7 @@
                                   (string-drop hash 8)))))))
           (replace 'install
             (lambda _ (invoke "./mach" "install")))
+          ;; Note: Change to wrap-gfxtest when updating to ESR >= 155.0.
           (add-after 'install 'wrap-glxtest
             ;; glxtest uses dlopen() to load mesa and pci
             ;; libs, wrap it to set LD_LIBRARY_PATH.
@@ -526,20 +527,20 @@ Release (ESR) version.")
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-build-id "20260817115642")
+(define %firefox-build-id "20260831182914")
 
 (define-public firefox
   (package
     (inherit firefox-esr)
     (name "firefox")
-    (version "154.0")
+    (version "155.0")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "16mrk2s6rbdfarq5ixk67kh893srbghsxp10dn5gfq4ad2rwbkin"))
+        (base32 "1yqdsysb05crh360jxdm4s31vh9q49wd5slbyv3vkigq6ncdazy5"))
        (patches
         (nongnu-patches
          "firefox-add-store-to-rdd-allowlist.patch"
@@ -554,6 +555,18 @@ Release (ESR) version.")
      (substitute-keyword-arguments arguments
        ((#:phases phases)
         #~(modify-phases #$phases
+            (replace 'wrap-glxtest
+              (lambda* (#:key inputs outputs #:allow-other-keys)
+                (let* ((out (assoc-ref outputs "out"))
+                       (lib (string-append out "/lib"))
+                       (libs (map
+                              (lambda (lib-name)
+                                (string-append (assoc-ref inputs
+                                                          lib-name)
+                                               "/lib"))
+                              '("mesa" "pciutils"))))
+                  (wrap-program (car (find-files lib "^gfxtest$"))
+                    `("LD_LIBRARY_PATH" prefix ,libs))))                     )
             (replace 'set-build-id
               (lambda _
                 (setenv "MOZ_BUILD_DATE" #$%firefox-build-id)))))))
