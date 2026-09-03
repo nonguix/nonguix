@@ -227,6 +227,17 @@ implementation with gogdl and Amazon Games using Nile.")
           steam-gameruntime-libs
           fhs-min-libs))
 
+(define steam-i686-libs
+  (append `(("eudev" ,eudev)
+            ("gcc:lib" ,gcc-14 "lib")
+            ("libva" ,libva)
+            ("libvdpau" ,libvdpau)
+            ("libvdpau-va-gl" ,libvdpau-va-gl)
+            ("llvm" ,llvm-for-mesa)
+            ("mesa" ,mesa)
+            ("wayland" ,wayland))
+          fhs-min-libs))
+
 (define heroic-extra-client-libs
   `(("curl" ,curl)                      ; Required for Heroic to download e.g. Wine.
     ("openssl" ,openssl)                ; Required for MonoGame mods.
@@ -242,6 +253,11 @@ implementation with gogdl and Amazon Games using Nile.")
    (packages
     (modify-inputs steam-container-libs
       (replace "mesa" driver)))
+   (union32
+    (fhs-union (modify-inputs steam-i686-libs
+                 (replace "mesa" driver))
+               #:name "fhs-union-32"
+               #:system "i686-linux"))
    (link-files '("share"))
    (description "Steam is a digital software distribution platform created by
 Valve.  This package provides a script for launching Steam in a Guix container
@@ -269,7 +285,7 @@ all games will be installed.")))
       (replace "mesa" driver)))
    ;; Don't include heroic-client-libs as they are not needed in 32-bit.
    (union32
-    (fhs-union (modify-inputs steam-container-libs
+    (fhs-union (modify-inputs steam-i686-libs
                  (replace "mesa" driver)
                  ;; The first python found will be used and it needs to be
                  ;; 64-bit.
