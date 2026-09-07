@@ -108,18 +108,20 @@ implementation with gogdl and Amazon Games using Nile.")
     (license license:gpl3)
     (supported-systems '("x86_64-linux"))))
 
+;;; Update with:
+;;; guix refresh -u -L. -e '(@@ (nongnu packages game-client) steam-client)'
 (define steam-client
   (package
     (name "steam-client")
-    (version "1.0.0.85")
+    (version "1.0.0.87")
     (source
      (origin
        (method url-fetch)
-       (uri (string-append "http://repo.steampowered.com/steam/archive/precise/steam_"
+       (uri (string-append "https://repo.steampowered.com/steam/archive/stable/steam_"
                            version ".tar.gz"))
        (sha256
         (base32
-         "1wdpigrwrjqnf2vlnaw7ani1in8rc92m2l8jp3aww4xl5x53fbbz"))
+         "07xs4wpdiwc671d9qzc92j8ynhc0jw4zzqpkm84q0zrpz797b4v4"))
        (file-name (string-append name "-" version ".tar.gz"))))
     (build-system gnu-build-system)
     (arguments
@@ -162,7 +164,8 @@ implementation with gogdl and Amazon Games using Nile.")
     (synopsis "Digital distribution platform for managing and playing games")
     (description "Steam is a digital software distribution platform created by Valve.")
     (license (license:nonfree "file:///share/doc/steam/steam_subscriber_agreement.txt"))
-    (supported-systems '("x86_64-linux"))))
+    (supported-systems '("x86_64-linux"))
+    (properties '((release-file-regexp . "^steam_([0-9\\.]+)\\.tar\\.gz$")))))
 
 (define steam-client-libs
   `(("at-spi2-core" ,at-spi2-core)      ; Required (often) for SteamVR interface.
