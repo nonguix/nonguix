@@ -282,15 +282,15 @@
 
 (define nvidia-source-new-feature-x86_64-linux
   (make-nvidia-source
-   "610.57.04"
+   "615.71.09"
    "x86_64"
-   (base32 "0v8ixgkpr6n2xv0rq35lhs9dwlpxw078xg2pr3001fw3dg33bsdj")))
+   (base32 "1zkh7f7w5zfjr0dfg3k905jklgk7jqjvrskd3a6j8qgbpcifvknd")))
 
 (define nvidia-source-new-feature-aarch64-linux
   (make-nvidia-source
-   "610.57.04"
+   "615.71.09"
    "aarch64"
-   (base32 "17lg7x6a2lvj3ckzi54qc03j4g8s75cvz5zcp2q976j2q2n9y9s0")))
+   (base32 "0qw11s0pf4dvdy8fsrqd5bn0b1qd9n7jsnpnkkk5fw1v251a9dr1")))
 
 (define nvidia-source-beta-x86_64-linux
   (make-nvidia-source
@@ -1066,7 +1066,7 @@ NVIDIA driver.")
   (package
     (inherit nvidia-module-open-595)
     (name "nvidia-module-open-new-feature")
-    (version "610.57.04")
+    (version "615.71.09")
     (source
      (origin
        (method git-fetch)
@@ -1076,9 +1076,7 @@ NVIDIA driver.")
        (file-name (git-file-name name version))
        (sha256
         (base32
-         "1ylwhl4yfhnnp85py00dp99qd1wggq40zjhdbdvbya1qwqwcw0dd"))
-       (patches
-        (nongnu-patches "nvidia-module-open-add-ibt-support.patch"))))
+         "1cwaacb9sjq9yk35ibj3292qmsqh0axgminh5md385rhh8qp406y"))))
     (synopsis "Proprietary NVIDIA driver (open source kernel modules), new feature branch")))
 
 (define-public nvidia-module-open-beta
@@ -1194,7 +1192,7 @@ device files are present and configure certain runtime settings in the kernel.")
   (package
     (inherit nvidia-modprobe-595)
     (name "nvidia-modprobe-new-feature")
-    (version "610.57.04")
+    (version "615.71.09")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -1203,7 +1201,7 @@ device files are present and configure certain runtime settings in the kernel.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "0hvb1n5741zhxf4j3yplcna0krpnhmcvwshskp4z37yhb5ba17il"))))
+                "1swl10a00al1sq3v2ismk1p2afafqjknmr11rmzpxaai0xw0cgva"))))
     (synopsis "Create NVIDIA character device files, new feature branch")))
 
 (define-public nvidia-modprobe-beta
@@ -1370,7 +1368,7 @@ configuration, application profiles, GPU monitoring and more.")
   (package
     (inherit nvidia-settings-595)
     (name "nvidia-settings-new-feature")
-    (version "610.57.04")
+    (version "615.71.09")
     (source
      (origin
        (method git-fetch)
@@ -1378,7 +1376,7 @@ configuration, application profiles, GPU monitoring and more.")
               (url "https://github.com/NVIDIA/nvidia-settings")
               (commit version)))
        (file-name (git-file-name name version))
-       (sha256 (base32 "04ld92lpzfggm20rhsalhzvz9rqz8253ahqmx7m68wqrizq2hhv4"))
+       (sha256 (base32 "064fzi2v16kr4v054675zwh6f7v6ivdhd3qjapbwz443r59lpb9c"))
        (modules '((guix build utils)))
        (snippet '(delete-file-recursively "src/jansson"))))
     (synopsis "NVIDIA proprietary driver control panel, new feature branch")))

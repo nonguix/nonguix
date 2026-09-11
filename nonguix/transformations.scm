@@ -173,8 +173,8 @@ REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
            (,nvda-new-feature
             . ,((if remove-nvenc-restriction?
                     (remove-restriction
-                     #:nvenc "s/\\xe8\\x45\\x00\\xfe\\xff\\x41\\x89\\xc4\\x85\\xc0/\\xe8\\x45\\x00\\xfe\\xff\\x29\\xc0\\x41\\x89\\xc4/g"
-                     #:nvfbc "s/\\x85\\xc0\\x0f\\x85\\xd4\\x00\\x00\\x00\\x48/\\x85\\xc0\\x90\\x90\\x90\\x90\\x90\\x90\\x48/g")
+                     #:nvenc "s/\\xe8\\x41\\x1d\\xfe\\xff\\x41\\x89\\xc6\\x85\\xc0/\\xe8\\x41\\x1d\\xfe\\xff\\x29\\xc0\\x41\\x89\\xc6/g"
+                     #:nvfbc #f)
                     identity)
                 driver))
            (,nvda-595
