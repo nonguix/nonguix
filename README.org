@@ -255,21 +255,11 @@ Here're GPUs supported by our packaged proprietary drivers.
 
 *NOTE*:
 - Open source kernel modules are supported since Turing and required since
-  Blackwell.
+  Blackwell.  Additionally, these modules may be unusable unless [[https://codeberg.org/guix/guix/issues/10409][guix/guix#10409]]
+  is resolved.
 - Drivers marked as ⚠️ are no longer supported by upstream and won't receive
   functionality or security updates.
 - =nvda-beta= and =nvda-new-feature= are not production-ready.
-
-Per-driver supported kernel versions, let us know if you have hardware to test!
-
-| Driver           | linux-7.0 | linux-6.19 | linux-6.18 | linux-6.12 | linux-6.6 | linux-6.1 |
-|------------------+-----------+------------+------------+------------+-----------+-----------|
-| nvda-beta        | ✅️       | ✅️        | ✅️        | ✅️        | ✅️       | ✅️       |
-| nvda-new-feature | ✅       | ✅        | ✅        | ✅        | ✅       | ✅       |
-| nvda-595         | ✅️       | ✅        | ✅        | ✅        | ✅       | ✅       |
-| nvda-580         | ✅       | ✅        | ✅        | ✅        | ✅       | ✅       |
-| nvda-470         | ✅       | ✅️        | ✅️        | ✅️        | ✅️       | ✅️       |
-| nvda-390         |           |            |            |            |           |           |
 
 Driver package specifications, for command-line interface usage.
 
