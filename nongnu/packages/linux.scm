@@ -1024,15 +1024,20 @@ package contains nonfree firmware for the following chips:
                  (replace 'build
                    (lambda* (#:key (make-flags '()) (parallel-build? #t) inputs
                              #:allow-other-keys)
-                     (apply invoke "make"
-                            (string-append "KSRC="
-                                           (search-input-directory
-                                            inputs "lib/modules/build"))
-                            `(,@(if parallel-build?
-                                    `("-j" ,(number->string
-                                             (parallel-job-count)))
-                                    '())
-                              ,@make-flags)))))))
+                     (let ((kernel-dir
+                            (search-input-directory inputs "lib/modules/build")))
+                       (apply invoke "make"
+                              (string-append "KSRC=" kernel-dir)
+                              ;; Avoid introducing store paths into the build
+                              ;; output.
+                              ;; https://codeberg.org/guix/guix/issues/10409
+                              (format #f "KCFLAGS=-ffile-prefix-map=~a="
+                                      kernel-dir)
+                              `(,@(if parallel-build?
+                                      `("-j" ,(number->string
+                                               (parallel-job-count)))
+                                      '())
+                                ,@make-flags))))))))
       (home-page "https://github.com/clnhub/rtl8192eu-linux")
       (synopsis "Linux driver for Realtek RTL8192EU wireless network adapters")
       (description "This is Realtek's RTL8192EU Linux driver for wireless
@@ -1067,15 +1072,20 @@ network adapters.")
                  (replace 'build
                    (lambda* (#:key (make-flags '()) (parallel-build? #t) inputs
                              #:allow-other-keys)
-                     (apply invoke "make"
-                            (string-append "KSRC="
-                                           (search-input-directory
-                                            inputs "lib/modules/build"))
-                            `(,@(if parallel-build?
-                                    `("-j" ,(number->string
-                                             (parallel-job-count)))
-                                    '())
-                              ,@make-flags)))))))
+                     (let ((kernel-dir
+                            (search-input-directory inputs "lib/modules/build")))
+                       (apply invoke "make"
+                              (string-append "KSRC=" kernel-dir)
+                              ;; Avoid introducing store paths into the build
+                              ;; output.
+                              ;; https://codeberg.org/guix/guix/issues/10409
+                              (format #f "KCFLAGS=-ffile-prefix-map=~a="
+                                      kernel-dir)
+                              `(,@(if parallel-build?
+                                      `("-j" ,(number->string
+                                               (parallel-job-count)))
+                                      '())
+                                ,@make-flags))))))))
       (home-page "https://github.com/tomaspinho/rtl8821ce")
       (synopsis "Linux driver for Realtek RTL8821CE wireless network adapters")
       (description "This is Realtek's RTL8821CE Linux driver for wireless
@@ -1109,15 +1119,20 @@ network adapters.")
                  (replace 'build
                    (lambda* (#:key (make-flags '()) (parallel-build? #t) inputs
                              #:allow-other-keys)
-                     (apply invoke "make"
-                            (string-append "KSRC="
-                                           (search-input-directory
-                                            inputs "lib/modules/build"))
-                            `(,@(if parallel-build?
-                                    `("-j" ,(number->string
-                                             (parallel-job-count)))
-                                    '())
-                              ,@make-flags)))))))
+                     (let ((kernel-dir
+                            (search-input-directory inputs "lib/modules/build")))
+                       (apply invoke "make"
+                              (string-append "KSRC=" kernel-dir)
+                              ;; Avoid introducing store paths into the build
+                              ;; output.
+                              ;; https://codeberg.org/guix/guix/issues/10409
+                              (format #f "KCFLAGS=-ffile-prefix-map=~a="
+                                      kernel-dir)
+                              `(,@(if parallel-build?
+                                      `("-j" ,(number->string
+                                               (parallel-job-count)))
+                                      '())
+                                ,@make-flags))))))))
       (home-page "https://github.com/morrownr/8821cu-20210916")
       (synopsis "Linux driver for Realtek USB WiFi adapters")
       (description

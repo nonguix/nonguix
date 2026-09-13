@@ -255,8 +255,7 @@ Here're GPUs supported by our packaged proprietary drivers.
 
 *NOTE*:
 - Open source kernel modules are supported since Turing and required since
-  Blackwell.  Additionally, these modules may be unusable unless [[https://codeberg.org/guix/guix/issues/10409][guix/guix#10409]]
-  is resolved.
+  Blackwell.
 - Drivers marked as ⚠️ are no longer supported by upstream and won't receive
   functionality or security updates.
 - =nvda-beta= and =nvda-new-feature= are not production-ready.

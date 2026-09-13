@@ -1026,15 +1026,18 @@ driver.")))
           (replace 'build
             (lambda* (#:key inputs make-flags (parallel-build? #t)
                       #:allow-other-keys)
-              (apply invoke "make"
-                     (string-append
-                      "SYSSRC="
-                      (search-input-directory inputs "/lib/modules/build"))
-                     `(,@(if parallel-build?
-                             `("-j" ,(number->string (parallel-job-count)))
-                             '())
-                       ,@make-flags
-                       "modules")))))))
+              (let ((kernel-dir
+                     (search-input-directory inputs "lib/modules/build")))
+                (apply invoke "make"
+                       (string-append "SYSSRC=" kernel-dir)
+                       ;; Avoid introducing store paths into the build output.
+                       ;; https://codeberg.org/guix/guix/issues/10409
+                       (format #f "KCFLAGS=-ffile-prefix-map=~a=" kernel-dir)
+                       `(,@(if parallel-build?
+                               `("-j" ,(number->string (parallel-job-count)))
+                               '())
+                         ,@make-flags
+                         "modules"))))))))
     (home-page "https://github.com/NVIDIA/open-gpu-kernel-modules")
     (synopsis "Proprietary NVIDIA driver (open source kernel modules), production branch")
     (description
