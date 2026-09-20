@@ -171,7 +171,7 @@
   (package
     (inherit (make-google-chrome "beta"))
     (name "google-chrome-beta")
-    (version "152.0.7977.13-1")
+    (version "155.0.8059.5-1")
     (source
      (origin
        (method url-fetch)
@@ -179,7 +179,7 @@
              "https://dl.google.com/linux/chrome/deb/pool/main/g/" name "/"
              name "_" version "_amd64.deb"))
        (sha256
-        (base32 "0aij3x5dnxky7azcgda5ij32arz9bl2bazn0d5zhi6yyh6r54j1a"))))))
+        (base32 "1hw8lkng4gi0ylcjaqlvmjcv2rs684x7iyc8hk2j9jlhvz07lyxz"))))))
 
 (define-public google-chrome-unstable
   (package
