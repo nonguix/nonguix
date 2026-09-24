@@ -181,7 +181,7 @@
        (base32 "13f0fnlv614vaxbgphq1g5hiw8kxs2fshbkkca9qgp890jkv401f")))))
 
 (define %nvidia-patches-470
-  (let ((commit "23ccd6e8d9b27256d4f491666b2779c663ab9f39"))
+  (let ((commit "b68e153b018bb0b5cd4cbd72cb66c84e3b7d18e9"))
     (origin
       (method git-fetch)
       (uri (git-reference
@@ -189,7 +189,7 @@
              (commit commit)))
       (file-name (string-append "nvidia-patches." (string-take commit 7)))
       (sha256
-       (base32 "09l7qmlgi27ydjzb6w6pksc36qs2c6g8aai5kf8y97bw5m83viww"))
+       (base32 "0abs3x3d2d6p380cxl8mlqla7r2mxbas2cxc1cvaky5m8gwvjyl9"))
       (modules '((guix build utils)))
       (snippet
        '(substitute* (find-files "." "\\.patch$")
@@ -247,6 +247,10 @@
           "nvidia-470xx-fix-linux-6.19-part1.patch"
           "nvidia-470xx-fix-linux-6.19-part2.patch"
           "nvidia-470xx-fix-linux-7.0.patch"
+          "nvidia-470xx-fix-linux-7.2-part1.patch"
+          "nvidia-470xx-fix-linux-7.2-part2.patch"
+          "nvidia-470xx-fix-linux-7.2-part3.patch"
+          "nvidia-470xx-fix-linux-7.3.patch"
           "disable-objtool-override.patch"
           "enable-drm-modeset-by-default.patch"))))
 
