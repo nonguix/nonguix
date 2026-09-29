@@ -77,7 +77,8 @@
                   (substitute* (string-append opt "/google/" #$appname "/google-" #$appname)
                     (("CHROME_WRAPPER") "WRAPPER"))
                   (substitute* (string-append usr/share "/applications/google-" #$appname ".desktop")
-                    (("^Exec=.*") (string-append "Exec=" exe "\n")))
+                    (("^Exec=[^ ]*")  (string-append "Exec=" exe))
+                    (("^Exec=[^ ]*$") (string-append "Exec=" exe "\n")))
                   (substitute* (string-append usr/share "/gnome-control-center/default-apps/google-" #$appname ".xml")
                     ((old-exe) exe)))))
             (add-after 'install 'install-icons
