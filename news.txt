@@ -2,6 +2,7 @@
 ;;; Copyright © 2022 Jonathan Brielmaier <jonathan.brielmaier@web.de>
 ;;; Copyright © 2023 Wolf <wolf@wolfsden.cz>
 ;;; Copyright © 2026 Hilton Chain <hako@ultrarare.space>
+;;; Copyright © 2026 Maxim Cournoyer <maxim@guixotic.coop>
 ;;
 ;; Copying and distribution of this file, with or without modification, are
 ;; permitted in any medium without royalty provided the copyright notice and
@@ -9,6 +10,29 @@
 
 (channel-news
  (version 0)
+
+ (entry (commit "257fcfd2362674b6d25f76ed191830e3b06e7f0e")
+        (title
+         (en "Steam/Heroic container environments more minimal, configurable"))
+        (body
+         (en "The environments in the underlying containers used to run
+@code{steam} or @code{heroic} are now more minimal, reducing the risk
+of conflicts between the host libraries and those in the Steam
+runtime.  For users with particular needs, the @code{steam-for} and
+@code{heroic-for} procedures that generate the @code{steam} and
+@code{heroic} packages, respectively, now accept an
+@code{#:extra-packages} keyword, which can be provided with a list of
+@emph{labeled} Guix packages, e.g. @code{`((\"mangohud\"
+,mangohud) (\"imgui-for-mangohud\" ,imgui-for-mangohud) (\"spdlog\"
+,spdlog) (\"font-dejavu\" ,font-dejavu))}.  A
+@code{%legacy-steam-gameruntime-libs} variable is also exposed so that
+users wanting the previous behavior can customize their steam package
+like so:
+
+@lisp
+(use-modules (nonguix packages game-client))
+(steam-for mesa #:extra-packages %legacy-steam-gameruntime-libs)
+@end lisp ")))
 
  (entry (commit "d14639ff88614e8aa30d958390b1ee7905cf78ca")
         (title
