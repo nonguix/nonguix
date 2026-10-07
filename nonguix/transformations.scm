@@ -174,7 +174,7 @@ REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
             . ,((if remove-nvenc-restriction?
                     (remove-restriction
                      #:nvenc "s/\\xe8\\x41\\x1d\\xfe\\xff\\x41\\x89\\xc6\\x85\\xc0/\\xe8\\x41\\x1d\\xfe\\xff\\x29\\xc0\\x41\\x89\\xc6/g"
-                     #:nvfbc #f)
+                     #:nvfbc "s/\\x85\\xc0\\x0f\\x85\\x1c\\x01\\x00\\x00\\x48\\x8d/\\x85\\xc0\\x90\\x90\\x90\\x90\\x90\\x90\\x48\\x8d/g")
                     identity)
                 driver))
            (,nvda-595

@@ -287,15 +287,15 @@
 
 (define nvidia-source-new-feature-x86_64-linux
   (make-nvidia-source
-   "615.71.09"
+   "615.78.08"
    "x86_64"
-   (base32 "1zkh7f7w5zfjr0dfg3k905jklgk7jqjvrskd3a6j8qgbpcifvknd")))
+   (base32 "1zkzs219fn946pg2v3b9fv76wa6bwdxsy02k3047lxpfqbfnsgry")))
 
 (define nvidia-source-new-feature-aarch64-linux
   (make-nvidia-source
-   "615.71.09"
+   "615.78.08"
    "aarch64"
-   (base32 "0qw11s0pf4dvdy8fsrqd5bn0b1qd9n7jsnpnkkk5fw1v251a9dr1")))
+   (base32 "0dvs8jpr9a5anwgna3c2qwvvxr2zwcph3zgh66h827hqa09h2xjh")))
 
 (define nvidia-source-beta-x86_64-linux
   (make-nvidia-source
@@ -1077,7 +1077,7 @@ NVIDIA driver.")
   (package
     (inherit nvidia-module-open-595)
     (name "nvidia-module-open-new-feature")
-    (version "615.71.09")
+    (version "615.78.08")
     (source
      (origin
        (method git-fetch)
@@ -1087,7 +1087,7 @@ NVIDIA driver.")
        (file-name (git-file-name name version))
        (sha256
         (base32
-         "1cwaacb9sjq9yk35ibj3292qmsqh0axgminh5md385rhh8qp406y"))))
+         "0pn0b26h0sbinv7h6dzd8n0z068wb2038ph2415r5lfbx240s4hw"))))
     (synopsis "Proprietary NVIDIA driver (open source kernel modules), new feature branch")))
 
 (define-public nvidia-module-open-beta
@@ -1203,7 +1203,7 @@ device files are present and configure certain runtime settings in the kernel.")
   (package
     (inherit nvidia-modprobe-595)
     (name "nvidia-modprobe-new-feature")
-    (version "615.71.09")
+    (version "615.78.08")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -1212,7 +1212,7 @@ device files are present and configure certain runtime settings in the kernel.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1swl10a00al1sq3v2ismk1p2afafqjknmr11rmzpxaai0xw0cgva"))))
+                "1bp0j7xi15nizpnirzqxr7k09d8zs9nm9ww78g4mss4fcyh2h1v4"))))
     (synopsis "Create NVIDIA character device files, new feature branch")))
 
 (define-public nvidia-modprobe-beta
@@ -1379,7 +1379,7 @@ configuration, application profiles, GPU monitoring and more.")
   (package
     (inherit nvidia-settings-595)
     (name "nvidia-settings-new-feature")
-    (version "615.71.09")
+    (version "615.78.08")
     (source
      (origin
        (method git-fetch)
@@ -1387,7 +1387,7 @@ configuration, application profiles, GPU monitoring and more.")
               (url "https://github.com/NVIDIA/nvidia-settings")
               (commit version)))
        (file-name (git-file-name name version))
-       (sha256 (base32 "064fzi2v16kr4v054675zwh6f7v6ivdhd3qjapbwz443r59lpb9c"))
+       (sha256 (base32 "1xqb8qcpd5wc47cmgdsfawwbq0mjqgpq4sk93vhd1c9ndnjd2w4a"))
        (modules '((guix build utils)))
        (snippet '(delete-file-recursively "src/jansson"))))
     (synopsis "NVIDIA proprietary driver control panel, new feature branch")))
