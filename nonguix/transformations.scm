@@ -279,6 +279,7 @@ REMOVE-NVENC-RESTRICTION? (default: #f) applies patches from
   (lambda (os)
     (operating-system
       (inherit os)
+      (location (operating-system-location os))
       (kernel-arguments
        `("modprobe.blacklist=nouveau"
          "modprobe.blacklist=nova_core,nova_drm"
