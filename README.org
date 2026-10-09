@@ -64,6 +64,46 @@ To do so, add it to =~/.config/guix/channels.scm=:
 
 Then run =guix pull=.
 
+** Substitutes for nonguix
+
+A Nonguix substitute server is available at [[https://substitutes.nonguix.org]].  On
+Guix System, you can add and authorize this URL in the following way:
+#+BEGIN_SRC scheme
+  (operating-system
+    (services (list
+               (simple-service 'nonguix-substitutes guix-service-type
+                               (guix-extension
+                                 (substitute-urls (list "https://substitutes.nonguix.org"))
+                                 (authorized-keys (list (local-file "./signing-key.pub")))))
+               ...))
+    ...)
+#+END_SRC
+
+Notice that the URL of the server should be specified without a trailing slash.
+The file ~signing-key.pub~ should be downloaded directly from
+[[https://substitutes.nonguix.org/signing-key.pub]].
+
+Alternatively, you can replace ~(local-file "./signing-key.pub")~ by:
+#+BEGIN_SRC scheme
+  (plain-file "non-guix.pub"
+              "(public-key (ecc (curve Ed25519) (q #C1FD53E5D4CE971933EC50C9F307AE2171A2D3B52C804642A7A35F84F3A4EA98#)))")
+#+END_SRC
+
+Guix System will only use the substitution server after it has been
+reconfigured.  The substitution server will therefore by default not be used the
+first time you run ~guix system reconfigure~ after adding the substitution
+server.  It is therefore recommended to explicitly specify the use of the
+substitution server the first time you reconfigure your system:
+#+BEGIN_SRC sh
+sudo guix archive --authorize < signing-key.pub
+sudo guix system reconfigure /etc/config.scm --substitute-urls='https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org'
+#+END_SRC
+
+The [[https://cuirass.nonguix.org/][Nonguix Cuirass instance]] can be useful when investigating substitution
+failures.
+
+Check out the [[https://guix.gnu.org/manual/en/html_node/Substitutes.html][chapter on substitutes]] in the Guix manual for more details.
+
 * Using Nonfree Firmware and Drivers
 
 To use Guix System with the standard Linux kernel and nonfree firmware, edit
@@ -498,48 +538,6 @@ of the normal one.  Aforementioned application setup is still necessary.
 | steam-nvidia-580         | steam-nvidia@580         |
 | steam-nvidia-470         | steam-nvidia@470         |
 | steam-nvidia-390         | steam-nvidia@390         |
-
-** Substitutes for nonguix
-
-A Nonguix substitute server is available at [[https://substitutes.nonguix.org]].
-On Guix System, you can add and authorize this URL in the following way:
-#+BEGIN_SRC scheme
-  (operating-system
-    (services (list
-               (simple-service 'nonguix-substitutes guix-service-type
-                               (guix-extension
-                                 (substitute-urls (list "https://substitutes.nonguix.org"))
-                                 (authorized-keys (list (local-file "./signing-key.pub")))))
-               ...))
-    ...)
-#+END_SRC
-
-Notice that the URL of the server should be specified without a trailing
-slash.  The file ~signing-key.pub~ should be downloaded directly from
-[[https://substitutes.nonguix.org/signing-key.pub]].
-
-Alternatively, you can replace ~(local-file "./signing-key.pub")~ by:
-#+BEGIN_SRC scheme
-  (plain-file "non-guix.pub"
-              "(public-key (ecc (curve Ed25519) (q #C1FD53E5D4CE971933EC50C9F307AE2171A2D3B52C804642A7A35F84F3A4EA98#)))")
-#+END_SRC
-
-Guix System will only use the substitution server after it has been
-reconfigured.  The substitution server will therefore by default not
-be used the first time you run ~guix system reconfigure~ after adding
-the substitution server.  It is therefore recommended to explicitly
-specify the use of the substitution server the first time
-you reconfigure your system:
-#+BEGIN_SRC sh
-sudo guix archive --authorize < signing-key.pub
-sudo guix system reconfigure /etc/config.scm --substitute-urls='https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org'
-#+END_SRC
-
-The [[https://cuirass.nonguix.org/][Nonguix Cuirass instance]] can be useful when investigating substitution
-failures.
-
-Check out the [[https://guix.gnu.org/manual/en/html_node/Substitutes.html][chapter on substitutes]]
-in the Guix manual for more details.
 
 ** Pinning package versions
 
