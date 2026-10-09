@@ -383,6 +383,9 @@ in a sandboxed FHS environment."
                          ;; for writing things like crash dumps and "steam_chrome_shm".
                          "/tmp"
                          ,(string-append sandbox-home "=" home)
+                         ;; Access to pipewire, even without Steam's
+                         ;; "-pipewire" option, needed for SteamVR streaming.
+                         ,@(find-files xdg-runtime "pipewire")
                          ,@(exists-> (string-append home "/.config/pulse"))
                          ,@(exists-> (string-append xdg-runtime "/pulse"))
                          ;; Share Monado service socket for use in SteamVR (will
