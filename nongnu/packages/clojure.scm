@@ -158,7 +158,7 @@ in Clojure code.")
 (define-public clojure-lsp
   (package
     (name "clojure-lsp")
-    (version "2026.05.05-12.58.26")
+    (version "2026.07.06-14.34.19")
     (source (origin
               (method url-fetch/zipbomb)
               (uri (string-append "https://github.com/clojure-lsp/clojure-lsp"
@@ -166,7 +166,7 @@ in Clojure code.")
                                   "/clojure-lsp-native-static-linux-amd64.zip"))
               (sha256
                (base32
-                "116lgvk7kkzaxxfwd83qy7y71x8v01ni34ynkj56hbn34nzk8llh"))))
+                "160r24kqcncy81zzb3qm0sn9x3b46m9bxhsqh1fl00p6j0jfl134"))))
     (build-system binary-build-system)
     (arguments
      `(#:install-plan
