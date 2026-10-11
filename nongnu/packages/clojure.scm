@@ -213,7 +213,7 @@ perform refactors and more.")
     (inherit clojure-tools-bin)
     (name "babashka-clojure-tools")
     ;; Version must match the one hardcoded in #'borkdude.deps/version.
-    (version "1.12.4.1618")
+    (version "1.12.6.1673")
     (source
      (origin
        (inherit (package-source clojure-tools-bin))
@@ -221,7 +221,7 @@ perform refactors and more.")
                            version
                            ".tar.gz"))
        (sha256
-        (base32 "08fy3k248sbsrbgl0lq3q4d23vp4chdawy230ardx61sssk9sxhk"))))))
+        (base32 "0g02xj14vnd7j0pv9wh5a6ydax06f4nzkbz2q89szmbmis2r94gy"))))))
 
 (define-public babashka
   (package
