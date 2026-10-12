@@ -62,34 +62,47 @@ lets you focus on your code.")
     (source (origin
               (method git-fetch)
               (uri (git-reference
-                    (url "https://codeberg.org/leiningen/leiningen.git")
-                    (commit version)))
+                     (url "https://codeberg.org/leiningen/leiningen.git")
+                     (commit version)))
               (file-name (git-file-name name version))
               (sha256
                (base32
                 "0alr5hahfc4wzfkhzm7cdbk10p2z0rjv0nbnr6nwf29sa650b8cf"))))
     (build-system gnu-build-system)
     (arguments
-     `(#:tests? #f
-       #:phases (modify-phases %standard-phases
-                  (delete 'configure)
-                  (delete 'build)
-                  (replace 'install
-                    (lambda _
-                      (let* ((lein-pkg (string-append (assoc-ref %build-inputs "source") "/bin/lein-pkg"))
-                             (lein-jar (string-append (assoc-ref  %build-inputs "leiningen-jar")
-                                                      "/share/leiningen-standalone.jar"))
-                             (bin-dir (string-append %output "/bin"))
-                             (lein (string-append bin-dir "/lein")))
-                        (mkdir-p bin-dir)
-                        (copy-file lein-pkg lein)
-                        (patch-shebang lein)
-                        (chmod lein #o555)
-                        (substitute* lein
-                          (("LEIN_JAR=.*") (string-append "LEIN_JAR=" lein-jar)))
-                        #t))))))
-    (inputs
-     `(("leiningen-jar" ,leiningen-jar)))))
+     (list
+      #:tests? #f
+      #:phases
+      #~(modify-phases %standard-phases
+          (delete 'configure)
+          (delete 'build)
+          (replace 'install
+            (lambda* (#:key source #:allow-other-keys)
+              (let* ((lein-pkg (string-append source "/bin/lein-pkg"))
+                     (bin-dir (string-append #$output "/bin"))
+                     (lein (string-append bin-dir "/lein")))
+                (mkdir-p bin-dir)
+                (copy-file lein-pkg lein)
+                (patch-shebang lein)
+                (chmod lein #o555)
+                (substitute* lein
+                  (("LEIN_JAR=.*")
+                   (string-append
+                    "LEIN_JAR="
+                    #+(this-package-native-input "leiningen-standalone.jar"))))))))))
+    (native-inputs
+     ;; While the source code is hosted on Codeberg, GitHub remains the
+     ;; canonical download location for the standalone jar, see:
+     ;; <https://codeberg.org/leiningen/leiningen/issues/114>.
+     (list (origin
+             (method url-fetch)
+             (uri (string-append "https://github.com/technomancy/leiningen"
+                                 "/releases/download/" version
+                                 "/leiningen-" version "-standalone.jar"))
+             (file-name "leiningen-standalone.jar")
+             (sha256
+              (base32
+               "18hsm37px3yk2v9mdbai76fpsa6iwqcyflnbgkr885v3mxrsa8dp")))))))
 
 (define-public clj-kondo
  (package
