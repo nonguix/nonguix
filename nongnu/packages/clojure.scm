@@ -58,7 +58,7 @@ lets you focus on your code.")
   (package
     (inherit leiningen-jar)
     (name "leiningen")
-    (version "2.12.0")
+    (version "2.13.0")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -67,7 +67,7 @@ lets you focus on your code.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "0alr5hahfc4wzfkhzm7cdbk10p2z0rjv0nbnr6nwf29sa650b8cf"))))
+                "1c4b74k3w6i1kkinf5lr3fyw5977iyznch3qa4xgss2rq4aj7z15"))))
     (build-system gnu-build-system)
     (arguments
      (list
@@ -102,7 +102,7 @@ lets you focus on your code.")
              (file-name "leiningen-standalone.jar")
              (sha256
               (base32
-               "18hsm37px3yk2v9mdbai76fpsa6iwqcyflnbgkr885v3mxrsa8dp")))))))
+               "0rbm44kjypic7lvymagqvm2gnxsmi19glg8y4kij8y9wdkq32ljz")))))))
 
 (define-public clj-kondo
  (package
