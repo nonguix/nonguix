@@ -14,7 +14,6 @@
   #:use-module (gnu packages readline)
   #:use-module (guix build-system copy)
   #:use-module (guix build-system gnu)
-  #:use-module (guix build-system trivial)
   #:use-module (guix download)
   #:use-module (guix gexp)
   #:use-module (guix git-download)
@@ -23,40 +22,8 @@
   #:use-module (nonguix build-system binary)
   #:use-module ((guix licenses) #:prefix license:))
 
-;; This is a hidden package, as it does not really serve a purpose on its own.
-(define leiningen-jar
-  (package
-    (name "leiningen-jar")
-    (version "2.12.0")
-    (source (origin
-              (method url-fetch)
-              (uri (string-append
-                    "https://codeberg.org/leiningen/leiningen/releases/download/"
-                    version "/leiningen-" version "-standalone.jar"))
-              (file-name "leiningen-standalone.jar")
-              (sha256
-               (base32
-                "18hsm37px3yk2v9mdbai76fpsa6iwqcyflnbgkr885v3mxrsa8dp"))))
-    (build-system trivial-build-system)
-    (arguments
-     `(#:modules ((guix build utils))
-       #:builder (begin
-                   (use-modules (guix build utils))
-                   (let ((source (assoc-ref %build-inputs "source"))
-                         (jar-dir (string-append %output "/share/")))
-                     (mkdir-p jar-dir)
-                     (copy-file source
-                                (string-append jar-dir "leiningen-standalone.jar"))))))
-    (home-page "https://leiningen.org")
-    (synopsis "Automate Clojure projects without setting your hair on fire")
-    (description "Leiningen is a Clojure tool with a focus on project
-automation and declarative configuration.  It gets out of your way and
-lets you focus on your code.")
-    (license license:epl1.0)))
-
 (define-public leiningen
   (package
-    (inherit leiningen-jar)
     (name "leiningen")
     (version "2.13.0")
     (source (origin
@@ -102,7 +69,13 @@ lets you focus on your code.")
              (file-name "leiningen-standalone.jar")
              (sha256
               (base32
-               "0rbm44kjypic7lvymagqvm2gnxsmi19glg8y4kij8y9wdkq32ljz")))))))
+               "0rbm44kjypic7lvymagqvm2gnxsmi19glg8y4kij8y9wdkq32ljz")))))
+    (home-page "https://leiningen.org")
+    (synopsis "Automate Clojure projects without setting your hair on fire")
+    (description "Leiningen is a Clojure tool with a focus on project
+automation and declarative configuration.  It gets out of your way and
+lets you focus on your code.")
+    (license license:epl1.0)))
 
 (define-public clj-kondo
  (package
