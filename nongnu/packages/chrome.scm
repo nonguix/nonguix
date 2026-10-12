@@ -186,7 +186,7 @@
   (package
     (inherit (make-google-chrome "unstable"))
     (name "google-chrome-unstable")
-    (version "157.0.8081.0-1")
+    (version "157.0.8092.0-1")
     (source
      (origin
        (method url-fetch)
@@ -194,7 +194,7 @@
              "https://dl.google.com/linux/chrome/deb/pool/main/g/" name "/"
              name "_" version "_amd64.deb"))
        (sha256
-        (base32 "0cnll8dryhm8nqhs50h9dpz22swbi2j8lpvhrdpxzgk9i8k6dh2b"))))))
+        (base32 "0qmzfbkh8fal199vr9rn3qbl23bckpk18ddf46vsabsy2x1kpv39"))))))
 
 (define-public google-chrome-canary
   (package
