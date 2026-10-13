@@ -1661,87 +1661,67 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 ;;;
 
 (define-syntax define-nvidia-container
-  (syntax-rules ()
-    ((_ name container-builder driver)
-     (define-public name
-       (hidden-package
-        (package
-          (inherit (nonguix-container->package
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ name alias builder nvda)
+       (with-syntax ((alias-name (user-alias-id #'name #'name))
+                     (driver-version
+                      #'(package-version
+                         (assoc-ref (package-properties nvda) 'driver))))
+         #`(begin
+             (define-public name
+               (package
+                 (inherit
+                  (hidden-package
+                   (nonguix-container->package
                     (nonguix-container
-                      (inherit (container-builder driver))
-                      (preserved-env %nvidia-environment-variable-regexps))))
-          (location (package-location driver))))))
-    ((_ name alias container alias-version)
-     (define-public name
-       (package
-         (inherit (package-with-alias alias container))
-         (version alias-version))))))
+                      (inherit (builder nvda))
+                      (preserved-env %nvidia-environment-variable-regexps)))))))
+             (define-public alias-name
+               (package
+                 (inherit (package-with-alias alias name))
+                 (version driver-version)))))))))
 
 (define-nvidia-container steam-nvidia-390
+  "steam-nvidia"
   steam-container-for nvda-390)
 (define-nvidia-container steam-nvidia-470
+  "steam-nvidia"
   steam-container-for nvda-470)
 (define-nvidia-container steam-nvidia-580
+  "steam-nvidia"
   steam-container-for nvda-580)
 (define-nvidia-container steam-nvidia-595
+  "steam-nvidia"
   steam-container-for nvda-595)
 (define-nvidia-container steam-nvidia-new-feature
+  "steam-nvidia-new-feature"
   steam-container-for nvda-new-feature)
 (define-nvidia-container steam-nvidia-beta
+  "steam-nvidia-beta"
   steam-container-for nvda-beta)
 (define-public steam-nvidia steam-nvidia-580)
 
-(define-nvidia-container steam-nvidia-user-alias-390 "steam-nvidia"
-  steam-nvidia-390
-  (package-version nvidia-driver-390))
-(define-nvidia-container steam-nvidia-user-alias-470 "steam-nvidia"
-  steam-nvidia-470
-  (package-version nvidia-driver-470))
-(define-nvidia-container steam-nvidia-user-alias-580 "steam-nvidia"
-  steam-nvidia-580
-  (package-version nvidia-driver-580))
-(define-nvidia-container steam-nvidia-user-alias-595 "steam-nvidia"
-  steam-nvidia-595
-  (package-version nvidia-driver-595))
-(define-nvidia-container steam-nvidia-user-alias-new-feature "steam-nvidia-new-feature"
-  steam-nvidia-new-feature
-  (package-version nvidia-driver-new-feature))
-(define-nvidia-container steam-nvidia-user-alias-beta "steam-nvidia-beta"
-  steam-nvidia-beta
-  (package-version nvidia-driver-beta))
-
 (define-nvidia-container heroic-nvidia-390
+  "heroic-nvidia"
   heroic-container-for nvda-390)
 (define-nvidia-container heroic-nvidia-470
+  "heroic-nvidia"
   heroic-container-for nvda-470)
 (define-nvidia-container heroic-nvidia-580
+  "heroic-nvidia"
   heroic-container-for nvda-580)
 (define-nvidia-container heroic-nvidia-595
+  "heroic-nvidia"
   heroic-container-for nvda-595)
 (define-nvidia-container heroic-nvidia-new-feature
+  "heroic-nvidia-new-feature"
   heroic-container-for nvda-new-feature)
 (define-nvidia-container heroic-nvidia-beta
+  "heroic-nvidia-beta"
   heroic-container-for nvda-beta)
 (define-public heroic-nvidia heroic-nvidia-580)
 
-(define-nvidia-container heroic-nvidia-user-alias-390 "heroic-nvidia"
-  heroic-nvidia-390
-  (package-version nvidia-driver-390))
-(define-nvidia-container heroic-nvidia-user-alias-470 "heroic-nvidia"
-  heroic-nvidia-470
-  (package-version nvidia-driver-470))
-(define-nvidia-container heroic-nvidia-user-alias-580 "heroic-nvidia"
-  heroic-nvidia-580
-  (package-version nvidia-driver-580))
-(define-nvidia-container heroic-nvidia-user-alias-595 "heroic-nvidia"
-  heroic-nvidia-595
-  (package-version nvidia-driver-595))
-(define-nvidia-container heroic-nvidia-user-alias-new-feature "heroic-nvidia-new-feature"
-  heroic-nvidia-new-feature
-  (package-version nvidia-driver-new-feature))
-(define-nvidia-container heroic-nvidia-user-alias-beta "heroic-nvidia-beta"
-  heroic-nvidia-beta
-  (package-version nvidia-driver-beta))
 
 (define (make-ffmpeg-nvidia ffmpeg driver)
   (define nv-codec-headers/rebuilt
