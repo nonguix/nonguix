@@ -1,0 +1,11 @@
+#!/bin/sh
+
+TOP_DIR="$(dirname "$(realpath "$0")")"
+modules="$TOP_DIR"
+scripts="$TOP_DIR/etc/scripts"
+
+export GUILE_LOAD_PATH="${modules}${GUILE_LOAD_PATH:+:}${GUILE_LOAD_PATH}"
+export GUIX_PACKAGE_PATH="${modules}${GUIX_PACKAGE_PATH:+:}${GUIX_PACKAGE_PATH}"
+export PATH="${scripts}${PATH:+:}${PATH}"
+
+exec "$@"

@@ -1,0 +1,496 @@
+#!/bin/sh
+# -*- mode: scheme; -*-
+exec guix repl -- "$0" "$@"
+!#
+;;; SPDX-License-Identifier: GPL-3.0-or-later
+;;; Copyright © 2020, 2021, 2022, 2023 Ricardo Wurmus <rekado@elephly.net>
+;;; Copyright © 2021 Sarah Morgensen <iskarian@mgsn.dev>
+;;; Copyright © 2021 Xinglu Chen <public@yoctocell.xyz>
+;;; Copyright © 2022, 2026 Maxim Cournoyer <maxim@guixotic.coop>
+
+;;; Commentary:
+
+;; This script stages and commits changes to package definitions.
+
+;;; Code:
+
+(use-modules ((sxml xpath) #:prefix xpath:)
+             (srfi srfi-1)
+             (srfi srfi-2)
+             (srfi srfi-9)
+             (srfi srfi-11)
+             (srfi srfi-26)
+             (ice-9 format)
+             (ice-9 popen)
+             (ice-9 match)
+             (ice-9 rdelim)
+             (ice-9 regex)
+             (ice-9 textual-ports)
+             (guix gexp)
+             (guix modules)
+             (guix packages))
+
+(define* (break-string str #:optional (max-line-length 70))
+  "Break the string STR into lines that are no longer than MAX-LINE-LENGTH.
+Return a single string."
+  (define (restore-line words)
+    (string-join (reverse words) " "))
+  (if (<= (string-length str) max-line-length)
+      str
+      (let ((words+lengths (map (lambda (word)
+                                  (cons word (string-length word)))
+                                (string-tokenize str))))
+        (match (fold (match-lambda*
+                       (((word . length)
+                         (count current lines))
+                        (let ((new-count (+ count length 1)))
+                          (if (< new-count max-line-length)
+                              (list new-count
+                                    (cons word current)
+                                    lines)
+                              (list length
+                                    (list word)
+                                    (cons (restore-line current) lines))))))
+                     '(0 () ())
+                     words+lengths)
+          ((_ last-words lines)
+           (string-join (reverse (cons (restore-line last-words) lines))
+                        "\n"))))))
+
+(define* (break-string-with-newlines str #:optional (max-line-length 70))
+  "Break the lines of string STR into lines that are no longer than
+MAX-LINE-LENGTH. Return a single string."
+  (string-join (map (cut break-string <> max-line-length)
+                    (string-split str #\newline))
+               "\n"))
+
+(define (read-excursion port)
+  "Read an expression from PORT and reset the port position before returning
+the expression."
+  (let ((start (ftell port))
+        (result (read port)))
+    (seek port start SEEK_SET)
+    result))
+
+(define (lines+offsets-with-opening-parens port)
+  "Record all line numbers (and their offsets) where an opening parenthesis is
+found in column 0.  The resulting list is in reverse order."
+  (let loop ((acc '())
+             (number 0))
+    (let ((line (read-line port)))
+      (cond
+       ((eof-object? line) acc)
+       ((string-prefix? "(" line)
+        (loop (cons (cons number                      ;line number
+                          (- (ftell port)
+                             (string-length line) 1)) ;offset
+                    acc)
+              (1+ number)))
+       (else (loop acc (1+ number)))))))
+
+(define (surrounding-sexp port target-line-no)
+  "Return the top-level S-expression surrounding the change at line number
+TARGET-LINE-NO in PORT."
+  (let* ((line-numbers+offsets
+          (lines+offsets-with-opening-parens port))
+         (closest-offset
+          (or (and=> (list-index (match-lambda
+                                   ((line-number . offset)
+                                    (< line-number target-line-no)))
+                                 line-numbers+offsets)
+                     (lambda (index)
+                       (match (list-ref line-numbers+offsets index)
+                         ((line-number . offset) offset))))
+              (error "Could not find surrounding S-expression for line"
+                     target-line-no))))
+    (seek port closest-offset SEEK_SET)
+    (read port)))
+
+;;; Whether the hunk contains a newly added package (definition), a removed
+;;; package (removal) or something else (#false).
+(define hunk-types '(addition removal #false))
+
+(define-record-type <hunk>
+  (make-hunk file-name
+             old-line-number
+             new-line-number
+             diff-lines
+             type)
+  hunk?
+  (file-name       hunk-file-name)
+  ;; Line number before the change
+  (old-line-number hunk-old-line-number)
+  ;; Line number after the change
+  (new-line-number hunk-new-line-number)
+  ;; The full diff to be used with "git apply --cached"
+  (diff-lines hunk-diff-lines)
+  ;; Does this hunk add or remove a package?
+  (type hunk-type))                     ;one of 'hunk-types'
+
+(define* (hunk->patch hunk #:optional (port (current-output-port)))
+  (let ((file-name (hunk-file-name hunk)))
+    (format port
+            "diff --git a/~a b/~a~%--- a/~a~%+++ b/~a~%~a"
+            file-name file-name file-name file-name
+            (string-join (hunk-diff-lines hunk) ""))))
+
+(define (diff-info)
+  "Read the diff and return a list of <hunk> values."
+  (let ((port (open-pipe* OPEN_READ
+                          "git" "diff-files"
+                          "--no-prefix"
+                          ;; Only include one context line to avoid lumping in
+                          ;; new definitions with changes to existing
+                          ;; definitions.
+                          "--unified=1"
+                          "--" "nongnu")))
+    (define (extract-line-number line-tag)
+      (abs (string->number
+            (car (string-split line-tag #\,)))))
+    (define (read-hunk)
+      (let loop ((lines '())
+                 (type #false))
+        (let ((line (read-line port 'concat)))
+          (cond
+           ((eof-object? line)
+            (values (reverse lines) type))
+           ((or (string-prefix? "@@ " line)
+                (string-prefix? "diff --git" line))
+            (unget-string port line)
+            (values (reverse lines) type))
+           (else
+            (loop (cons line lines)
+                  (or type
+                      (cond
+                       ((string-prefix? "+(define" line)
+                        'addition)
+                       ((string-prefix? "-(define" line)
+                        'removal)
+                       (else #false)))))))))
+    (define info
+      (let loop ((acc '())
+                 (file-name #f))
+        (let ((line (read-line port)))
+          (cond
+           ((eof-object? line) acc)
+           ((string-prefix? "--- " line)
+            (match (string-split line #\space)
+              ((_ file-name)
+               (loop acc file-name))))
+           ((string-prefix? "@@ " line)
+            (match (string-split line #\space)
+              ((_ old-start new-start . _)
+               (let-values
+                   (((diff-lines type) (read-hunk)))
+                 (loop (cons (make-hunk file-name
+                                        (extract-line-number old-start)
+                                        (extract-line-number new-start)
+                                        (cons (string-append line "\n")
+                                              diff-lines)
+                                        type) acc)
+                       file-name)))))
+           (else (loop acc file-name))))))
+    (close-pipe port)
+    info))
+
+(define (lines-to-first-change hunk)
+  "Return the number of diff lines until the first change."
+  (1- (count (lambda (line)
+               ((negate char-set-contains?)
+                (char-set #\+ #\-)
+                (string-ref line 0)))
+             (hunk-diff-lines hunk))))
+
+(define %original-file-cache
+  (make-hash-table))
+
+(define (read-original-file file-name)
+  "Return the contents of FILE-NAME prior to any changes."
+  (let* ((port (open-pipe* OPEN_READ
+                           "git" "cat-file" "-p" (string-append
+                                                  "HEAD:" file-name)))
+         (contents (get-string-all port)))
+    (close-pipe port)
+    contents))
+
+(define (read-original-file* file-name)
+  "Caching variant of READ-ORIGINAL-FILE."
+  (or (hashv-ref %original-file-cache file-name)
+      (let ((value (read-original-file file-name)))
+        (hashv-set! %original-file-cache file-name value)
+        value)))
+
+(define (old-sexp hunk)
+  "Using the diff information in HUNK return the unmodified S-expression
+corresponding to the top-level definition containing the staged changes."
+  ;; TODO: We can't seek with a pipe port...
+  (call-with-input-string (read-original-file* (hunk-file-name hunk))
+    (lambda (port)
+      (surrounding-sexp port
+                        (+ (lines-to-first-change hunk)
+                           (hunk-old-line-number hunk))))))
+
+(define (new-sexp hunk)
+  "Using the diff information in HUNK return the modified S-expression
+corresponding to the top-level definition containing the staged changes."
+  (call-with-input-file (hunk-file-name hunk)
+    (lambda (port)
+      (surrounding-sexp port
+                        (+ (lines-to-first-change hunk)
+                           (hunk-new-line-number hunk))))))
+
+(define* (change-commit-message file-name old new #:optional (port (current-output-port)))
+  "Print ChangeLog commit message for changes between OLD and NEW."
+  (define (get-values expr field)
+    (match ((xpath:node-or
+             (xpath:sxpath `(*any* *any* package ,field quasiquote *))
+             ;; For let binding
+             (xpath:sxpath `(*any* *any* (*any*) package ,field quasiquote *)))
+            (cons '*TOP* expr))
+      (()
+       ;; New-style plain lists
+       (match ((xpath:node-or
+                (xpath:sxpath `(*any* *any* package ,field list *))
+                ;; For let binding
+                (xpath:sxpath `(*any* *any* (*any*) package ,field list *)))
+               (cons '*TOP* expr))
+         ((inner) inner)
+         (_ '())))
+      ;; Old-style labelled inputs
+      ((first . rest)
+       (map cadadr first))))
+  (define (listify items)
+    (match items
+      ((one) one)
+      ((one two)
+       (string-append one " and " two))
+      ((one two . more)
+       (string-append (string-join (drop-right items 1) ", ")
+                      ", and " (first (take-right items 1))))))
+  (define variable-name
+    (second old))
+  (define version
+    (match ((xpath:node-or
+             (xpath:sxpath '(*any* *any* package version *any*))
+             ;; For let binding
+             (xpath:sxpath '(*any* *any* (*any*) package version *any*)))
+            (cons '*TOP* new))
+      (() #f)
+      ((version . rest) version)))
+  (if version
+      (format port
+              "nongnu: ~a: Update to ~a.~%~%* ~a (~a): Update to ~a.~%"
+              variable-name version file-name variable-name version)
+      (format port
+              "nongnu: ~a: Update.~%~%* ~a (~a): Update.~%"
+              variable-name file-name variable-name))
+  (for-each (lambda (field)
+              (let ((old-values (get-values old field))
+                    (new-values (get-values new field)))
+                (or (equal? old-values new-values)
+                    (let ((removed (lset-difference equal? old-values new-values))
+                          (added (lset-difference equal? new-values old-values)))
+                      (unless (and (null? added) (null? removed))
+                        (format port
+                                "[~a]: ~a~%" field
+                                (break-string
+                                 ;; A dependency can be a list of (pkg output).
+                                 (match (list (map object->string removed)
+                                              (map object->string added))
+                                   ((() added)
+                                    (format #f "Add ~a."
+                                            (listify added)))
+                                   ((removed ())
+                                    (format #f "Remove ~a."
+                                            (listify removed)))
+                                   ((removed added)
+                                    (format #f "Remove ~a; add ~a."
+                                            (listify removed)
+                                            (listify added)))))))))))
+            '(inputs propagated-inputs native-inputs)))
+
+(define* (add-commit-message file-name variable-name
+                             #:optional (port (current-output-port)))
+  "Print ChangeLog commit message for a change to FILE-NAME adding a
+definition."
+  (format port "nongnu: Add ~a.~%~%* ~a (~a): New variable.~%"
+          variable-name file-name variable-name))
+
+(define* (remove-commit-message file-name variable-name
+                                #:optional (port (current-output-port)))
+  "Print ChangeLog commit message for a change to FILE-NAME removing a
+definition."
+  (format port "nongnu: Remove ~a.~%~%* ~a (~a): Delete variable.~%"
+          variable-name file-name variable-name))
+
+(define* (custom-commit-message file-name variable-name message changelog
+                                #:optional (port (current-output-port)))
+  "Print custom commit message for a change to VARIABLE-NAME in FILE-NAME, using
+MESSAGE as the commit message and CHANGELOG as the body of the ChangeLog
+entry. If CHANGELOG is #f, the commit message is reused. If CHANGELOG already
+contains ': ', no colon is inserted between the location and body of the
+ChangeLog entry."
+  (define (trim msg)
+    (string-trim-right (string-trim-both msg) (char-set #\.)))
+
+  (define (changelog-has-location? changelog)
+    (->bool (string-match "^[[:graph:]]+:[[:blank:]]" changelog)))
+
+  (let* ((message (trim message))
+         (changelog (if changelog (trim changelog) message))
+         (message/f (format #f "nongnu: ~a: ~a." variable-name message))
+         (changelog/f (if (changelog-has-location? changelog)
+                          (format #f "* ~a (~a)~a."
+                                  file-name variable-name changelog)
+                          (format #f "* ~a (~a): ~a."
+                                  file-name variable-name changelog))))
+    (format port
+            "~a~%~%~a~%"
+            (break-string-with-newlines message/f 72)
+            (break-string-with-newlines changelog/f 72))))
+
+(define (add-copyright-line line)
+  "Add the copyright line on LINE to the previous commit."
+  (let ((author (match:substring
+                 (string-match "^\\+;;; Copyright ©[^[:alpha:]]+(.*)$" line)
+                 1)))
+    (format
+     (current-output-port) "Amend and add copyright line for ~a~%" author)
+    (system* "git" "commit" "--amend" "--no-edit")))
+
+(define (group-hunks-by-sexp hunks)
+  "Return a list of pairs associating all hunks with the S-expression they are
+modifying."
+  (fold (lambda (sexp hunk acc)
+          (match acc
+            (((previous-sexp . hunks) . rest)
+             (if (equal? sexp previous-sexp)
+                 (cons (cons previous-sexp
+                             (cons hunk hunks))
+                       rest)
+                 (cons (cons sexp (list hunk))
+                       acc)))
+            (_
+             (cons (cons sexp (list hunk))
+                   acc))))
+        '()
+        (map new-sexp hunks)
+        hunks))
+
+(define (new+old+hunks hunks)
+  (map (match-lambda
+         ((new . hunks)
+          (cons* new (old-sexp (first hunks)) hunks)))
+       (group-hunks-by-sexp hunks)))
+
+(define (new+old+hunks->package new+old+hunks)
+  "Return the package object whose source is referenced in a new+old+hunks
+tuple, which describes modifications to the package in a tuple containing the
+new sexp, the old sexp as well as a tail of <hunk> objects."
+  (match new+old+hunks
+    ((new-sexp old-sexp . hunks)
+     (let* ((hunk-file-name (hunk-file-name (first hunks)))
+            (variable-name (second new-sexp))
+            (module-name
+             (match (file-name->module-name hunk-file-name)
+               (('nongnu symbols ...)
+                (cons 'nongnu symbols))
+               (x x))))
+       (module-ref (resolve-module module-name) variable-name)))))
+
+(define (sort-new+old+hunks-by-closure new+old+hunks)
+  "Sort new+old+hunks by their package closure size."
+  (sort new+old+hunks
+        (match-lambda*
+          (((= new+old+hunks->package x-package)
+            (= new+old+hunks->package y-package))
+           (< (length (package-closure (list x-package)))
+              (length (package-closure (list y-package))))))))
+
+(define %delay 1000)
+
+(define (main . args)
+  (define* (change-commit-message* file-name old new #:rest rest)
+    (let ((changelog #f))
+      (match args
+        ((or (message changelog) (message))
+         (apply custom-commit-message
+                file-name (second old) message changelog rest))
+        (_
+         (apply change-commit-message file-name old new rest)))))
+
+  (read-disable 'positions)
+  (match (diff-info)
+    (()
+     (display "Nothing to be done.\n" (current-error-port)))
+    (hunks
+     (let-values (((definitions changes) (partition hunk-type hunks)))
+       ;; Additions/removals.
+       (for-each
+        (lambda (hunk)
+          (and-let* ((define-line (find (cut string-match "(\\+|-)\\(define" <>)
+                                        (hunk-diff-lines hunk)))
+                     (variable-name (and=> (string-tokenize define-line)
+                                           second))
+                     (commit-message-proc (match (hunk-type hunk)
+                                            ('addition add-commit-message)
+                                            ('removal remove-commit-message))))
+            (commit-message-proc (hunk-file-name hunk) variable-name)
+            (let ((port (open-pipe* OPEN_WRITE
+                                    "git" "apply"
+                                    "--cached"
+                                    "--unidiff-zero")))
+              (hunk->patch hunk port)
+              (unless (eqv? 0 (status:exit-val (close-pipe port)))
+                (error "Cannot apply")))
+
+            (let ((port (open-pipe* OPEN_WRITE "git" "commit" "-F" "-")))
+              (commit-message-proc (hunk-file-name hunk) variable-name port)
+              (usleep %delay)
+              (unless (eqv? 0 (status:exit-val (close-pipe port)))
+                (error "Cannot commit"))))
+          (usleep %delay))
+        definitions)
+
+       ;; Changes.
+       (for-each
+        (match-lambda
+          ((new old . hunks)
+           (for-each (lambda (hunk)
+                       (let ((port (open-pipe* OPEN_WRITE
+                                               "git" "apply"
+                                               "--cached"
+                                               "--unidiff-zero")))
+                         (hunk->patch hunk port)
+                         (unless (eqv? 0 (status:exit-val (close-pipe port)))
+                           (error "Cannot apply")))
+                       (usleep %delay))
+                     hunks)
+           (define copyright-line
+             (any (lambda (line) (and=> (string-prefix? "+;;; Copyright ©" line)
+                                        (const line)))
+                  (hunk-diff-lines (first hunks))))
+           (cond
+            (copyright-line
+             (add-copyright-line copyright-line))
+            (else
+             (let ((port (open-pipe* OPEN_WRITE "git" "commit" "-F" "-")))
+               (change-commit-message* (hunk-file-name (first hunks))
+                                       old new)
+               (change-commit-message* (hunk-file-name (first hunks))
+                                       old new
+                                       port)
+               (usleep %delay)
+               (unless (eqv? 0 (status:exit-val (close-pipe port)))
+                 (error "Cannot commit")))))))
+        (sort-new+old+hunks-by-closure
+         (new+old+hunks (match definitions
+                          ('() changes) ;reuse
+                          (_
+                           ;; XXX: we recompute the hunks here because previous
+                           ;; insertions lead to offsets.
+                           (let-values (((definitions changes)
+                                         (partition hunk-type (diff-info))))
+                             changes))))))))))
+
+(apply main (cdr (command-line)))

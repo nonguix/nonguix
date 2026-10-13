@@ -1,0 +1,34 @@
+;;; -*- mode: scheme -*-
+;;; SPDX-License-Identifier: GPL-3.0-or-later
+;;; Copyright © 2026 Hilton Chain <hako@ultrarare.space>
+
+(use-modules (srfi srfi-1)
+             (guix packages)
+             (guix profiles)
+             (nongnu packages))
+
+(define %nvidia-packages
+  (append-map (lambda (str)
+                (list str
+                      (string-append str "-beta")
+                      (string-append str "-new-feature")))
+              '("nvda"
+                "nvidia-driver"
+                "nvidia-firmware"
+                "nvidia-modprobe"
+                "nvidia-module"
+                "nvidia-module-open"
+                "nvidia-settings"
+
+                "ffmpeg"
+                "heroic"
+                "steam")))
+
+(packages->manifest
+ (fold (lambda (x acc)
+         (let ((name (package-name x)))
+           (if (member name %nvidia-packages)
+               (cons x acc)
+               acc)))
+       '()
+       (all-nongnu-packages)))

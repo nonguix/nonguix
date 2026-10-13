@@ -1,0 +1,36 @@
+#!/bin/sh
+# -*- mode: scheme; -*-
+exec guix repl -- "$0" "$@"
+!#
+;;; SPDX-License-Identifier: GPL-3.0-or-later
+;;; Copyright © 2026 Hilton Chain <hako@ultrarare.space>
+
+#|
+
+./pre-inst-env test-pkgs [PACKAGE] ...
+
+Build all PACKAGEs, then spawn one-off containerized environments via
+`guix shell' for every one of them.
+
+|#
+
+(use-modules (ice-9 match)
+             (srfi srfi-26)
+             (guix ui)
+             (guix scripts build)
+             (guix scripts shell)
+             (guix build utils))
+
+(match (program-arguments)
+  ((_ packages ...)
+   (info (G_ "the following package(s) will be built:~%~{   ~a~%~}~%") packages)
+   (apply guix-build "--keep-going" "--no-grafts" "--verbosity=1"
+          packages)
+   (for-each (lambda (p)
+               (info (G_ "entering container for '~a'~%") p)
+               (invoke "guix" "shell" p
+                       "--container" "--network" "--no-cwd" "--no-grafts"
+                       "--preserve=^((WAYLAND_)?DISPLAY|XDG_RUNTIME_DIR)$"
+                       (string-append "--share=" (getenv "XDG_RUNTIME_DIR"))
+                       "--share=/tmp"))
+             packages)))

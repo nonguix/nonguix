@@ -1,0 +1,32 @@
+;;; -*- mode: scheme -*-
+;;; SPDX-License-Identifier: GPL-3.0-or-later
+;;; Copyright © 2026 Hilton Chain <hako@ultrarare.space>
+
+(use-modules (ice-9 string-fun)
+             (srfi srfi-26)
+             (guix packages)
+             (guix profiles)
+             (gnu packages)
+             (nongnu packages linux))
+
+(define %guix-kernels
+  '("linux-libre"
+    "linux-libre-arm64-generic"))
+
+(define %nonguix-kernels
+  '("linux-xanmod"))
+
+(define (transform-kernel p old-name)
+  (let ((name (string-replace-substring old-name "linux-libre" "linux")))
+    (corrupt-linux p #:name name)))
+
+(packages->manifest
+ (fold-packages (lambda (x acc)
+                  (let ((name (package-name x)))
+                    (cond
+                     ((member name %guix-kernels)
+                      (cons (transform-kernel x name) acc))
+                     ((member name %nonguix-kernels)
+                      (cons x acc))
+                     (else acc))))
+                '()))
