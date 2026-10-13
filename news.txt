@@ -30,7 +30,8 @@ users wanting the previous behavior can customize their steam package
 like so:
 
 @lisp
-(use-modules (nonguix packages game-client))
+(use-modules (gnu packages gl)
+             (nonguix packages game-client))
 (steam-for mesa #:extra-packages %legacy-steam-gameruntime-libs)
 @end lisp ")))
 
