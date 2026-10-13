@@ -1230,7 +1230,7 @@ giving you trouble, you can try this module.")
      ;; for a new kernel release should be as simple as chaging the commit to
      ;; the newest available and adding any new patches.
      (map (lambda (name hash)
-            (let ((commit "7786b3a3e54962124d24b4b61a6472bb0c4bbd94"))
+            (let ((commit "5156986093f0f12ed04fe913b0a2f9e996c24274"))
               (origin
                 (method url-fetch)
                 (uri (string-append
@@ -1272,7 +1272,10 @@ giving you trouble, you can try this module.")
             "wl-kmod-032_add_MODULE_DESCRIPTION_macro.patch"
             "wl-kmod-033_disable_objtool_add_warning_unmaintained.patch"
             "wl-kmod-034_kernel_6.15_adaptation_replace_del_timer_with_timer_delete.patch"
-            "wl-kmod-035_kernel_6.17_adaptation_fix_functions_prototypes.patch")
+            "wl-kmod-035_kernel_6.17_adaptation_fix_functions_prototypes.patch"
+            "wl-kmod-036_kernel_7.1_adaptation_replace_net_device_struct_with_wireless_dev_struct.patch"
+            "wl-kmod-037_kernel_6.13_remove_flush_scheduled_work.patch"
+            "wl-kmod-038_kernel_7.2_adaptation_remove_strncpy_function.patch")
           ;; find * -name '*.patch' -exec sh -c 'printf "\"%s\"\n" "$(guix hash {})"' \;
           '("0lxj36r90kxhlfm3r0byh3p2l1dw9ama658ysfwib08ln5322mrq"
             "0h8wck6akys7dxxwqgax9x7mninfx3ypy2af3drrarksmcvv4v2j"
@@ -1308,7 +1311,10 @@ giving you trouble, you can try this module.")
             "1kl77y3n73piyqdvr0brs53bydid1pjrkkvvaqyzz3pjrm69xvbg"
             "19xbxxfi4yqqcvf40xspidznr3f6f900rmp0b9nfb2727a51l4p7"
             "119ya966kg4ikjw51zsvbl9wkrjx82bhvznq9c8csr2v4n9h7h90"
-            "0n5n6pasxqk8x40hjkginm4fb36bi3waqr2z3l2f30i0aqqmlsrx")))
+            "0n5n6pasxqk8x40hjkginm4fb36bi3waqr2z3l2f30i0aqqmlsrx"
+            "16zh6xpy9vnqvc860y3had3lrfhvqw51af8h6jhda38wfwjiw4yl"
+            "00xmvxmhk2khdn2jv3827j4r6r5kax2dcsd2mx3m6i69syqshmwy"
+            "1h9d6pfj9mpzljyyhay1iw2y1lvhxf2ndrz50dra0mjrrfz4x4a9")))
     (sha256
      (base32
       "1gj485qqr190idilacpxwgqyw21il03zph2rddizgj7fbd6pfyaz"))))
