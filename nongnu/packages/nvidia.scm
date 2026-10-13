@@ -1744,70 +1744,62 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
                  #$flags))))))
 
 (define-syntax define-ffmpeg-nvidia
-  (syntax-rules ()
-    ((_ name ffmpeg driver)
-     (define-public name
-       (package
-         (inherit (hidden-package (make-ffmpeg-nvidia ffmpeg driver)))
-         (location (package-location driver)))))
-    ((_ name alias ffmpeg-nvidia alias-version)
-     (define-public name
-       (package
-         (inherit (package-with-alias alias ffmpeg-nvidia))
-         (version alias-version))))))
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ name alias ffmpeg nvda)
+       (with-syntax ((alias-name (user-alias-id #'name #'name))
+                     (driver-version
+                      #'(package-version
+                         (assoc-ref (package-properties nvda) 'driver))))
+         #`(begin
+             (define-public name
+               (package
+                 (inherit (hidden-package (make-ffmpeg-nvidia ffmpeg nvda)))))
+             (define-public alias-name
+               (package
+                 (inherit (package-with-alias alias name))
+                 (version driver-version)))))))))
 
-(define-ffmpeg-nvidia ffmpeg/nvidia-390 ffmpeg nvda-390)
-(define-ffmpeg-nvidia ffmpeg/nvidia-470 ffmpeg nvda-470)
-(define-ffmpeg-nvidia ffmpeg/nvidia-580 ffmpeg nvda-580)
-(define-ffmpeg-nvidia ffmpeg/nvidia-595 ffmpeg nvda-595)
-(define-ffmpeg-nvidia ffmpeg/nvidia-new-feature ffmpeg nvda-new-feature)
-(define-ffmpeg-nvidia ffmpeg/nvidia-beta ffmpeg nvda-beta)
+(define-ffmpeg-nvidia ffmpeg/nvidia-390
+  "ffmpeg-nvidia"
+  ffmpeg nvda-390)
+(define-ffmpeg-nvidia ffmpeg/nvidia-470
+  "ffmpeg-nvidia"
+  ffmpeg nvda-470)
+(define-ffmpeg-nvidia ffmpeg/nvidia-580
+  "ffmpeg-nvidia"
+  ffmpeg nvda-580)
+(define-ffmpeg-nvidia ffmpeg/nvidia-595
+  "ffmpeg-nvidia"
+  ffmpeg nvda-595)
+(define-ffmpeg-nvidia ffmpeg/nvidia-new-feature
+  "ffmpeg-nvidia-new-feature"
+  ffmpeg nvda-new-feature)
+(define-ffmpeg-nvidia ffmpeg/nvidia-beta
+  "ffmpeg-nvidia-beta"
+  ffmpeg nvda-beta)
 (define-public ffmpeg/nvidia ffmpeg/nvidia-580)
 
-(define-ffmpeg-nvidia ffmpeg-6/nvidia-390 ffmpeg-6 nvda-390)
-(define-ffmpeg-nvidia ffmpeg-6/nvidia-470 ffmpeg-6 nvda-470)
-(define-ffmpeg-nvidia ffmpeg-6/nvidia-580 ffmpeg-6 nvda-580)
-(define-ffmpeg-nvidia ffmpeg-6/nvidia-595 ffmpeg-6 nvda-595)
-(define-ffmpeg-nvidia ffmpeg-6/nvidia-new-feature ffmpeg-6 nvda-new-feature)
-(define-ffmpeg-nvidia ffmpeg-6/nvidia-beta ffmpeg-6 nvda-beta)
+(define-ffmpeg-nvidia ffmpeg-6/nvidia-390
+  "ffmpeg-6-nvidia"
+  ffmpeg-6 nvda-390)
+(define-ffmpeg-nvidia ffmpeg-6/nvidia-470
+  "ffmpeg-6-nvidia"
+  ffmpeg-6 nvda-470)
+(define-ffmpeg-nvidia ffmpeg-6/nvidia-580
+  "ffmpeg-6-nvidia"
+  ffmpeg-6 nvda-580)
+(define-ffmpeg-nvidia ffmpeg-6/nvidia-595
+  "ffmpeg-6-nvidia"
+  ffmpeg-6 nvda-595)
+(define-ffmpeg-nvidia ffmpeg-6/nvidia-new-feature
+  "ffmpeg-6-nvidia-new-feature"
+  ffmpeg-6 nvda-new-feature)
+(define-ffmpeg-nvidia ffmpeg-6/nvidia-beta
+  "ffmpeg-6-nvidia-beta"
+  ffmpeg-6 nvda-beta)
 (define-public ffmpeg-6/nvidia ffmpeg-6/nvidia-580)
 
-(define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-390 "ffmpeg-nvidia"
-  ffmpeg/nvidia-390
-  (package-version nvidia-driver-390))
-(define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-470 "ffmpeg-nvidia"
-  ffmpeg/nvidia-470
-  (package-version nvidia-driver-470))
-(define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-580 "ffmpeg-nvidia"
-  ffmpeg/nvidia-580
-  (package-version nvidia-driver-580))
-(define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-595 "ffmpeg-nvidia"
-  ffmpeg/nvidia-595
-  (package-version nvidia-driver-595))
-(define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-new-feature "ffmpeg-nvidia-new-feature"
-  ffmpeg/nvidia-new-feature
-  (package-version nvidia-driver-new-feature))
-(define-ffmpeg-nvidia ffmpeg-nvidia-user-alias-beta "ffmpeg-nvidia-beta"
-  ffmpeg/nvidia-beta
-  (package-version nvidia-driver-beta))
-(define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-390 "ffmpeg-6-nvidia"
-  ffmpeg-6/nvidia-390
-  (package-version nvidia-driver-390))
-(define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-470 "ffmpeg-6-nvidia"
-  ffmpeg-6/nvidia-470
-  (package-version nvidia-driver-470))
-(define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-580 "ffmpeg-6-nvidia"
-  ffmpeg-6/nvidia-580
-  (package-version nvidia-driver-580))
-(define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-595 "ffmpeg-6-nvidia"
-  ffmpeg-6/nvidia-595
-  (package-version nvidia-driver-595))
-(define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-new-feature "ffmpeg-6-nvidia-new-feature"
-  ffmpeg-6/nvidia-new-feature
-  (package-version nvidia-driver-new-feature))
-(define-ffmpeg-nvidia ffmpeg-6-nvidia-user-alias-beta "ffmpeg-6-nvidia-beta"
-  ffmpeg-6/nvidia-beta
-  (package-version nvidia-driver-beta))
 
 (define* (replace-mesa obj #:key (driver nvda))
   (with-transformation
