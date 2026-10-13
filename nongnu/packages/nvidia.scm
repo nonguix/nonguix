@@ -1612,6 +1612,7 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
       (package-propagated-inputs driver)))
     (inputs (list mesa-for-nvda driver nvidia-vaapi-driver/rebuilt))
     (outputs '("out"))
+    (properties `((driver . ,driver)))
     (license (package-license driver))
     (home-page (package-home-page driver))))
 
