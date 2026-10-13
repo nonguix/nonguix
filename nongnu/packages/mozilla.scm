@@ -88,19 +88,19 @@
 
 ;; Update this id with every firefox update to its release date.
 ;; It's used for cache validation and therefore can lead to strange bugs.
-(define %firefox-esr-build-id "20260928124447")
+(define %firefox-esr-build-id "20261012115133")
 
 (define-public firefox-esr
   (package
     (name "firefox-esr")
-    (version "153.4.0esr")
+    (version "153.5.0esr")
     (source
      (origin
        (method url-fetch)
        (uri (string-append "https://archive.mozilla.org/pub/firefox/releases/"
                            version "/source/firefox-" version ".source.tar.xz"))
        (sha256
-        (base32 "1px2iqff3l6q8kllaz2yszbcj975cbiq5hj1c2sgpd1hh33dx0ih"))
+        (base32 "02s1wdhvfvn2cyjikgqy7k5xk8vmfzg25073zfmcff4v9xyllw98"))
        (patches
         (nongnu-patches
          "firefox-add-store-to-rdd-allowlist.patch"
