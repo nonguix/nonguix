@@ -1156,11 +1156,10 @@ to disable the conflicting rtw88 driver:
       (license (nonfree
                 "https://github.com/morrownr/8821cu-20210916/blob/main/LICENSE")))))
 
-(define-public rtl8812au-aircrack-ng-linux-module
+(define-deprecated/public rtl8812au-aircrack-ng-linux-module #f
   (let ((commit "c3fb89a2f7066f4bf4e4d9d85d84f9791f14c83e")
         (revision "14"))
     (package
-      (inherit rtl8821ce-linux-module)
       (name "rtl8812au-aircrack-ng-linux-module")
       (version (git-version "5.6.4.2" revision commit))
       (source
@@ -1180,6 +1179,30 @@ to disable the conflicting rtw88 driver:
               (for-each delete-file-recursively (list "android"
                                                       "docs"
                                                       "tools"))))))
+      (build-system linux-module-build-system)
+      (arguments
+       (list #:tests? #f                ; no test suite
+             #:make-flags
+             #~(list (string-append "CC=" #$(cc-for-target)))
+             #:phases
+             #~(modify-phases %standard-phases
+                 (replace 'build
+                   (lambda* (#:key (make-flags '()) (parallel-build? #t) inputs
+                             #:allow-other-keys)
+                     (let ((kernel-dir
+                            (search-input-directory inputs "lib/modules/build")))
+                       (apply invoke "make"
+                              (string-append "KSRC=" kernel-dir)
+                              ;; Avoid introducing store paths into the build
+                              ;; output.
+                              ;; https://codeberg.org/guix/guix/issues/10409
+                              (format #f "KCFLAGS=-ffile-prefix-map=~a="
+                                      kernel-dir)
+                              `(,@(if parallel-build?
+                                      `("-j" ,(number->string
+                                               (parallel-job-count)))
+                                      '())
+                                ,@make-flags))))))))
       (supported-systems '("x86_64-linux" "i686-linux"))
       (home-page "https://github.com/aircrack-ng/rtl8812au")
       (synopsis "Linux driver for Realtek USB wireless network adapters")
