@@ -1616,32 +1616,41 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
     (license (package-license driver))
     (home-page (package-home-page driver))))
 
-(define-syntax define-nvda-package
-  (syntax-rules ()
-    ((_ name driver)
-     (define-public name
-       (package
-         (inherit (hidden-package (make-nvda driver)))
-         (location (package-location driver)))))
-    ((_ name driver alias)
-     (define-public name
-       (let ((nvda (make-nvda driver)))
-         (package
-           (inherit (package-with-alias alias nvda))
-           (version (package-version driver))))))))
+(define-syntax-rule (user-alias-id ctx name)
+  (datum->syntax ctx (symbol-append (syntax->datum name) '-user-alias)))
 
-(define-nvda-package nvda-390 nvidia-driver-390)
-(define-nvda-package nvda-470 nvidia-driver-470)
-(define-nvda-package nvda-580 nvidia-driver-580)
-(define-nvda-package nvda-595 nvidia-driver-595)
-(define-nvda-package nvda-new-feature nvidia-driver-new-feature)
-(define-nvda-package nvda-beta nvidia-driver-beta)
-(define-nvda-package nvda-user-alias-390 nvidia-driver-390 "nvda")
-(define-nvda-package nvda-user-alias-470 nvidia-driver-470 "nvda")
-(define-nvda-package nvda-user-alias-580 nvidia-driver-580 "nvda")
-(define-nvda-package nvda-user-alias-595 nvidia-driver-595 "nvda")
-(define-nvda-package nvda-user-alias-new-feature nvidia-driver-new-feature "nvda-new-feature")
-(define-nvda-package nvda-user-alias-beta nvidia-driver-beta "nvda-beta")
+(define-syntax define-nvda-package
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ name alias driver)
+       (with-syntax ((alias-name (user-alias-id #'name #'name)))
+         #`(begin
+             (define-public name
+               (package
+                 (inherit (hidden-package (make-nvda driver)))))
+             (define-public alias-name
+               (package
+                 (inherit (package-with-alias alias name))
+                 (version (package-version driver))))))))))
+
+(define-nvda-package nvda-390
+  "nvda"
+  nvidia-driver-390)
+(define-nvda-package nvda-470
+  "nvda"
+  nvidia-driver-470)
+(define-nvda-package nvda-580
+  "nvda"
+  nvidia-driver-580)
+(define-nvda-package nvda-595
+  "nvda"
+  nvidia-driver-595)
+(define-nvda-package nvda-new-feature
+  "nvda-new-feature"
+  nvidia-driver-new-feature)
+(define-nvda-package nvda-beta
+  "nvda-beta"
+  nvidia-driver-beta)
 (define-public nvda nvda-580)
 ;; 2026-03
 (define-deprecated-package nvdb nvda-beta)
