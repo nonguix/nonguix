@@ -29,7 +29,7 @@ Build all PACKAGEs, then spawn one-off containerized environments via
    (for-each (lambda (p)
                (info (G_ "entering container for '~a'~%") p)
                (invoke "guix" "shell" p
-                       "--container" "--network" "--no-cwd" "--no-grafts"
+                       "--container" "--network" "--no-cwd"
                        "--preserve=^((WAYLAND_)?DISPLAY|XDG_RUNTIME_DIR)$"
                        (string-append "--share=" (getenv "XDG_RUNTIME_DIR"))
                        "--share=/tmp"))
