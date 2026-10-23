@@ -1,0 +1,11 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright © 2026 Hilton Chain <hako@ultrarare.space>
+
+# ./pre-inst-env nvidia-refresh @580
+# ./pre-inst-env nvidia-refresh @595
+# ./pre-inst-env nvidia-refresh -new-feature
+# ./pre-inst-env nvidia-refresh -beta
+
+VERSION="$(guix show nvidia-driver"$1" | guix shell recutils -- recsel --print-values version)"
+guix refresh nvidia-module-open"$1" nvidia-modprobe"$1" nvidia-settings"$1" --update --target-version="$VERSION"

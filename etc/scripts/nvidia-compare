@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright © 2026 Hilton Chain <hako@ultrarare.space>
+
+# ./pre-inst-env nvidia-compare VERSION-OLD VERSION-NEW
+
+set -euo pipefail
+diff --unified --color \
+     <(sed "s/$1//g" tmp/NVIDIA/"NVIDIA-Linux-x86_64-$1/README.txt") \
+     <(sed "s/$2//g" tmp/NVIDIA/"NVIDIA-Linux-x86_64-$2/README.txt")

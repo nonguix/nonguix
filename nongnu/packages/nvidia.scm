@@ -801,17 +801,17 @@ Copy the "Current NVIDIA GPUs" section to an Emacs buffer, then:
 
 (define nvidia-source-595-x86_64-linux
   (make-nvidia-source
-   "595.104.02"
+   "595.112.07"
    "x86_64"
-   (base32 "1jjr9k87qchfb8h8hvwki0yvnkj5f6z1n5pkqz1mi7y7wh1c48g4")))
+   (base32 "1w5r92c901xxanjwq2698v4rz7pm7838809klwr65nm273ayqf0s")))
 
 (define nvidia-source-595-aarch64-linux
   (make-nvidia-source
-   "595.104.02"
+   "595.112.07"
    "aarch64"
-   (base32 "00pf91d9pdg3i7kbz8n6kpxicahqqsabdmcx1vgffchddjvd59rx")))
+   (base32 "07f5kd753fjzpqv5zfy9k2w9wbdim91nrgm6lkq2zigxllw2x97f")))
 
-;; https://download.nvidia.com/XFree86/Linux-x86_64/595.104.02/README/supportedchips.html
+;; https://download.nvidia.com/XFree86/Linux-x86_64/595.112.07/README/supportedchips.html
 (define %nvidia-595-supported-gpus
   '(#x1E02 #x1E04 #x1E07 #x1E09 #x1E30 #x1E301028129E #x1E30103C129E
     #x1E3010DE129E #x1E36 #x1E7810DE13D8 #x1E7810DE13D9 #x1E81 #x1E82 #x1E84
@@ -959,7 +959,8 @@ Copy the "Current NVIDIA GPUs" section to an Emacs buffer, then:
     #x2C58 #x2C59 #x2C77 #x2C79 #x2D04 #x2D05 #x2D18 #x2D19 #x2D3010282054
     #x2D30103C2054 #x2D3010DE2054 #x2D3017AA2054 #x2D39 #x2D58 #x2D59 #x2D79
     #x2D83 #x2D98 #x2DB8 #x2DB9 #x2DD8 #x2DF9 #x2E1210DE21EC #x2F04 #x2F06
-    #x2F18 #x2F38 #x2F58 #x318210DE20E6 #x31C210DE21F1 #x31C310DE22F8))
+    #x2F18 #x2F38 #x2F58 #x318210DE20E6 #x31C210DE21F1 #x31C310DE22F8
+    #x31C310DE23AB))
 
 
 ;; beta drivers
@@ -1806,7 +1807,7 @@ NVIDIA driver.")
   (package
     (inherit nvidia-module-open-580)
     (name "nvidia-module-open")
-    (version "595.104.02")
+    (version "595.112.07")
     (source
      (origin
        (method git-fetch)
@@ -1816,7 +1817,7 @@ NVIDIA driver.")
        (file-name (git-file-name name version))
        (sha256
         (base32
-         "10cf7lfjj0dbn2pi5m62yn7q31saxdjz000h0cakz3xjmnnkjs8m"))
+         "12zx4a77rp6fidczzln7yd853mvkszfpx5b6g2xqi8rg4wcdf2cx"))
        (patches
         (nongnu-patches "nvidia-module-open-add-ibt-support.patch"
                         "nvidia-module-open-bsb-dsc-fix.patch"))))
@@ -1936,7 +1937,7 @@ device files are present and configure certain runtime settings in the kernel.")
   (package
     (inherit nvidia-modprobe-580)
     (name "nvidia-modprobe")
-    (version "595.104.02")
+    (version "595.112.07")
     (source (origin
               (method git-fetch)
               (uri (git-reference
@@ -1945,7 +1946,7 @@ device files are present and configure certain runtime settings in the kernel.")
               (file-name (git-file-name name version))
               (sha256
                (base32
-                "1vxih3mkhz2gcz76r46knblpxyh4bfbs4ida0ff4v9524i3za8sd"))))
+                "1r54fkh8r1my75v6flxnx0zfi919r17ygzi84pvcnmma8v3ccjf3"))))
     (synopsis "Create NVIDIA character device files, production branch")))
 
 (define-public nvidia-modprobe-new-feature
@@ -2111,7 +2112,7 @@ configuration, application profiles, GPU monitoring and more.")
   (package
     (inherit nvidia-settings-580)
     (name "nvidia-settings")
-    (version "595.104.02")
+    (version "595.112.07")
     (source
      (origin
        (method git-fetch)
@@ -2119,7 +2120,7 @@ configuration, application profiles, GPU monitoring and more.")
               (url "https://github.com/NVIDIA/nvidia-settings")
               (commit version)))
        (file-name (git-file-name name version))
-       (sha256 (base32 "09acfdkm1f8490imdzdpkbw1c6y8c354ddkvwabrc8vgmfinpb70"))
+       (sha256 (base32 "0pikqyjycnwv18pa2rwpxld8dv7z4ld5r48liql729zxxyi95dfr"))
        (modules '((guix build utils)))
        (snippet '(delete-file-recursively "src/jansson"))))
     (synopsis "NVIDIA proprietary driver control panel, production branch")))

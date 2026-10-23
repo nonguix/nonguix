@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright © 2026 Hilton Chain <hako@ultrarare.space>
+
+# ./pre-inst-env nvidia-patch VERSION PATCH_ENC PATCH_FBC
+
+pushd tmp/NVIDIA/ || exit
+DIR="NVIDIA-Linux-x86_64-$1"
+LIB_ENC="libnvidia-encode.so.$1"
+LIB_FBC="libnvidia-fbc.so.$1"
+
+if [[ -n $2 ]]; then
+    cp "$DIR/$LIB_ENC" "$LIB_ENC"
+    sed -i "$2" "$LIB_ENC"
+    guix shell diffoscope binutils xxd -- diffoscope "$DIR/$LIB_ENC" "$LIB_ENC"
+fi
+if [[ -n $3 ]]; then
+    cp "$DIR/$LIB_FBC" "$LIB_FBC"
+    sed -i "$3" "$LIB_FBC"
+    guix shell diffoscope binutils xxd -- diffoscope "$DIR/$LIB_FBC" "$LIB_FBC"
+fi
+popd || exit
