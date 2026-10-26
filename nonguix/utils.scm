@@ -8,12 +8,15 @@
   #:use-module (ice-9 match)
   #:use-module (ice-9 textual-ports)
   #:use-module (ice-9 popen)
+  #:use-module (guix combinators)
   #:use-module (guix gexp)
   #:use-module (guix utils)
   #:use-module (guix packages)
   #:use-module (guix platform)
   #:use-module (guix build-system trivial)
+  #:use-module (gnu system)
   #:use-module (gnu services)
+  #:use-module (gnu home)
   #:use-module (gnu packages base)
   #:export (package-input-grafting
             package-with-alias
@@ -100,6 +103,20 @@ matches PRED."
     ((or (? service-type?)
          (? origin?))
      obj)
+    ((? operating-system?)
+     (operating-system
+       (inherit obj)
+       (location (operating-system-location obj))
+       (transformation
+        (compose (assuming pred proc)
+                 (operating-system-transformation os)))))
+    ((? home-environment?)
+     (home-environment
+       (inherit obj)
+       (location (home-environment-location obj))
+       (transformation
+        (compose (assuming pred proc)
+                 (home-environment-transformation os)))))
     ((? record?)
      (cond
       ;; Both ‘file-systems’ and ‘boot-file-system-utilities’ services extends
