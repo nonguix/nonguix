@@ -185,6 +185,13 @@ DYNAMIC-BOOST? (default: #f) is supported on laptops since Ampere."
                      #:nvfbc "s/\\x85\\xc0\\x0f\\x85\\x1c\\x01\\x00\\x00\\x48\\x8d/\\x85\\xc0\\x90\\x90\\x90\\x90\\x90\\x90\\x48\\x8d/g")
                     identity)
                 driver))
+           (,nvda-620
+            . ,((if remove-nvenc-restriction?
+                    (remove-restriction
+                     #:nvenc "s/\\xe8\\xd1\\x19\\xfe\\xff\\x41\\x89\\xc6\\x85\\xc0/\\xe8\\xd1\\x19\\xfe\\xff\\x29\\xc0\\x41\\x89\\xc6/g"
+                     #:nvfbc "s/\\x85\\xc0\\x0f\\x85\\x1c\\x01\\x00\\x00\\x48\\x8d/\\x85\\xc0\\x90\\x90\\x90\\x90\\x90\\x90\\x48\\x8d/g")
+                    identity)
+                driver))
            (,nvda-595
             . ,((if remove-nvenc-restriction?
                     (remove-restriction
@@ -222,6 +229,7 @@ DYNAMIC-BOOST? (default: #f) is supported on laptops since Ampere."
     (assoc-ref
      `((,nvda-beta . ,nvidia-firmware-beta)
        (,nvda-new-feature . ,nvidia-firmware-new-feature)
+       (,nvda-620 . ,nvidia-firmware-620)
        (,nvda-595 . ,nvidia-firmware-595)
        (,nvda-580 . ,nvidia-firmware-580)
        (,nvda-470 . ,nvidia-firmware-470))
@@ -235,6 +243,9 @@ DYNAMIC-BOOST? (default: #f) is supported on laptops since Ampere."
        (,nvda-new-feature . ,(if open-source-kernel-module?
                                  nvidia-module-open-new-feature
                                  nvidia-module-new-feature))
+       (,nvda-620 . ,(if open-source-kernel-module?
+                         nvidia-module-open-620
+                         nvidia-module-620))
        (,nvda-595 . ,(if open-source-kernel-module?
                          nvidia-module-open-595
                          nvidia-module-595))
@@ -249,6 +260,7 @@ DYNAMIC-BOOST? (default: #f) is supported on laptops since Ampere."
     (assoc-ref
      `((,nvda-beta . ,nvidia-modprobe-beta)
        (,nvda-new-feature . ,nvidia-modprobe-new-feature)
+       (,nvda-620 . ,nvidia-modprobe-620)
        (,nvda-595 . ,nvidia-modprobe-595)
        (,nvda-580 . ,nvidia-modprobe-580)
        (,nvda-470 . ,nvidia-modprobe-470)
@@ -260,6 +272,7 @@ DYNAMIC-BOOST? (default: #f) is supported on laptops since Ampere."
          (assoc-ref
           `((,nvda-beta . ,nvidia-settings-beta)
             (,nvda-new-feature . ,nvidia-settings-new-feature)
+            (,nvda-620 . ,nvidia-settings-620)
             (,nvda-595 . ,nvidia-settings-595)
             (,nvda-580 . ,nvidia-settings-580)
             (,nvda-470 . ,nvidia-settings-470)

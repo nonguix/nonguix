@@ -963,6 +963,173 @@ Copy the "Current NVIDIA GPUs" section to an Emacs buffer, then:
     #x31C310DE23AB))
 
 
+;; 620.xx series
+
+(define nvidia-source-620-x86_64-linux
+  (make-nvidia-source
+   "620.70.06"
+   "x86_64"
+   (base32 "1cflmw275gpwpkjs4qh3my8980wd4dv9qgfapicpbh08plx8w499")))
+
+(define nvidia-source-620-aarch64-linux
+  (make-nvidia-source
+   "620.70.06"
+   "aarch64"
+   (base32 "00rygxh10x41zhkcpkdc88x2m845i31najccwnjf5pg0f695m9iz")))
+
+;; https://download.nvidia.com/XFree86/Linux-x86_64/620.70.06/README/supportedchips.html
+(define %nvidia-620-supported-gpus
+  '(#x1E02 #x1E04 #x1E07 #x1E09 #x1E30 #x1E301028129E #x1E30103C129E
+    #x1E3010DE129E #x1E36 #x1E7810DE13D8 #x1E7810DE13D9 #x1E81 #x1E82 #x1E84
+    #x1E87 #x1E89 #x1E90 #x1E9010251375 #x1E90102808A1 #x1E90102808A2
+    #x1E90102808EA #x1E90102808EB #x1E90102808EC #x1E90102808ED #x1E90102808EE
+    #x1E90102808EF #x1E901028093B #x1E901028093C #x1E90103C8572 #x1E90103C8573
+    #x1E90103C8602 #x1E90103C8606 #x1E90103C86C6 #x1E90103C86C7 #x1E90103C87A6
+    #x1E90103C87A7 #x1E901043131F #x1E901043137F #x1E901043141F #x1E9010431751
+    #x1E9014581660 #x1E9014581661 #x1E9014581662 #x1E90145875A6 #x1E90145875A7
+    #x1E90145886A6 #x1E90145886A7 #x1E9014621274 #x1E9014621277 #x1E90152D1220
+    #x1E90155895E1 #x1E90155897E1 #x1E901A582002 #x1E901A582005 #x1E901A582007
+    #x1E901A583000 #x1E901A583001 #x1E901D051069 #x1E91 #x1E91103C8607
+    #x1E91103C8736 #x1E91103C8738 #x1E91103C8772 #x1E91103C878A #x1E91103C878B
+    #x1E9110431E61 #x1E9114581511 #x1E91145875B3 #x1E91145875B4 #x1E91145876B2
+    #x1E91145876B3 #x1E91145878A2 #x1E91145878A3 #x1E91145886B2 #x1E91145886B3
+    #x1E91146212AE #x1E91146212B0 #x1E91146212C6 #x1E9117AA22C3 #x1E9117AA22C5
+    #x1E911A582009 #x1E911A58200A #x1E911A583002 #x1E9180863012 #x1E93
+    #x1E9310251401 #x1E931025149C #x1E93102809D2 #x1E93103C8607 #x1E93103C86C7
+    #x1E93103C8736 #x1E93103C8738 #x1E93103C8772 #x1E93103C87A6 #x1E93103C87A7
+    #x1E93145875B1 #x1E93145875B2 #x1E93145876B0 #x1E93145876B1 #x1E93145878A0
+    #x1E93145878A1 #x1E93145886B0 #x1E93145886B1 #x1E93146212AE #x1E93146212B0
+    #x1E93146212B4 #x1E93146212C6 #x1E93155850D3 #x1E93155870D1 #x1E9317AA22C3
+    #x1E9317AA22C5 #x1E931A582009 #x1E931A58200A #x1E931A583002 #x1E931D051089
+    #x1EB0 #x1EB1 #x1EB5 #x1EB510251375 #x1EB510251401 #x1EB51025149C
+    #x1EB5102809C3 #x1EB5103C8736 #x1EB5103C8738 #x1EB5103C8772 #x1EB5103C8780
+    #x1EB5103C8782 #x1EB5103C8783 #x1EB5103C8785 #x1EB510431DD1 #x1EB514621274
+    #x1EB5146212B0 #x1EB5146212C6 #x1EB517AA22B8 #x1EB517AA22BA #x1EB51A582005
+    #x1EB51A582007 #x1EB51A582008 #x1EB51A58200A #x1EB6 #x1EB6102809C3
+    #x1EB6103C8736 #x1EB6103C8738 #x1EB6103C8772 #x1EB6103C8780 #x1EB6103C8782
+    #x1EB6103C8783 #x1EB6103C8785 #x1EB614621274 #x1EB614621277 #x1EB6146212B0
+    #x1EB6146212C6 #x1EB617AA22B8 #x1EB617AA22BA #x1EB810DE12A2 #x1EC2 #x1EC7
+    #x1ED0 #x1ED01025132D #x1ED0102808ED #x1ED0102808EE #x1ED0102808EF
+    #x1ED0103C8572 #x1ED0103C8573 #x1ED0103C8600 #x1ED0103C8605 #x1ED01043138F
+    #x1ED0104315C1 #x1ED017AA3FEE #x1ED017AA3FFE #x1ED1 #x1ED110251432
+    #x1ED1103C8746 #x1ED1103C878A #x1ED11043165F #x1ED1144DC192 #x1ED117AA3FCE
+    #x1ED117AA3FCF #x1ED117AA3FD0 #x1ED3 #x1ED310251432 #x1ED3102809D1
+    #x1ED3103C8746 #x1ED3103C878A #x1ED310431D61 #x1ED310431E51 #x1ED310431F01
+    #x1ED317AA3FCE #x1ED317AA3FCF #x1ED317AA3FD0 #x1EF5 #x1F02 #x1F03 #x1F06
+    #x1F07 #x1F08 #x1F0A #x1F0B #x1F10 #x1F101025132D #x1F1010251342
+    #x1F10102808A1 #x1F10102808A2 #x1F10102808EA #x1F10102808EB #x1F10102808EC
+    #x1F10102808ED #x1F10102808EE #x1F10102808EF #x1F101028093B #x1F101028093C
+    #x1F10103C8572 #x1F10103C8573 #x1F10103C8602 #x1F10103C8606 #x1F101043132F
+    #x1F101043136F #x1F1010431881 #x1F1010431E6E #x1F1014581658 #x1F1014581663
+    #x1F1014581664 #x1F10145875A4 #x1F10145875A5 #x1F10145886A4 #x1F10145886A5
+    #x1F1014621274 #x1F1014621277 #x1F10155895E1 #x1F10155897E1 #x1F101A582002
+    #x1F101A582005 #x1F101A582007 #x1F101A583000 #x1F101A583001 #x1F101D05105E
+    #x1F101D051070 #x1F101D052087 #x1F1080862087 #x1F11 #x1F12 #x1F121028098F
+    #x1F12103C8741 #x1F12103C8744 #x1F12103C878E #x1F12103C880E #x1F1210431E11
+    #x1F1210431F11 #x1F12146212D9 #x1F1217AA3801 #x1F1217AA3802 #x1F1217AA3803
+    #x1F14 #x1F1410251401 #x1F1410251432 #x1F1410251442 #x1F1410251446
+    #x1F141025147D #x1F14102809E2 #x1F14102809F3 #x1F14103C8607 #x1F14103C86C6
+    #x1F14103C86C7 #x1F14103C8736 #x1F14103C8738 #x1F14103C8746 #x1F14103C8772
+    #x1F14103C878A #x1F14103C878B #x1F14103C87A6 #x1F14103C87A7 #x1F141043174F
+    #x1F1414581512 #x1F14145875B5 #x1F14145875B6 #x1F14145876B4 #x1F14145876B5
+    #x1F14145878A4 #x1F14145878A5 #x1F14145886B4 #x1F14145886B5 #x1F14146212AE
+    #x1F14146212B0 #x1F14146212C6 #x1F14155850D3 #x1F14155870D1 #x1F141A58200C
+    #x1F141A582011 #x1F141A583002 #x1F15 #x1F36 #x1F3610280990 #x1F36103C8736
+    #x1F36103C8738 #x1F36103C8772 #x1F36104313CF #x1F3614140032 #x1F42 #x1F47
+    #x1F50 #x1F50102808ED #x1F50102808EE #x1F50102808EF #x1F50103C8572
+    #x1F50103C8573 #x1F50103C8574 #x1F50103C8600 #x1F50103C8605 #x1F5017AA3FEE
+    #x1F5017AA3FFE #x1F51 #x1F54 #x1F54103C878A #x1F5417AA3FCE #x1F5417AA3FCF
+    #x1F5417AA3FD0 #x1F55 #x1F76 #x1F76102B2800 #x1F76102B2900 #x1F82 #x1F83
+    #x1F91 #x1F91103C863E #x1F91103C86E7 #x1F91103C86E8 #x1F91104312CF
+    #x1F911043156F #x1F9114140032 #x1F91144DC822 #x1F911462127E #x1F9114621281
+    #x1F9114621284 #x1F9114621285 #x1F911462129C #x1F9117AA229F #x1F9117AA3802
+    #x1F9117AA3806 #x1F9117AA3F1A #x1F911A581001 #x1F95 #x1F9510251479
+    #x1F951025147A #x1F951025147B #x1F951025147C #x1F95103C86E7 #x1F95103C86E8
+    #x1F95103C8815 #x1F9510431DFF #x1F9510431E1F #x1F95144DC838 #x1F95146212BD
+    #x1F95146212C5 #x1F95146212D2 #x1F9517AA22C0 #x1F9517AA22C1 #x1F9517AA3837
+    #x1F9517AA3F95 #x1F951A581003 #x1F951A581006 #x1F951A581007 #x1F951E833E30
+    #x1F96 #x1F9614621297 #x1F97 #x1F98 #x1F99 #x1F9910251479 #x1F991025147A
+    #x1F991025147B #x1F991025147C #x1F99103C8815 #x1F99104313B2 #x1F9910431402
+    #x1F9910431902 #x1F99146212BD #x1F99146212C5 #x1F99146212D2 #x1F9917AA22DA
+    #x1F9917AA3F93 #x1F991E833E30 #x1F9C #x1F9D #x1F9D1043128D #x1F9D1043130D
+    #x1F9D1043149C #x1F9D1043185C #x1F9D1043189C #x1F9D146212F4 #x1F9D14621302
+    #x1F9D1462131B #x1F9D14621326 #x1F9D1462132A #x1F9D1462132E #x1F9F #x1FA0
+    #x1FB0102812DB #x1FB0103C12DB #x1FB0103C8A80 #x1FB010DE12DB #x1FB010DE1485
+    #x1FB017AA12DB #x1FB110281488 #x1FB1103C1488 #x1FB1103C8A80 #x1FB110DE1488
+    #x1FB117AA1488 #x1FB210281489 #x1FB2103C1489 #x1FB2103C8A80 #x1FB210DE1489
+    #x1FB217AA1489 #x1FB6 #x1FB7 #x1FB8 #x1FB81028097E #x1FB8103C8736
+    #x1FB8103C8738 #x1FB8103C8772 #x1FB8103C8780 #x1FB8103C8782 #x1FB8103C8783
+    #x1FB8103C8785 #x1FB8103C87F0 #x1FB814621281 #x1FB8146212BD #x1FB817AA22C0
+    #x1FB817AA22C1 #x1FB9 #x1FB910251479 #x1FB91025147A #x1FB91025147B
+    #x1FB91025147C #x1FB9103C8736 #x1FB9103C8738 #x1FB9103C8772 #x1FB9103C8780
+    #x1FB9103C8782 #x1FB9103C8783 #x1FB9103C8785 #x1FB9103C87F0 #x1FB9146212BD
+    #x1FB917AA22C0 #x1FB917AA22C1 #x1FBA #x1FBB #x1FBC #x1FDD #x1FF010281612
+    #x1FF0103C1612 #x1FF0103C8A80 #x1FF010DE1612 #x1FF017AA1612 #x1FF210281613
+    #x1FF2103C1613 #x1FF2103C18FF #x1FF2103C8A80 #x1FF210DE1613 #x1FF210DE18FF
+    #x1FF217AA1613 #x1FF217AA18FF #x1FF9 #x20B0 #x20B010DE1450 #x20B210DE1463
+    #x20B210DE147F #x20B210DE1622 #x20B210DE1623 #x20B210DE1625 #x20B310DE14A7
+    #x20B310DE14A8 #x20B510DE1533 #x20B510DE1642 #x20B610DE1492 #x20B710DE1532
+    #x20B710DE1804 #x20B710DE1852 #x20BD10DE17F4 #x20F110DE145F #x20F310DE179B
+    #x20F310DE179C #x20F310DE179D #x20F310DE179E #x20F310DE179F #x20F310DE17A0
+    #x20F310DE17A1 #x20F310DE17A2 #x20F510DE1799 #x20F510DE179A #x20F61028180A
+    #x20F6103C180A #x20F610DE180A #x20F617AA180A #x20FD10DE17F8 #x2182 #x2184
+    #x2187 #x2188 #x2189 #x2191 #x219110280949 #x2191103C85FB #x2191103C85FE
+    #x2191103C86D6 #x2191103C8741 #x2191103C8744 #x2191103C878D #x2191103C87AF
+    #x2191103C87B3 #x21911043171F #x2191104317EF #x2191104318D1 #x219114140032
+    #x21911462128A #x21911462128B #x2191146212C6 #x2191146212CB #x2191146212CC
+    #x2191146212D9 #x219117AA380C #x219117AA381D #x219117AA381E #x2192 #x21C4
+    #x21D1 #x2203 #x2204 #x2206 #x2207 #x2208 #x220A #x220D #x2216
+    #x223010281459 #x2230103C1459 #x223010DE1459 #x223017AA1459 #x22311028147E
+    #x2231103C147E #x223110DE147E #x223117AA147E #x22321028163C #x2232103C163C
+    #x223210DE163C #x223217AA163C #x22331028165A #x2233103C165A #x223310DE165A
+    #x223317AA165A #x223510DE145A #x223610DE1482 #x223710DE152F #x223810DE1677
+    #x230E10DE20DF #x232110DE1839 #x232210DE17A4 #x232410DE17A6 #x232410DE17A8
+    #x232910DE198B #x232910DE198C #x232C10DE2063 #x233010DE16C0 #x233010DE16C1
+    #x233110DE1626 #x233510DE18BE #x233510DE18BF #x233910DE17FC #x233A10DE183A
+    #x233B10DE1996 #x234210DE16EB #x234210DE1805 #x234210DE1809 #x234810DE18D2
+    #x2414 #x2420 #x2438 #x2460 #x2482 #x2484 #x2486 #x2487 #x2488 #x2489
+    #x248A #x249C #x249C1D051194 #x249D #x24A0 #x24A01D051192 #x24B0102814AD
+    #x24B0103C14AD #x24B010DE14AD #x24B017AA14AD #x24B110DE1658 #x24B6 #x24B7
+    #x24B8 #x24B9 #x24BA #x24BB #x24C7 #x24C9 #x24DC #x24DD #x24E0 #x24FA
+    #x2503 #x2504 #x2507 #x2508 #x2520 #x2521 #x2523 #x25311028151D
+    #x2531103C151D #x253110DE151D #x253117AA151D #x2544 #x2560 #x2563
+    #x257110281611 #x2571103C1611 #x257110DE1611 #x257117AA1611 #x2582 #x2584
+    #x25A0 #x25A0103C8928 #x25A0103C89F9 #x25A01D051196 #x25A2 #x25A210280BAF
+    #x25A21D051195 #x25A5 #x25A6 #x25A7 #x25A9 #x25AA #x25AB #x25AC #x25AD
+    #x25B010281878 #x25B0103C1878 #x25B0103C8D96 #x25B010DE1878 #x25B017AA1878
+    #x25B210281879 #x25B2103C1879 #x25B2103C8D95 #x25B2103C8F5B #x25B210DE1879
+    #x25B217AA1879 #x25B610DE14A9 #x25B610DE157E #x25B8 #x25B9 #x25BA #x25BB
+    #x25BC #x25BD #x25E0 #x25E2 #x25E5 #x25EC #x25ED #x25F9 #x25FA #x25FB
+    #x2684 #x2685 #x2689 #x26B1102816A1 #x26B1103C16A1 #x26B110DE16A1
+    #x26B117AA16A1 #x26B2102817FA #x26B2103C17FA #x26B210DE17FA #x26B217AA17FA
+    #x26B310281934 #x26B3103C1934 #x26B310DE1934 #x26B317AA1934 #x26B510DE169D
+    #x26B510DE17DA #x26B910DE1851 #x26B910DE18CF #x26BA10DE1957 #x26BA10DE1990
+    #x2702 #x2704 #x2705 #x2709 #x2717 #x2730 #x2757 #x2770 #x2782 #x2783
+    #x2786 #x2788 #x27A0 #x27B0102816FA #x27B0103C16FA #x27B010DE16FA
+    #x27B017AA16FA #x27B11028180C #x27B1103C180C #x27B110DE180C #x27B117AA180C
+    #x27B21028181B #x27B2103C181B #x27B210DE181B #x27B217AA181B #x27B610DE1933
+    #x27B810DE16CA #x27B810DE16EE #x27BA #x27BB #x27E0 #x27FB #x2803 #x2805
+    #x2808 #x2820 #x2822 #x2838 #x2860 #x2882 #x28A0 #x28A1 #x28A3
+    #x28B010281870 #x28B0103C1870 #x28B0103C1871 #x28B010DE1870 #x28B010DE1871
+    #x28B017AA1870 #x28B017AA1871 #x28B8 #x28B9 #x28BA #x28BB #x28E0 #x28E1
+    #x28E3 #x28F8 #x290110DE1999 #x290110DE199B #x290110DE20DA #x290910DE22EB
+    #x294110DE2046 #x294110DE20CA #x294110DE20D5 #x294110DE21C9 #x294110DE21CA
+    #x294110DE22C4 #x29BB10DE207C #x2B85 #x2B87 #x2B8C #x2BB11028204B
+    #x2BB1103C204B #x2BB110DE204B #x2BB117AA204B #x2BB31028204D #x2BB31028227A
+    #x2BB3103C204D #x2BB3103C227A #x2BB310DE204D #x2BB310DE227A #x2BB317AA204D
+    #x2BB317AA227A #x2BB41028204C #x2BB4103C204C #x2BB410DE204C #x2BB417AA204C
+    #x2BB510DE204E #x2BB510DE220B #x2BB910DE2091 #x2BB910DE2092 #x2BB910DE2279
+    #x2BBD102823AE #x2BBD103C23AE #x2BBD10DE23AE #x2BBD17AA23AE #x2C02 #x2C05
+    #x2C09 #x2C18 #x2C19 #x2C3110282051 #x2C31103C2051 #x2C3110DE2051
+    #x2C3117AA2051 #x2C3310282053 #x2C33103C2053 #x2C3310DE2053 #x2C3317AA2053
+    #x2C3410282052 #x2C34103C2052 #x2C3410DE2052 #x2C3417AA2052 #x2C38 #x2C39
+    #x2C3A10DE21F4 #x2C58 #x2C59 #x2C77 #x2C79 #x2D04 #x2D05 #x2D18 #x2D19
+    #x2D3010282054 #x2D30103C2054 #x2D3010DE2054 #x2D3017AA2054 #x2D39 #x2D58
+    #x2D59 #x2D79 #x2D83 #x2D98 #x2DB8 #x2DB9 #x2DD8 #x2DF9 #x2E03 #x2E06
+    #x2E1210DE21EC #x2E13 #x2F04 #x2F06 #x2F18 #x2F38 #x2F58 #x304110DE221A
+    #x318210DE20E6 #x31C210DE20E5 #x31C210DE21F1 #x31C310DE22F8 #x31C310DE23AB))
+
+
 ;; beta drivers
 
 (define nvidia-source-new-feature-x86_64-linux
@@ -1010,6 +1177,9 @@ Copy the "Current NVIDIA GPUs" section to an Emacs buffer, then:
 
           (define (nvidia-drivers id)
             (append
+             (if (memq id '#$%nvidia-620-supported-gpus)
+                 '(nvda-620)
+                 '())
              (if (memq id '#$%nvidia-595-supported-gpus)
                  '(nvda-595)
                  '())
@@ -1528,6 +1698,40 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
         (prepend egl-wayland2)))
      (synopsis "Proprietary NVIDIA driver (libraries), production branch"))))
 
+(define (%nvidia-driver-arguments-620)
+  (substitute-keyword-arguments (%nvidia-driver-arguments-580)
+    ((#:phases phases)
+     #~(modify-phases #$phases
+         (add-after 'create-files 'create-files-620
+           (lambda* (#:key inputs #:allow-other-keys)
+             ;; EGL external platform configuraiton
+             (substitute* "09_nvidia_wayland2.json"
+               (("libnvidia-egl-.*\\.so\\.." all)
+                (search-input-file inputs (in-vicinity "lib" all))))))
+         (add-after 'install 'install-620
+           (lambda args
+             (apply (assoc-ref copy:%standard-phases 'install)
+                    #:install-plan
+                    '(("09_nvidia_wayland2.json" "share/egl/egl_external_platform.d/"))
+                    args)))
+         (add-after 'add-architecture 'add-architecture-620
+           (lambda _
+             (for-each
+              #$(add-architecture-to-filename)
+              '("/share/egl/egl_external_platform.d/09_nvidia_wayland2.json"))))))))
+
+(define-public nvidia-driver-620
+  (binary-package-from-sources
+   `(("x86_64-linux"  . ,nvidia-source-620-x86_64-linux)
+     ("aarch64-linux" . ,nvidia-source-620-aarch64-linux))
+   (package
+     (inherit nvidia-driver-580)
+     (arguments (%nvidia-driver-arguments-620))
+     (inputs
+      (modify-inputs inputs
+        (prepend egl-wayland2)))
+     (synopsis "Proprietary NVIDIA driver (libraries), production branch"))))
+
 (define-public nvidia-driver-new-feature
   (binary-package-from-sources
    `(("x86_64-linux"  . ,nvidia-source-new-feature-x86_64-linux)
@@ -1628,6 +1832,15 @@ instead.")))
      (arguments (%nvidia-firmware-arguments (package-version this-package)))
      (synopsis "Proprietary NVIDIA driver (GPU System Processor firmware), production branch"))))
 
+(define-public nvidia-firmware-620
+  (binary-package-from-sources
+   `(("x86_64-linux"  . ,nvidia-source-620-x86_64-linux)
+     ("aarch64-linux" . ,nvidia-source-620-aarch64-linux))
+   (package
+     (inherit nvidia-firmware-580)
+     (arguments (%nvidia-firmware-arguments (package-version this-package)))
+     (synopsis "Proprietary NVIDIA driver (GPU System Processor firmware), production branch"))))
+
 (define-public nvidia-firmware-new-feature
   (binary-package-from-sources
    `(("x86_64-linux"  . ,nvidia-source-new-feature-x86_64-linux)
@@ -1719,6 +1932,15 @@ driver.")))
   (binary-package-from-sources
    `(("x86_64-linux"  . ,nvidia-source-595-x86_64-linux)
      ("aarch64-linux" . ,nvidia-source-595-aarch64-linux))
+   (package
+     (inherit nvidia-module-580)
+     (arguments (%nvidia-module-arguments))
+     (synopsis "Proprietary NVIDIA driver (kernel modules), production branch"))))
+
+(define-public nvidia-module-620
+  (binary-package-from-sources
+   `(("x86_64-linux"  . ,nvidia-source-620-x86_64-linux)
+     ("aarch64-linux" . ,nvidia-source-620-aarch64-linux))
    (package
      (inherit nvidia-module-580)
      (arguments (%nvidia-module-arguments))
@@ -1821,6 +2043,23 @@ NVIDIA driver.")
        (patches
         (nongnu-patches "nvidia-module-open-add-ibt-support.patch"
                         "nvidia-module-open-bsb-dsc-fix.patch"))))
+    (synopsis "Proprietary NVIDIA driver (open source kernel modules), production branch")))
+
+(define-public nvidia-module-open-620
+  (package
+    (inherit nvidia-module-open-580)
+    (name "nvidia-module-open")
+    (version "620.70.06")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/NVIDIA/open-gpu-kernel-modules")
+              (commit version)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32
+         "1k6l3d4fyypha7i3jych3cns162hd2kxr43dl04pb5wlg372ypvm"))))
     (synopsis "Proprietary NVIDIA driver (open source kernel modules), production branch")))
 
 (define-public nvidia-module-open-new-feature
@@ -1947,6 +2186,22 @@ device files are present and configure certain runtime settings in the kernel.")
               (sha256
                (base32
                 "1r54fkh8r1my75v6flxnx0zfi919r17ygzi84pvcnmma8v3ccjf3"))))
+    (synopsis "Create NVIDIA character device files, production branch")))
+
+(define-public nvidia-modprobe-620
+  (package
+    (inherit nvidia-modprobe-580)
+    (name "nvidia-modprobe")
+    (version "620.70.06")
+    (source (origin
+              (method git-fetch)
+              (uri (git-reference
+                     (url "https://github.com/NVIDIA/nvidia-modprobe")
+                     (commit version)))
+              (file-name (git-file-name name version))
+              (sha256
+               (base32
+                "1w3s5z2ymh8q2sgn9d1a2kcg38jmylpyp18mskg0vdgqmii833ny"))))
     (synopsis "Create NVIDIA character device files, production branch")))
 
 (define-public nvidia-modprobe-new-feature
@@ -2121,6 +2376,23 @@ configuration, application profiles, GPU monitoring and more.")
               (commit version)))
        (file-name (git-file-name name version))
        (sha256 (base32 "0pikqyjycnwv18pa2rwpxld8dv7z4ld5r48liql729zxxyi95dfr"))
+       (modules '((guix build utils)))
+       (snippet '(delete-file-recursively "src/jansson"))))
+    (synopsis "NVIDIA proprietary driver control panel, production branch")))
+
+(define-public nvidia-settings-620
+  (package
+    (inherit nvidia-settings-580)
+    (name "nvidia-settings")
+    (version "620.70.06")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/NVIDIA/nvidia-settings")
+              (commit version)))
+       (file-name (git-file-name name version))
+       (sha256 (base32 "17x1plnn9p5w4cidibr1zga77a4md301qr8lwhgy1xa9f6cm2l08"))
        (modules '((guix build utils)))
        (snippet '(delete-file-recursively "src/jansson"))))
     (synopsis "NVIDIA proprietary driver control panel, production branch")))
@@ -2395,6 +2667,9 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 (define-nvda-package nvda-595
   "nvda"
   nvidia-driver-595)
+(define-nvda-package nvda-620
+  "nvda"
+  nvidia-driver-620)
 (define-nvda-package nvda-new-feature
   "nvda-new-feature"
   nvidia-driver-new-feature)
@@ -2444,6 +2719,9 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 (define-nvidia-container steam-nvidia-595
   "steam-nvidia"
   steam-container-for nvda-595)
+(define-nvidia-container steam-nvidia-620
+  "steam-nvidia"
+  steam-container-for nvda-620)
 (define-nvidia-container steam-nvidia-new-feature
   "steam-nvidia-new-feature"
   steam-container-for nvda-new-feature)
@@ -2464,6 +2742,9 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 (define-nvidia-container heroic-nvidia-595
   "heroic-nvidia"
   heroic-container-for nvda-595)
+(define-nvidia-container heroic-nvidia-620
+  "heroic-nvidia"
+  heroic-container-for nvda-620)
 (define-nvidia-container heroic-nvidia-new-feature
   "heroic-nvidia-new-feature"
   heroic-container-for nvda-new-feature)
@@ -2522,6 +2803,9 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 (define-ffmpeg-nvidia ffmpeg/nvidia-595
   "ffmpeg-nvidia"
   ffmpeg nvda-595)
+(define-ffmpeg-nvidia ffmpeg/nvidia-620
+  "ffmpeg-nvidia"
+  ffmpeg nvda-620)
 (define-ffmpeg-nvidia ffmpeg/nvidia-new-feature
   "ffmpeg-nvidia-new-feature"
   ffmpeg nvda-new-feature)
@@ -2542,6 +2826,9 @@ support.  For dependency of other packages, use @code{nvidia-driver} instead.")
 (define-ffmpeg-nvidia ffmpeg-6/nvidia-595
   "ffmpeg-6-nvidia"
   ffmpeg-6 nvda-595)
+(define-ffmpeg-nvidia ffmpeg-6/nvidia-620
+  "ffmpeg-6-nvidia"
+  ffmpeg-6 nvda-620)
 (define-ffmpeg-nvidia ffmpeg-6/nvidia-new-feature
   "ffmpeg-6-nvidia-new-feature"
   ffmpeg-6 nvda-new-feature)
