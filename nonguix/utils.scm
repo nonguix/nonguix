@@ -103,20 +103,20 @@ matches PRED."
     ((or (? service-type?)
          (? origin?))
      obj)
-    ((? operating-system?)
+    ((? operating-system? os)
      (operating-system
        (inherit obj)
        (location (operating-system-location obj))
        (transformation
-        (compose (assuming pred proc)
+        (compose (given pred proc)
                  (operating-system-transformation os)))))
-    ((? home-environment?)
+    ((? home-environment? home)
      (home-environment
        (inherit obj)
        (location (home-environment-location obj))
        (transformation
-        (compose (assuming pred proc)
-                 (home-environment-transformation os)))))
+        (compose (given pred proc)
+                 (home-environment-transformation home)))))
     ((? record?)
      (cond
       ;; Both ‘file-systems’ and ‘boot-file-system-utilities’ services extends
