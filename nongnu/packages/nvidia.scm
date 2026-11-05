@@ -1180,9 +1180,6 @@ Copy the "Current NVIDIA GPUs" section to an Emacs buffer, then:
              (if (memq id '#$%nvidia-620-supported-gpus)
                  '(nvda-620)
                  '())
-             (if (memq id '#$%nvidia-595-supported-gpus)
-                 '(nvda-595)
-                 '())
              (if (memq id '#$%nvidia-580-supported-gpus)
                  '(nvda-580)
                  '())
@@ -1737,9 +1734,9 @@ mainly used as a dependency of other packages.  For user-facing purpose, use
    `(("x86_64-linux"  . ,nvidia-source-new-feature-x86_64-linux)
      ("aarch64-linux" . ,nvidia-source-new-feature-aarch64-linux))
    (package
-     (inherit nvidia-driver-595)
+     (inherit nvidia-driver-620)
      (name "nvidia-driver-new-feature")
-     (arguments (%nvidia-driver-arguments-595))
+     (arguments (%nvidia-driver-arguments-620))
      (inputs
       (modify-inputs inputs
         (prepend egl-wayland2)))
@@ -1846,7 +1843,7 @@ instead.")))
    `(("x86_64-linux"  . ,nvidia-source-new-feature-x86_64-linux)
      ("aarch64-linux" . ,nvidia-source-new-feature-aarch64-linux))
    (package
-     (inherit nvidia-firmware-595)
+     (inherit nvidia-firmware-620)
      (name "nvidia-firmware-new-feature")
      (arguments (%nvidia-firmware-arguments (package-version this-package)))
      (synopsis "Proprietary NVIDIA driver (GPU System Processor firmware), new feature branch"))))
@@ -1951,7 +1948,7 @@ driver.")))
    `(("x86_64-linux"  . ,nvidia-source-new-feature-x86_64-linux)
      ("aarch64-linux" . ,nvidia-source-new-feature-aarch64-linux))
    (package
-     (inherit nvidia-module-595)
+     (inherit nvidia-module-620)
      (name "nvidia-module-new-feature")
      (arguments (%nvidia-module-arguments))
      (synopsis "Proprietary NVIDIA driver (kernel modules), new feature branch"))))
@@ -2064,7 +2061,7 @@ NVIDIA driver.")
 
 (define-public nvidia-module-open-new-feature
   (package
-    (inherit nvidia-module-open-595)
+    (inherit nvidia-module-open-620)
     (name "nvidia-module-open-new-feature")
     (version "615.78.08")
     (source
@@ -2206,7 +2203,7 @@ device files are present and configure certain runtime settings in the kernel.")
 
 (define-public nvidia-modprobe-new-feature
   (package
-    (inherit nvidia-modprobe-595)
+    (inherit nvidia-modprobe-620)
     (name "nvidia-modprobe-new-feature")
     (version "615.78.08")
     (source (origin
@@ -2399,7 +2396,7 @@ configuration, application profiles, GPU monitoring and more.")
 
 (define-public nvidia-settings-new-feature
   (package
-    (inherit nvidia-settings-595)
+    (inherit nvidia-settings-620)
     (name "nvidia-settings-new-feature")
     (version "615.78.08")
     (source

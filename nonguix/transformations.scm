@@ -169,6 +169,14 @@ DYNAMIC-BOOST? (default: #f) is supported on laptops since Ampere."
             (propagated-inputs '()))
           pkg)))
 
+  (when (eq? driver nvda-595)
+    ;; 2026-11
+    (warning
+     (G_ "'~a': '~a' is deprecated, please find latest supported driver in \
+Nonguix README.~%")
+     "nonguix-transformation-nvidia"
+     "nvda-595"))
+
   (define %driver
     (or (assoc-ref
          `((,nvda-beta
