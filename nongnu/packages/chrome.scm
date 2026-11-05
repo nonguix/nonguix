@@ -200,7 +200,7 @@
   (package
     (inherit (make-google-chrome "canary"))
     (name "google-chrome-canary")
-    (version "159.0.8134.0-1")
+    (version "159.0.8143.0-1")
     (source
      (origin
        (method url-fetch)
@@ -208,4 +208,4 @@
              "https://dl.google.com/linux/chrome/deb/pool/main/g/" name "/"
              name "_" version "_amd64.deb"))
        (sha256
-        (base32 "16qsvwf52c7rkpxcxais32zini3iywmkak4m9jl4bj3pz7dn9ylh"))))))
+        (base32 "02d9y106kh691h2hnl076na1f48glyybs0nak9rgf8zm1bl252gj"))))))
