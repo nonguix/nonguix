@@ -1,15 +1,51 @@
 ;;; SPDX-License-Identifier: GPL-3.0-or-later
 ;;; Copyright © 2024 Giacomo Leidi <goodoldpaul@autistici.org>
+;;; Copyright © 2026 Maxim Cournoyer <maxim@guixotic.coop>
 
 (define-module (nongnu packages node)
   #:use-module (gnu packages base)
   #:use-module (gnu packages bash)
   #:use-module (gnu packages node)
+  #:use-module (gnu packages node-xyz)
   #:use-module (guix build-system copy)
+  #:use-module (guix build-system node)
   #:use-module (guix download)
   #:use-module (guix gexp)
   #:use-module (guix packages)
   #:use-module ((guix licenses) :prefix license:))
+
+(define-public node-t1ckbase-vscode-langservers-extracted
+  (package
+    (name "node-t1ckbase-vscode-langservers-extracted")
+    (version "2.0.5")
+    (source
+     (origin
+       ;; Requires 'bun' to build, which fetches pre-built files from
+       ;; the https://github.com/microsoft/vscode/tree/main/extensions
+       ;; project, which requires 'gulp' to build.
+       (method url-fetch)
+       (uri (string-append
+             "https://registry.npmjs.org/@t1ckbase/vscode-langservers-extracted"
+             "/-/vscode-langservers-extracted-" version ".tgz"))
+       (sha256
+        (base32 "1bilhh4c7r7y746598gaymr7jk6vcr31v43lf1ml9ga4lijc2lnn"))))
+    (build-system node-build-system)
+    (arguments
+     (list
+      #:tests? #f                       ;requires 'bun'
+      #:phases
+      #~(modify-phases %standard-phases
+          (delete 'build)
+          (add-after 'patch-dependencies 'delete-dev-dependencies
+            (lambda _
+              (modify-json (delete-dev-dependencies)))))))
+    (native-inputs (list node-typescript))
+    (inputs (list node-vscode-markdown-languageserver))
+    (home-page "https://github.com/T1ckbase/vscode-langservers-extracted")
+    (synopsis "Language servers for CSS, HTML, JSON, Markdown and ESLint")
+    (description "This package provides the CSS, HTML, JSON and Markdown and
+ESLint language servers extracted from the Visual Studio Code sources.")
+    (license license:expat)))
 
 (define-public yarn
   (package
